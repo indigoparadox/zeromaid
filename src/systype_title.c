@@ -23,7 +23,6 @@ void sysloop_title( void ) {
 
    /* These are the surfaces for drawing the title screen. */
    GFX_SURFACE* ps_title_image = NULL;
-   GFX_SURFACE* ps_title_screen = NULL;
    GFX_RECTANGLE s_blit_dest;
    GFX_RECTANGLE s_blit_error;
 
@@ -32,12 +31,6 @@ void sysloop_title( void ) {
    ps_title_image = graphics_create_image( PATH_SHARE "/" FILE_TITLE );
    //p_surTitleText = new agfx::SurfaceCore( "Maid Quest", strTitleFont, 48, agfx::BLACK );
    //p_surSubtText  = new agfx::SurfaceCore( "Quest of the maid", strTitleFont, 18, agfx::BLACK );
-
-   ps_title_screen = graphics_create_blank(
-      ps_title_image->w,
-      ps_title_image->h
-   );
-   graphics_draw_blit( ps_title_image, ps_title_screen, NULL, NULL );
 
    // Setup the error message text, in case we need it.
    /* p_surErrorText = new agfx::SurfaceCore( "There was an error starting Maid Quest!", strTitleFont, 18, agfx::RED );
@@ -74,14 +67,12 @@ void sysloop_title( void ) {
          }
 
          /* Loop through and draw all on-screen items. */
-         graphics_draw_blit( ps_title_image, ps_title_screen, NULL, NULL );
+         graphics_draw_blit( ps_title_image, gps_screen, NULL, NULL );
 
          /* if( !bolTest ) {
             //p_scrScreen->do_blit( p_surErrorText, NULL, &rctBlitError );
             p_scrScreen->do_text( 50, 150, agfx::SMALLFONT, "There was an error starting Maid Quest!", strTitleFont, agfx::RED );
          } */
-
-         graphics_draw_blit( ps_title_screen, gps_screen, NULL, NULL );
 
          graphics_do_update( gps_screen );
 
@@ -121,7 +112,6 @@ void sysloop_title( void ) {
    // Clean up!
    event_timer_free( ps_fps );
    graphics_do_free( ps_title_image );
-   graphics_do_free( ps_title_screen );
 
    return;
 }

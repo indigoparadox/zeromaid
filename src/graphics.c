@@ -87,63 +87,6 @@ GFX_SURFACE* graphics_create_image( char* pc_path_in ) {
    return ps_image;
 }
 
-/* Purpose: Create a blank surface.                                           */
-/* Parameters: Width, height of the surface to create.                        */
-/* Return: A blank surface with the specified dimensions.                     */
-GFX_SURFACE* graphics_create_blank( int i_width_in, int i_height_in ) {
-   GFX_SURFACE* ps_blank = NULL;
-
-   #ifdef USESDL
-   /* Uint32 i_rmask, i_gmask, i_bmask, i_amask;
-
-   * Taken from the SDL examples: SDL interprets each pixel as a 32-bit      *
-    * number, so our masks must depend on the endianness of the machine.      *
-   #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-      i_rmask = 0xff000000;
-      i_gmask = 0x00ff0000;
-      i_bmask = 0x0000ff00;
-      i_amask = 0x000000ff;
-   #else
-      i_rmask = 0x000000ff;
-      i_gmask = 0x0000ff00;
-      i_bmask = 0x00ff0000;
-      i_amask = 0xff000000;
-   #endif
-
-   ps_blank = SDL_CreateRGBSurface(
-      SDL_HWSURFACE,
-      i_width_in,
-      i_height_in,
-      i_depth_in,
-      i_rmask,
-      i_gmask,
-      i_bmask,
-      i_amask
-   ); */
-   //printf( "%d", i_depth_in );
-   //fflush( stdout );
-   SDL_Surface* ps_screen = SDL_GetVideoSurface();
-   ps_blank = SDL_CreateRGBSurface(
-      SDL_HWSURFACE,
-      i_width_in,
-      i_height_in,
-      ps_screen->format->BitsPerPixel,
-		ps_screen->format->Rmask,
-		ps_screen->format->Gmask,
-      ps_screen->format->Bmask,
-      ps_screen->format->Amask
-   );
-   #else
-   #error "No blank surface mechanism defined for this platform!"
-   #endif /* USESDL */
-
-   if( NULL == ps_blank ) {
-      DBG_ERR( "Unable to create graphics surface!" );
-   }
-
-   return ps_blank;
-}
-
 /* Purpose: Blit from surface to another.                                     */
 /* Parameters: Source and destination surfaces, source and destination        *
  *             regions.                                                       */
