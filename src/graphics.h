@@ -24,15 +24,18 @@
 #ifdef USESDL
 #ifdef __APPLE__
    #include <SDL/SDL.h>
-   //#include <SDL_ttf/SDL_ttf.h>
+   #include <SDL_ttf/SDL_ttf.h>
 #elif defined __unix__
    #include <SDL/SDL.h>
-   //#include <SDL/SDL_ttf.h>
+   #include <SDL/SDL_ttf.h>
 #else
    #include <SDL.h>
-   //#include <SDL_ttf.h>
+   #include <SDL_ttf.h>
 #endif /* __APPLE__, __unix__ */
-#endif /* USESDL */
+#elif defined _ARCH_PPCGR
+/* Nintendo Wii */
+#include <MLlib.h>
+#endif /* USESDL, _ARCH_PPCGR */
 
 #include "defines.h"
 
@@ -55,26 +58,36 @@
 #ifdef USESDL
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
+typedef SDL_Color GFX_COLOR;
+#elif defined USEWII
+typedef struct {
+   ML_Image* ps_spritedata;
+   ML_Sprite* ps_sprite;
+} GFX_SURFACE;
+typedef struct {
+   int x, y, w, h;
+} GFX_RECTANGLE;
+// XXX
+typedef void GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
-#endif /* USESDL */
+#endif /* USESDL, USEWII */
 
 /* = Global Variables = */
 
 GFX_RECTANGLE gs_viewport;
-GFX_SURFACE* gps_screen;
 
 /* = Function Prototypes = */
 
 GFX_SURFACE* graphics_create_screen( int, int, int, char* );
 GFX_SURFACE* graphics_create_image( char* );
-GFX_SURFACE* graphics_create_blank( int, int );
-GFX_SURFACE* graphics_draw_text( char*, char*, int, int );
+/* GFX_SURFACE* graphics_create_blank( int, int ); */
+GFX_SURFACE* graphics_draw_text( char*, char*, int, GFX_COLOR* );
 void graphics_draw_blit( GFX_SURFACE*, GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blank( GFX_SURFACE*, int, int );
 /* void graphics_draw_fadein( GFX_SURFACE *, GFX_SURFACE*, int );
 void graphics_draw_fadeout( GFX_SURFACE *, GFX_SURFACE*, int ); */
-void graphics_do_update( GFX_SURFACE* );
+void graphics_do_update( void );
 void graphics_do_free( GFX_SURFACE* );
 
 #endif /* GRAPHICS_H */

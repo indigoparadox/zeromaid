@@ -46,11 +46,18 @@ GFX_SURFACE* graphics_create_screen(
 
    SDL_WM_SetCaption( pc_title_in, pc_title_in );
 
-   gs_viewport.w = i_width_in;
-   gs_viewport.h = i_height_in;
+   #elif defined USEWII
+   /* Nintendo Wii doesn't have a screen object. It does have some things to  *
+    * take care of, though.                                                   */
+   ML_Init();
+	ML_SplashScreen();
    #else
    #error "No screen-getting mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEWII */
+
+   /* Setup platform-agnostic screen accessories. */
+   gs_viewport.w = i_width_in;
+   gs_viewport.h = i_height_in;
 
    return ps_screen;
 }
@@ -80,14 +87,60 @@ GFX_SURFACE* graphics_create_image( char* pc_path_in ) {
       /* char* ac_dbg = "Failed to load image: " pc_path_in;
       DBGERR( ac_dbg ); */
    }
+   #elif defined USEWII
+
+   /* Allocate space for the sprite and its data. */
+   ps_image = malloc( sizeof( GFX_SURFACE ) );
+   if( NULL == ps_image ) {
+      DBG_ERR( "Unable to allocate memory for sprite!" );
+      return NULL;
+   }
+
+   /* We can assume the sprite is allocated for, so get things ready. */
+   memset( ps_image, 0, sizeof( GFX_SURFACE ) );
+   ML_LoadSpriteFromBuffer(
+      ps_image->ps_spritedata,
+      ps_image->ps_sprite,
+      (const u8*)pc_path_in,
+      0,
+      0
+   );
    #else
-   #error "No screen-getting mechanism defined for this platform!"
-   #endif /* USESDL */
+   #error "No image loading mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
 
    return ps_image;
 }
 
-/* Purpose: Blit from surface to another.                                     */
+/* Purpose: Render a given text string into an image surface.                 */
+/* Parameters: String to render, font name, point size, render color.         */
+GFX_SURFACE* graphics_draw_text(
+   char* pc_string_in, char* pc_font_name_in, int i_size_in, GFX_COLOR* ps_color_in
+) {
+   GFX_SURFACE* ps_type_render_out = NULL;
+
+   #ifdef USESDL
+   TTF_Font *ps_font = TTF_OpenFont( pc_font_name_in, i_size_in );
+   if( NULL == ps_font ) {
+      /* TODO: Add the bad font name to the error message. */
+      DBG_ERR( "Unable to load font!" );
+      return NULL;
+   }
+
+   ps_type_render_out = TTF_RenderText_Solid(
+      ps_font, pc_string_in, *ps_color_in
+   );
+   TTF_CloseFont( ps_font );
+
+   #else
+   // XXX #error "No text rendering mechanism defined for this platform!"
+   #endif /* USESDL */
+
+   return ps_type_render_out;
+}
+
+/* Purpose: Blit from surface to the screen. We should never be blitting from *
+ *          surface to surface otherwise anyway.                              */
 /* Parameters: Source and destination surfaces, source and destination        *
  *             regions.                                                       */
 void graphics_draw_blit(
@@ -103,25 +156,32 @@ void graphics_draw_blit(
    }
 
    if( NULL == ps_dest_in ) {
-      DBG_OUT( "Attempted to blit to NULL destination!" );
-      return;
+      /* If the destination is NULL then assume we mean the screen. */
+      ps_dest_in = SDL_GetVideoSurface();
    }
 
    /* No problems, blit! */
    SDL_BlitSurface( ps_src_in, ps_srcreg_in, ps_dest_in, ps_destreg_in );
+   #elif defined USEWII
+   /* Nintendo Wii can't blit image to image? Just assume all blits are       *
+    * screen blits for now.                                                   */
+   /* TODO: Surface-to-surface blits. */
+   ML_DrawSprite( ps_src_in->ps_sprite );
    #else
    #error "No blitting mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEWII */
 }
 
-/* Purpose: Flip the given surface buffer.                                    */
-/* Parameters: The surface to update.                                         */
-void graphics_do_update( GFX_SURFACE* ps_surface_in ) {
+/* Purpose: Flip the screen surface buffer.                                   */
+void graphics_do_update( void ) {
    #ifdef USESDL
-   SDL_Flip( ps_surface_in );
+   GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
+   SDL_Flip( ps_screen );
+   #elif defined USEWII
+   ML_Refresh();
    #else
    #error "No surface flipping mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEWII */
 }
 
 /* Purpose: Free the given surface buffer.                                    */
@@ -129,7 +189,12 @@ void graphics_do_update( GFX_SURFACE* ps_surface_in ) {
 void graphics_do_free( GFX_SURFACE* ps_surface_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
+   #elif defined USEWII
+   /* TODO: Does this work? */
+   free( ps_surface_in->ps_spritedata );
+   free( ps_surface_in->ps_sprite );
+   free( ps_surface_in );
    #else
-   #error "No surface flipping mechanism defined for this platform!"
-   #endif /* USESDL */
+   #error "No surface freeing mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
 }

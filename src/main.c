@@ -39,22 +39,22 @@
 #include "defines.h"
 #include "graphics.h"
 #include "systype_title.h"
-
-extern GFX_SURFACE* gps_screen;
+#include "systype_adventure.h"
 
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
 
    DBG_OUT( "Setting up the screen..." );
-   gps_screen = graphics_create_screen(
+   graphics_create_screen(
       GFX_SCREENWIDTH,
       GFX_SCREENHEIGHT,
       GFX_SCREENDEPTH,
-      "Maid Quest"
+      SYSTEM_TITLE
    );
-   sysloop_title();
 
+   /* sysloop_title(); */
+   sysloop_adventure();
 
    return 0;
 }
