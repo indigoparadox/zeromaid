@@ -17,6 +17,11 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+/* = Includes = */
+
+#include <stdio.h>
+#include "bstring\bstrlib.h"
+
 /* = Macros = */
 
 /* The path separator is different on Windows! */
@@ -26,11 +31,25 @@
 #define FILE_SHORT ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
 #endif /* WIN32 */
 
-#define DBG_OUT( msg ) \
-   printf( "%s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+/* The debug macros use normal C strings instead of bstrings since they'll    *
+ * usually be printing literals and there are some tricky deallocation issues *
+ * otherwise.                                                                 */
 
+/* Print a debug message. */
+#define DBG_OUT( msg ) \
+   fprintf( stdout, "%s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+
+/* Print an error message. */
 #define DBG_ERR( msg ) \
    fprintf( stderr, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+
+#ifdef USESDL
+/* Convert a standard color to SDL color. */
+#define CONV_COLOR_SDL( color_sdl, color_std ) \
+   color_sdl.r = color_std->r; \
+   color_sdl.g = color_std->g; \
+   color_sdl.b = color_std->b;
+#endif /* USESDL */
 
 /* = Definitions = */
 

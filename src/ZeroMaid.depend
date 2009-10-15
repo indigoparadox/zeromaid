@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1255554769 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
+1255602849 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
 	<stdlib.h>
 	<SDL/SDL.h>
 	<SDL_mixer/SDL_mixer.h>
@@ -207,17 +207,18 @@
 1151385462 c:\lib\sdl\include\sdl_byteorder.h
 	"SDL_endian.h"
 
-1255475918 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
-
-1255557121 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
+1255598535 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
 	<stdio.h>
+	"bstring\bstrlib.h"
+
+1255603762 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
 	<SDL/SDL.h>
 	<SDL_ttf/SDL_ttf.h>
 	<SDL/SDL.h>
 	<SDL/SDL_ttf.h>
 	<SDL.h>
 	<SDL_ttf.h>
-	<MLlib.h>
+	<grrlib.h>
 	"defines.h"
 
 1147875676 c:\lib\sdl\include\sdl_ttf.h
@@ -225,7 +226,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1255486278 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
+1255603678 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
 	"systype_title.h"
 
 1255472353 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.h
@@ -234,35 +235,32 @@
 	"graphics.h"
 	"event.h"
 
-1255556701 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
+1255603823 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
 	"graphics.h"
 
 1249375916 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\resource.rc
 
-1255556714 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
-	<stdio.h>
+1255605278 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
 	<time.h>
 	<SDL/SDL.h>
 	<SDL/SDL.h>
 	<SDL.h>
-	<MLlib.h>
+	<grrlib.h>
 	"defines.h"
 
-1255556724 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
+1255604684 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
 	"event.h"
 
 1255554770 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
 	"systype_adventure.h"
 
-1255554770 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.h
-	<stdio.h>
+1255595628 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.h
 	"defines.h"
 	"graphics.h"
 	"event.h"
 	"tilemap.h"
 
-1255554770 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.h
-	<stdio.h>
+1255595639 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.h
 	"defines.h"
 	"graphics.h"
 	"event.h"
@@ -362,4 +360,81 @@
 	<malloc.h>
 	<time.h>
 	<dos.h>
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib.h
+	<gccore.h>
+	"grrlib/GRRLIB__lib.h"
+	"grrlib/GRRLIB__inline.h"
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib__lib.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib__inline.h
+	<grrlib/GRRLIB_cExtn.h>
+	<grrlib/GRRLIB_clipping.h>
+	<grrlib/GRRLIB_collision.h>
+	<grrlib/GRRLIB_fbComplex.h>
+	<grrlib/GRRLIB_fbGX.h>
+	<grrlib/GRRLIB_fbSimple.h>
+	<grrlib/GRRLIB_handle.h>
+	<grrlib/GRRLIB_pixel.h>
+	<grrlib/GRRLIB_settings.h>
+	<grrlib/GRRLIB_texSetup.h>
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_cextn.h
+	<math.h>
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_clipping.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_collision.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_fbcomplex.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_fbgx.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_fbsimple.h
+	<math.h>
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_handle.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_pixel.h
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_settings.h
+	<grrlib.h>
+
+1255594379 c:\lib\devkitpro\grrlib\include\grrlib\grrlib_texsetup.h
+	<malloc.h>
+	<pngu.h>
+	<stdio.h>
+	<string.h>
+	<jpeglib.h>
+
+1255594033 c:\lib\devkitpro\grrlib\include\pngu.h
+
+1255594029 c:\lib\devkitpro\grrlib\include\jpeglib.h
+	<stddef.h>
+	<stdio.h>
+	"jconfig.h"
+	"jmorecfg.h"
+	"jpegint.h"
+	"jerror.h"
+
+1255594029 c:\lib\devkitpro\grrlib\include\jconfig.h
+
+1255594029 c:\lib\devkitpro\grrlib\include\jmorecfg.h
+
+1207375148 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\bstring\bstrlib.h
+	<stdarg.h>
+	<string.h>
+	<limits.h>
+	<ctype.h>
+
+1207375208 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\bstring\bstrlib.c
+	<stdio.h>
+	<stddef.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	"bstrlib.h"
+	"memdbg.h"
 

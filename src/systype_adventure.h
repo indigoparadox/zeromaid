@@ -19,8 +19,6 @@
 
 /* = Includes = */
 
-#include <stdio.h>
-
 #include "defines.h"
 #include "graphics.h"
 #include "event.h"

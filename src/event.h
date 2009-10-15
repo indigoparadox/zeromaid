@@ -19,7 +19,6 @@
 
 /* = Includes = */
 
-#include <stdio.h>
 #include <time.h>
 
 #ifdef USESDL
@@ -31,7 +30,7 @@
    #include <SDL.h>
 #endif /* __APPLE__, __unix__ */
 #elif defined USEWII
-#include <MLlib.h>
+#include <grrlib.h>
 #endif /* USESDL, USEWII */
 
 #include "defines.h"

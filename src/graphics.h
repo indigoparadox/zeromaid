@@ -19,8 +19,6 @@
 
 /* = Includes = */
 
-#include <stdio.h>
-
 #ifdef USESDL
 #ifdef __APPLE__
    #include <SDL/SDL.h>
@@ -32,10 +30,10 @@
    #include <SDL.h>
    #include <SDL_ttf.h>
 #endif /* __APPLE__, __unix__ */
-#elif defined _ARCH_PPCGR
+#elif defined USEWII
 /* Nintendo Wii */
-#include <MLlib.h>
-#endif /* USESDL, _ARCH_PPCGR */
+#include <grrlib.h>
+#endif /* USESDL, USEWII */
 
 #include "defines.h"
 
@@ -58,20 +56,23 @@
 #ifdef USESDL
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
-typedef SDL_Color GFX_COLOR;
 #elif defined USEWII
-typedef struct {
-   ML_Image* ps_spritedata;
-   ML_Sprite* ps_sprite;
-} GFX_SURFACE;
+typedef GRRLIB_texImg GFX_SURFACE;
 typedef struct {
    int x, y, w, h;
 } GFX_RECTANGLE;
-// XXX
-typedef void GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEWII */
+
+typedef struct {
+   unsigned int r, g, b, a;
+} GFX_COLOR;
+
+typedef struct {
+   GFX_SURFACE* image;
+   unsigned int tile_size;
+} GFX_TILESET;
 
 /* = Global Variables = */
 
@@ -79,15 +80,18 @@ GFX_RECTANGLE gs_viewport;
 
 /* = Function Prototypes = */
 
-GFX_SURFACE* graphics_create_screen( int, int, int, char* );
-GFX_SURFACE* graphics_create_image( char* );
+GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
+GFX_SURFACE* graphics_create_image( bstring );
+GFX_TILESET* graphics_create_tileset( bstring, int );
 /* GFX_SURFACE* graphics_create_blank( int, int ); */
-GFX_SURFACE* graphics_draw_text( char*, char*, int, GFX_COLOR* );
-void graphics_draw_blit( GFX_SURFACE*, GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blank( GFX_SURFACE*, int, int );
+void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
+void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
+void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
+void graphics_draw_blank( int );
 /* void graphics_draw_fadein( GFX_SURFACE *, GFX_SURFACE*, int );
 void graphics_draw_fadeout( GFX_SURFACE *, GFX_SURFACE*, int ); */
 void graphics_do_update( void );
-void graphics_do_free( GFX_SURFACE* );
+void graphics_free_image( GFX_SURFACE* );
+void graphics_free_tileset( GFX_TILESET* );
 
 #endif /* GRAPHICS_H */

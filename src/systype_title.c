@@ -28,7 +28,9 @@ void sysloop_title( void ) {
 
    /* Setup the loading title and image, then blit them onto one surface. */
    DBG_OUT( "Setting up the title image..." );
-   ps_title_image = graphics_create_image( PATH_SHARE "/" FILE_TITLE );
+   bstring ps_path_title = cstr2bstr( PATH_SHARE "/" FILE_TITLE );
+   ps_title_image = graphics_create_image( ps_path_title );
+   bdestroy( ps_path_title );
    //p_surTitleText = new agfx::SurfaceCore( "Maid Quest", strTitleFont, 48, agfx::BLACK );
    //p_surSubtText  = new agfx::SurfaceCore( "Quest of the maid", strTitleFont, 18, agfx::BLACK );
 
@@ -67,7 +69,7 @@ void sysloop_title( void ) {
          }
 
          /* Loop through and draw all on-screen items. */
-         graphics_draw_blit( ps_title_image, NULL, NULL, NULL );
+         graphics_draw_blit_tile( ps_title_image, NULL, NULL );
 
          /* if( !bolTest ) {
             //p_scrScreen->do_blit( p_surErrorText, NULL, &rctBlitError );
@@ -114,7 +116,7 @@ void sysloop_title( void ) {
 
    // Clean up!
    event_timer_free( ps_fps );
-   graphics_do_free( ps_title_image );
+   graphics_free_image( ps_title_image );
 
    return;
 }
