@@ -46,15 +46,21 @@
 int main( int argc, char* argv[] ) {
 
    DBG_OUT( "Setting up the screen..." );
+   bstring ps_title = cstr2bstr( SYSTEM_TITLE );
    graphics_create_screen(
       GFX_SCREENWIDTH,
       GFX_SCREENHEIGHT,
       GFX_SCREENDEPTH,
-      SYSTEM_TITLE
+      ps_title
    );
+   bdestroy( ps_title );
 
-   /* sysloop_title(); */
+   // sysloop_title();
    sysloop_adventure();
+
+   #ifdef USEWII
+   GRRLIB_Exit();
+   #endif /* USEWII */
 
    return 0;
 }

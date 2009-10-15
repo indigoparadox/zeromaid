@@ -82,10 +82,9 @@ void event_do_poll( EVENT_EVENT* ps_event_in ) {
    #ifdef USESDL
    SDL_PollEvent( ps_event_in );
    #elif defined USEWII
-   /* Nintendo Wii */
-   if( Wiimote[0].Newpress.Two ) {
-      ps_event_in->type = EVENT_ID_QUIT;
-   }
+   /* PAD_ScanPads();
+   const u16 i_buttons = PAD_ButtonsHeld( 0 ); */
+   // XXX: Actually handle input.
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
