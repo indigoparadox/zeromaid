@@ -52,8 +52,8 @@ void sysloop_title( void ) {
 
          /* Listen for events. */
          event_do_poll( &s_event );
-         switch( s_event.i_event_type ) {
-            case EVT_QUIT:
+         switch( s_event.type ) {
+            case EVENT_ID_QUIT:
                i_command = COMMAND_QUIT;
                break;
 
@@ -67,14 +67,17 @@ void sysloop_title( void ) {
          }
 
          /* Loop through and draw all on-screen items. */
-         graphics_draw_blit( ps_title_image, gps_screen, NULL, NULL );
+         graphics_draw_blit( ps_title_image, NULL, NULL, NULL );
 
          /* if( !bolTest ) {
             //p_scrScreen->do_blit( p_surErrorText, NULL, &rctBlitError );
             p_scrScreen->do_text( 50, 150, agfx::SMALLFONT, "There was an error starting Maid Quest!", strTitleFont, agfx::RED );
          } */
 
-         graphics_do_update( gps_screen );
+         /* GFX_COLOR = GFX_RED;
+         graphics_draw_text( "There was an error starting Maid Quest!", "Arial", 10,  ); */
+
+         graphics_do_update();
 
          while( GFX_FPS > ps_fps->i_ticks_start );
       }

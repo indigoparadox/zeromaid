@@ -14,37 +14,20 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef TILEMAP_H
+#define TILEMAP_H
 
-/* = Macros = */
+/* = Includes = */
 
-/* The path separator is different on Windows! */
-#ifdef WIN32
-#define FILE_SHORT ((strrchr(__FILE__, '\\') ? : __FILE__- 1) + 1)
-#else
-#define FILE_SHORT ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
-#endif /* WIN32 */
+#include <stdio.h>
 
-#define DBG_OUT( msg ) \
-   printf( "%s,%d: %s\n", FILE_SHORT, __LINE__, msg );
-
-#define DBG_ERR( msg ) \
-   fprintf( stderr, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+#include "defines.h"
+#include "graphics.h"
+#include "event.h"
 
 /* = Definitions = */
 
-#define SYSTEM_TITLE "ZeroMaid"
+/* = Function Prototypes = */
 
-#define FALSE 0
-#define TRUE 1
+#endif /* TILEMAP_H */
 
-#define PATH_SHARE "../share"
-
-#define SYSTYPE_TITLE 1
-
-/* = Global Variables = */
-
-
-
-#endif /* DEFINES_H */

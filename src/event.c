@@ -44,11 +44,7 @@ void event_timer_start( EVENT_TIMER* ps_timer_in ) {
    ps_timer_in->i_bol_started = TRUE;
    ps_timer_in->i_bol_paused = FALSE;
 
-   #ifdef USESDL
-   ps_timer_in->i_ticks_start = SDL_GetTicks();
-   #else
-   #error "No timer mechanism defined for this platform!"
-   #endif /* USESDL */
+   ps_timer_in->i_ticks_start = EVENT_TIMER_TICKS;
 }
 
 /* Purpose: Stop a given timer.                                               */
@@ -65,7 +61,7 @@ void event_timer_pause( EVENT_TIMER* ps_timer_in ) {
    if( ps_timer_in->i_bol_started && !ps_timer_in->i_bol_paused ) {
       ps_timer_in->i_bol_paused = TRUE;
       ps_timer_in->i_ticks_paused =
-         SDL_GetTicks() - ps_timer_in->i_ticks_start;
+         EVENT_TIMER_TICKS - ps_timer_in->i_ticks_start;
    }
 }
 
@@ -75,7 +71,7 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
    if( ps_timer_in->i_bol_paused ) {
       ps_timer_in->i_bol_paused = FALSE;
       ps_timer_in->i_ticks_start =
-         SDL_GetTicks() - ps_timer_in->i_ticks_paused;
+         EVENT_TIMER_TICKS - ps_timer_in->i_ticks_paused;
       ps_timer_in->i_ticks_paused = 0;
    }
 }
@@ -84,10 +80,13 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 /* Parameters: An event value in which to store input.                        */
 void event_do_poll( EVENT_EVENT* ps_event_in ) {
    #ifdef USESDL
-   SDL_Event s_event_temp;
-   SDL_PollEvent( &s_event_temp );
-   ps_event_in->i_event_type = s_event_temp.type;
+   SDL_PollEvent( ps_event_in );
+   #elif defined USEWII
+   /* Nintendo Wii */
+   if( Wiimote[0].Newpress.Two ) {
+      ps_event_in->type = EVENT_ID_QUIT;
+   }
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEWII */
 }

@@ -20,6 +20,7 @@
 /* = Includes = */
 
 #include <stdio.h>
+#include <time.h>
 
 #ifdef USESDL
 #ifdef __APPLE__
@@ -29,17 +30,32 @@
 #else
    #include <SDL.h>
 #endif /* __APPLE__, __unix__ */
-#endif /* USESDL */
+#elif defined USEWII
+#include <MLlib.h>
+#endif /* USESDL, USEWII */
 
 #include "defines.h"
 
 /* = Definitions = */
 
 #ifdef USESDL
-#define EVT_QUIT SDL_QUIT
+#define EVENT_ID_QUIT SDL_QUIT
+#elif defined _ARCH_PPCGR
+#define EVENT_ID_QUIT 0
 #else
 #error "No event types defined for this platform!"
-#endif /* USESDL */
+#endif /* USESDL, _ARCH_PPCGR */
+
+/* #ifdef USESDL
+#define EVENT_TIMER_TICKS SDL_GetTicks()
+#elif defined _ARCH_PPCGR
+// XXX
+#define EVENT_TIMER_TICKS 0
+#else
+#error "No timer mechanism defined for this platform!"
+#endif */ /* USESDL, _ARCH_PPCGR */
+
+#define EVENT_TIMER_TICKS time( NULL )
 
 /* = Type and Struct Definitions = */
 
@@ -50,10 +66,16 @@ typedef struct {
    int i_bol_paused;
 } EVENT_TIMER;
 
+#ifdef USESDL
+typedef SDL_Event EVENT_EVENT;
+#elif defined _ARCH_PPCGR
+/* Nintendo Wii */
 typedef struct {
-   int i_event_type;
-   int i_event_key;
+   int type;
 } EVENT_EVENT;
+#else
+#error "No event entity defined for this platform!"
+#endif /* USESDL, _ARCH_PPCGR */
 
 /* = Function Prototypes = */
 

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1255467796 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
+1255554769 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
 	<stdlib.h>
 	<SDL/SDL.h>
 	<SDL_mixer/SDL_mixer.h>
@@ -11,6 +11,7 @@
 	"defines.h"
 	"graphics.h"
 	"systype_title.h"
+	"systype_adventure.h"
 
 1151385464 c:\lib\sdl\include\sdl.h
 	"SDL_main.h"
@@ -206,13 +207,17 @@
 1151385462 c:\lib\sdl\include\sdl_byteorder.h
 	"SDL_endian.h"
 
-1255471216 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
+1255475918 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
 
-1255474943 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
+1255557121 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
 	<stdio.h>
 	<SDL/SDL.h>
+	<SDL_ttf/SDL_ttf.h>
 	<SDL/SDL.h>
+	<SDL/SDL_ttf.h>
 	<SDL.h>
+	<SDL_ttf.h>
+	<MLlib.h>
 	"defines.h"
 
 1147875676 c:\lib\sdl\include\sdl_ttf.h
@@ -220,7 +225,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1255474982 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
+1255486278 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
 	"systype_title.h"
 
 1255472353 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.h
@@ -229,18 +234,132 @@
 	"graphics.h"
 	"event.h"
 
-1255475213 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
+1255556701 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
 	"graphics.h"
 
 1249375916 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\resource.rc
 
-1255472957 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
+1255556714 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
 	<stdio.h>
+	<time.h>
 	<SDL/SDL.h>
 	<SDL/SDL.h>
 	<SDL.h>
+	<MLlib.h>
 	"defines.h"
 
-1255472971 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
+1255556724 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
 	"event.h"
+
+1255554770 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
+	"systype_adventure.h"
+
+1255554770 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.h
+	<stdio.h>
+	"defines.h"
+	"graphics.h"
+	"event.h"
+	"tilemap.h"
+
+1255554770 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.h
+	<stdio.h>
+	"defines.h"
+	"graphics.h"
+	"event.h"
+
+1255554770 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.c
+	"tilemap.h"
+
+1255540130 c:\lib\devkitpro\mllib\include\mllib.h
+	<unistd.h>
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<string.h>
+	<malloc.h>
+	<network.h>
+	<errno.h>
+	<math.h>
+	<gccore.h>
+	<ogcsys.h>
+	<ogc/ios.h>
+	<ogc/ipc.h>
+	<mp3player.h>
+	<asndlib.h>
+	<gcmodplay.h>
+	<time.h>
+	<sys/time.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<wiiuse/wpad.h>
+	<fat.h>
+	<wchar.h>
+	<png/png.h>
+	"ML_define.h"
+	"globals.h"
+	"ML_draw.h"
+	"ML_time.h"
+	"ML_init.h"
+	"ML_system.h"
+	"ML_video.h"
+	"ML_sprites.h"
+	"ML_input.h"
+	"ML_mp3player.h"
+	"ML_modplayer.h"
+	"ML_backgrounds.h"
+	"ML_images.h"
+	"PNG.h"
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_define.h
+
+1255540130 c:\lib\devkitpro\mllib\include\globals.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_draw.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_time.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_init.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_system.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_video.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_sprites.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_input.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_mp3player.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_modplayer.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_backgrounds.h
+
+1255540130 c:\lib\devkitpro\mllib\include\ml_images.h
+
+1255540130 c:\lib\devkitpro\mllib\include\png.h
+
+1210244284 c:\lib\devkitpro\libpng\include\png\png.h
+	"zlib.h"
+	"pngconf.h"
+	<crtdbg.h>
+
+1210244284 c:\lib\devkitpro\libpng\include\png\pngconf.h
+	"pngusr.h"
+	"config.h"
+	<windows.h>
+	<stdio.h>
+	<stdio.h>
+	<sys/types.h>
+	<setjmp.h>
+	<strings.h>
+	<string.h>
+	<stdlib.h>
+	<fp.h>
+	<math.h>
+	<m68881.h>
+	<mem.h>
+	<alloc.h>
+	<malloc.h>
+	<time.h>
+	<dos.h>
 

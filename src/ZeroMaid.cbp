@@ -13,6 +13,7 @@
 				<Option object_output="..\obj\Debug-Windows-i686-SDL" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
@@ -22,8 +23,9 @@
 					<Add directory="$(#sdl)\include" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
 					<Add option="-pg -lgmon" />
+					<Add option="-pg" />
+					<Add library="mingw32" />
 					<Add library="SDLmain" />
 					<Add library="SDL.dll" />
 					<Add library="user32" />
@@ -32,8 +34,35 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
-					<Add library="SDL_net" />
+					<Add directory="$(#sdl)\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release-Windows-i686-SDL">
+				<Option platforms="Windows;" />
+				<Option output="..\bin\Release-Windows-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\share" />
+				<Option object_output="..\obj\Release-Windows-i686-SDL" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DUSESDL" />
+					<Add option="-DUSEMUSIC" />
+					<Add directory="$(#sdl)\include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-pg" />
 					<Add library="mingw32" />
+					<Add library="SDLmain" />
+					<Add library="SDL.dll" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winmm" />
+					<Add library="dxguid" />
+					<Add library="SDL_mixer" />
+					<Add library="SDL_ttf" />
 					<Add directory="$(#sdl)\lib" />
 				</Linker>
 			</Target>
@@ -58,24 +87,6 @@
 					<Add library="alleg" />
 					<Add library="mingw32" />
 					<Add directory="$(#allegro)\lib" />
-				</Linker>
-			</Target>
-			<Target title="Debug-DOS-i386-Allegro">
-				<Option output="..\bin\Debug-DOS-i386-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="..\share" />
-				<Option object_output="..\obj\Debug-DOS-i386-Allegro" />
-				<Option type="1" />
-				<Option compiler="djgpp_compiler" />
-				<Compiler>
-					<Add option="-pg" />
-					<Add option="-g" />
-					<Add option="-DUSEDEBUG" />
-					<Add option="-DUSEALLEGRO" />
-					<Add option="-DUSEMUSIC" />
-				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
-					<Add library="alleg" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-Allegro">
@@ -122,6 +133,65 @@
 					<Add library="SDL_image" />
 				</Linker>
 			</Target>
+			<Target title="Debug-DOS-i386-Allegro">
+				<Option output="..\bin\Debug-DOS-i386-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\share" />
+				<Option object_output="..\obj\Debug-DOS-i386-Allegro" />
+				<Option type="1" />
+				<Option compiler="djgpp_compiler" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-DUSEDEBUG" />
+					<Add option="-DUSEALLEGRO" />
+					<Add option="-DUSEMUSIC" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="alleg" />
+				</Linker>
+			</Target>
+			<Target title="Release-Wii-PPC-DKPWin">
+				<Option platforms="Windows;" />
+				<Option output="..\bin\Release-Wii-PPC-DKPWin\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\share" />
+				<Option object_output="..\obj\Release-Wii-PPC-DKPWin" />
+				<Option type="1" />
+				<Option compiler="devkitpro_wii_ppc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="C:\lib\devkitPro\MLlib\lib\libMLlib.a" />
+					<Add library="C:\lib\devkitPro\MLlib\lib\libpng.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libogc.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libfat.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libasnd.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libbte.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdb.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdi.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libiso9660.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libmad.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libtinysmb.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiikeyboard.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiiuse.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libz.a" />
+					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+				</Linker>
+			</Target>
+			<Target title="Debug-Windows-i686-DirectX">
+				<Option output="ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="microsoft_visual_c_2008" />
+				<Compiler>
+					<Add option="/Wall" />
+					<Add option="/Zi /D_DEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="/DEBUG" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -129,32 +199,45 @@
 			<Add directory="..\..\Common\include" />
 			<Add directory="C:\Program Files\Development\lib\boost_1_34_1" />
 		</Compiler>
-		<Unit filename="..\..\Common\include\alib_gfx.hpp" />
 		<Unit filename="..\bin\Windows\Debug-SDL\stderr.txt">
-			<Option target="Debug-Windows-i686-SDL" />
-			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="..\bin\Windows\Debug-SDL\stdout.txt">
-			<Option target="Debug-Windows-i686-SDL" />
-			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="defines.h" />
-		<Unit filename="main.c" />
+		<Unit filename="event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="event.h" />
+		<Unit filename="graphics.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="graphics.h" />
-		<Unit filename="graphics.c" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Debug-Windows-i686-SDL" />
 			<Option target="Debug-Windows-i686-Allegro" />
 			<Option target="Release-Windows-i686-Allegro" />
 			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-DirectX" />
 		</Unit>
-		<Unit filename="tinyxml\tinystr.cpp" />
-		<Unit filename="tinyxml\tinystr.h" />
-		<Unit filename="tinyxml\tinyxml.cpp" />
-		<Unit filename="tinyxml\tinyxml.h" />
-		<Unit filename="tinyxml\tinyxmlerror.cpp" />
-		<Unit filename="tinyxml\tinyxmlparser.cpp" />
+		<Unit filename="systype_adventure.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_adventure.h" />
+		<Unit filename="systype_title.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_title.h" />
+		<Unit filename="tilemap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tilemap.h" />
 		<Extensions>
 			<code_completion />
 			<envvars set="default" />
