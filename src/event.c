@@ -85,6 +85,8 @@ void event_do_poll( EVENT_EVENT* ps_event_in ) {
    /* PAD_ScanPads();
    const u16 i_buttons = PAD_ButtonsHeld( 0 ); */
    // XXX: Actually handle input.
+   #elif defined USEDIRECTX
+   // XXX
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USESDL, USEWII */

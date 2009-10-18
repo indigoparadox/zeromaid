@@ -31,11 +31,14 @@
    #include <SDL_ttf.h>
 #endif /* __APPLE__, __unix__ */
 #elif defined USEWII
-/* Nintendo Wii */
 #include <grrlib.h>
+#elif defined USEDIRECTX
+#include <windows.h>
+#include <ddraw.h>
 #endif /* USESDL, USEWII */
 
 #include "defines.h"
+#include "util.h"
 
 /* = Definitions = */
 
@@ -46,10 +49,12 @@
 #define GFX_SCREENHEIGHT 480
 #define GFX_SCREENDEPTH 16
 
-#define GFX_BLACK 0
-#define GFX_GREY 1
-#define GFX_WHITE 2
-#define GFX_RED 3
+#define GFX_FADE_IN 0
+#define GFX_FADE_OUT 1
+
+#define GFX_ALPHA_MAX 255
+#define GFX_ALPHA_FADE_INC 25
+#define GFX_ALPHA_FADE_STEP 50
 
 /* = Type and Struct Definitions = */
 
@@ -63,13 +68,22 @@ typedef struct {
    int x, y, w, h;
 } GFX_RECTANGLE;
 typedef u32 GFX_COLOR;
+#elif defined USEDIRECTX
+typedef IDirectDrawSurface7 GFX_SURFACE;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEWII */
 
+typedef struct _GFX_TILEDATA {
+   unsigned int gid, hindrance;
+   unsigned short int animated;
+   struct _GFX_TILEDATA* tile_next;
+} GFX_TILEDATA;
+
 typedef struct {
    GFX_SURFACE* image;
    unsigned int tile_size;
+   GFX_TILEDATA* tile_list;
 } GFX_TILESET;
 
 /* = Global Variables = */
@@ -78,14 +92,13 @@ typedef struct {
 
 GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
-GFX_TILESET* graphics_create_tileset( bstring, int );
+GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
 void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
 void graphics_draw_blank( GFX_COLOR* );
-void graphics_draw_fadein( GFX_COLOR* );
-void graphics_draw_fadeout( GFX_COLOR* );
+void graphics_draw_fade( int, GFX_COLOR* );
 void graphics_do_update( void );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_tileset( GFX_TILESET* );

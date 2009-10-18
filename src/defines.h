@@ -20,28 +20,41 @@
 /* = Includes = */
 
 #include <stdio.h>
-#include "bstring\bstrlib.h"
+#include "bstring/bstrlib.h"
+#include "ezxml/ezxml.h"
 
 /* = Macros = */
 
 /* The path separator is different on Windows! */
+#ifdef VISUALSTUDIO
+#define FILE_SHORT __FILE__
+#else
 #ifdef WIN32
 #define FILE_SHORT ((strrchr(__FILE__, '\\') ? : __FILE__- 1) + 1)
 #else
 #define FILE_SHORT ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
 #endif /* WIN32 */
+#endif /* VISUALSTUDIO */
 
 /* The debug macros use normal C strings instead of bstrings since they'll    *
  * usually be printing literals and there are some tricky deallocation issues *
  * otherwise.                                                                 */
 
-/* Print a debug message. */
-#define DBG_OUT( msg ) \
-   fprintf( stdout, "%s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+/* Print an info message. */
+#define DBG_INFO( msg ) \
+   fprintf( stdout, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+
+/* Print an info message involving a data file filename. */
+#define DBG_INFO_FILE( msg, filename ) \
+   fprintf( stdout, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename );
 
 /* Print an error message. */
 #define DBG_ERR( msg ) \
    fprintf( stderr, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+
+/* Print an error message involving a data file filename. */
+#define DBG_ERR_FILE( msg, filename ) \
+   fprintf( stderr, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename );
 
 #ifdef USESDL
 /* Convert a standard color to SDL color. */
@@ -58,7 +71,8 @@
 #define FALSE 0
 #define TRUE 1
 
-#define PATH_SHARE "../share"
+#define PATH_SHARE "."
+#define PATH_MAPDATA "/mapdata"
 
 #define SYSTYPE_TITLE 1
 

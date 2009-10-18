@@ -35,12 +35,7 @@ GFX_SURFACE* graphics_create_screen(
    );
 
    if( NULL == ps_screen ) {
-      bstring ps_error_screen = cstr2bstr( "Unable to setup screen: " );
-      bstring ps_error_sdl = cstr2bstr( SDL_GetError() );
-      bconcat( ps_error_screen, ps_error_sdl );
-      DBG_ERR( ps_error_screen->data );
-      bdestroy( ps_error_screen );
-      bdestroy( ps_error_sdl );
+      DBG_ERR_FILE( "Unable to setup screen", SDL_GetError() );
       return NULL;
    }
 
@@ -66,8 +61,6 @@ GFX_SURFACE* graphics_create_screen(
 /* Return: A surface with the specified image loaded onto it.                 */
 GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    GFX_SURFACE* ps_image = NULL;
-   bstring ps_dbg_msg = NULL;
-   int i_bol_dbg_ok = 1;
 
    #ifdef USESDL
    Uint32 i_color_key = 0;
@@ -81,10 +74,9 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
       SDL_SetColorKey( ps_image, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
 
-      ps_dbg_msg = cstr2bstr( "Successfully loaded image: " );
+      DBG_INFO_FILE( "Successfully loaded image", ps_path_in->data );
    } else {
-      ps_dbg_msg = cstr2bstr( "Failed to load image: " );
-      i_bol_dbg_ok = FALSE;
+      DBG_ERR_FILE( "Failed to load image", ps_path_in->data );
    }
    #elif defined USEWII
    ps_image = GRRLIB_LoadTexturePNG( (const u8*)ps_path_in->data );
@@ -92,48 +84,121 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    #error "No image loading mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
 
-   bconcat( ps_dbg_msg, ps_path_in );
-   if( i_bol_dbg_ok ) {
-      DBG_OUT( ps_dbg_msg->data );
-   } else {
-      DBG_ERR( ps_dbg_msg->data );
-   }
-   bdestroy( ps_dbg_msg );
-
-   return ps_image;
+    return ps_image;
 }
 
 /* Purpose: Create a tileset that can be used to populate a map.              */
-/* Parameters: File system path to the desired image, individual tile width   *
- *             and height.                                                    */
-/* Return: A tileset struct with the specified image and tile size.           */
-GFX_TILESET* graphics_create_tileset( bstring ps_path_in, int i_tile_size_in ) {
+/* Parameters: File system path to the tileset data file.                     */
+/* Return: A tileset struct with the image and data prescribed by the data    *
+ *         file.                                                              */
+GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    GFX_TILESET* ps_tileset_out = NULL;
-   GFX_SURFACE* ps_surface = graphics_create_image( ps_path_in );
+   GFX_SURFACE* ps_surface = NULL;
+   GFX_TILEDATA* ps_tile_iter = NULL;
+   ezxml_t ps_xml_tileset, ps_xml_image, ps_xml_tile, ps_xml_props,
+      ps_xml_prop_iter;
+   bstring ps_image_filename = NULL, ps_image_path;
+   char* pc_prop_name = NULL;
+   char* pc_prop_val = NULL;
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !file_exists( ps_path_in ) ) {
+      DBG_ERR_FILE( "Unable to load tile data", ps_path_in->data );
+      return NULL;
+   }
+   ps_xml_tileset = ezxml_parse_file( ps_path_in->data );
+
+   /* Load the image file. */
+   ps_xml_image = ezxml_child( ps_xml_tileset, "image" );
+   ps_image_path = cstr2bstr( PATH_SHARE PATH_MAPDATA "/" );
+   ps_image_filename = cstr2bstr( ezxml_attr( ps_xml_image, "source" ) );
+   bconcat( ps_image_path, ps_image_filename );
+   ps_surface = graphics_create_image( ps_image_path );
+
+   /* If the surface loaded all right, then construct the tileset. */
    if( NULL != ps_surface ) {
-      /* The surface loaded all right, so construct the tileset. */
+      /* Create the tileset struct. */
       ps_tileset_out = malloc( sizeof( GFX_TILESET ) );
       if( NULL == ps_tileset_out ) {
-         DBG_ERR( "Error allocating memory for tileset!" );
+         DBG_ERR( "There was a problem allocating tileset memory." );
+         bdestroy( ps_image_path );
+         bdestroy( ps_image_filename );
+         ezxml_free( ps_xml_tileset );
+         graphics_free_image( ps_surface );
          return NULL;
       }
+
+      /* Load the properties of each tile into a linked list. */
+      ps_xml_tile = ezxml_child( ps_xml_tileset, "tile" );
+      while( NULL != ps_xml_tile ) {
+         /* Allocate a fresh new tile! */
+         if( NULL == ps_tile_iter ) {
+            ps_tile_iter = malloc( sizeof( GFX_TILEDATA ) );
+
+            /* Link the first tile to the tileset struct. */
+            ps_tileset_out->tile_list = ps_tile_iter;
+         } else {
+            ps_tile_iter->tile_next = malloc( sizeof( GFX_TILEDATA ) );
+
+            /* Move the cursor to the new tile. */
+            ps_tile_iter = ps_tile_iter->tile_next;
+         }
+
+         /* A second null check to verify memory allocaton. */
+         if( NULL == ps_tile_iter ) {
+            /* There was a memory allocation problem! */
+            DBG_ERR( "There was a problem allocating tile memory." );
+            break;
+         }
+         memset( ps_tile_iter, 0, sizeof( GFX_TILEDATA ) );
+
+         /* Cycle through all present properties and add each one to the      *
+          * final struct.                                                     */
+         ps_xml_props = ezxml_child( ps_xml_tile, "properties" );
+         ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
+         while( NULL != ps_xml_prop_iter ) {
+            pc_prop_name = (char*)ezxml_attr( ps_xml_prop_iter, "name" );
+            pc_prop_val = (char*)ezxml_attr( ps_xml_prop_iter, "value" );
+
+            /* Load the current property into the struct. */
+            if( 0 == strcmp( pc_prop_name, "hindrance" ) ) {
+               ps_tile_iter->hindrance = atoi( pc_prop_val );
+            } else if( 0 == strcmp( pc_prop_name, "animated" ) ) {
+               ps_tile_iter->animated = atoi( pc_prop_val );
+            }
+
+            /* Clean up and go to the next one! */
+            ps_xml_prop_iter = ps_xml_prop_iter->next;
+         }
+
+         /* Go to the next one! */
+         ps_xml_tile = ps_xml_tile->next;
+      }
+
+      /* Place the image into the tileset struct. */
       ps_tileset_out->image = ps_surface;
-      ps_tileset_out->tile_size = i_tile_size_in;
+      ps_tileset_out->tile_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
 
       /* Do any platform-specific stuff. */
-      #ifdef USESDL
-      /* Nothing to do! */
-      #elif defined USEWII
+      #ifdef USEWII
       GRRLIB_InitTileSet(
          ps_tileset_out->image,
-         i_tile_size_in,
-         i_tile_size_in,
+         ps_tileset_out->tile_size,
+         ps_tileset_out->tile_size,
          0
       );
-      #else
-      #error "No tile loading mechanism defined for this platform!"
       #endif
+
+      DBG_INFO_FILE( "Successfully loaded tile data", ps_path_in->data );
+   } else {
+      /* There was a problem somewhere. */
+      DBG_ERR_FILE( "Unable to load tile image", ps_image_path->data );
    }
+
+   /* Clean up. */
+   bdestroy( ps_image_path );
+   bdestroy( ps_image_filename );
+   ezxml_free( ps_xml_tileset );
 
    return ps_tileset_out;
 }
@@ -190,10 +255,7 @@ void graphics_draw_text(
    /* Open the font and render the text. */
    ps_font = TTF_OpenFont( ps_font_name_in->data, i_size_in );
    if( NULL == ps_font ) {
-      bstring ps_error = cstr2bstr( "Unable to load font: " );
-      bconcat( ps_error, ps_font_name_in );
-      DBG_ERR( ps_error->data );
-      bdestroy( ps_error );
+      DBG_ERR_FILE( "Unable to load font", ps_font_name_in->data );
       return;
    }
    ps_type_render_out = TTF_RenderText_Solid(
@@ -314,27 +376,81 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    #endif /* USESDL, USEWII */
 }
 
-/* Purpose: Fade the screen in.                                               */
-/* Parameters: The color from which to fade in.                               */
-void graphics_draw_fadein( GFX_COLOR* ps_color_in ) {
+/* Purpose: Fade the screen in or out.                                        */
+/* Parameters: Whether to fade in or out, the color from/to which to fade.    */
+void graphics_draw_fade( int i_fade_io, GFX_COLOR* ps_color_in ) {
    #ifdef USESDL
-   // XXX
+   GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
+   GFX_SURFACE* ps_surface_screen_copy = NULL;
+   GFX_SURFACE* ps_surface_fader = NULL;
+   int i_alpha = 255;
+   Uint32 i_color_temp = 0;
+
+   /* Create a temporary copy of the screen to fade with. */
+   ps_surface_screen_copy = SDL_CreateRGBSurface(
+      ps_screen->flags | SDL_SRCALPHA,
+      ps_screen->w,
+      ps_screen->h,
+      ps_screen->format->BitsPerPixel,
+      ps_screen->format->Rmask,
+      ps_screen->format->Gmask,
+      ps_screen->format->Bmask,
+      ps_screen->format->Amask
+   );
+   if( NULL == ps_surface_screen_copy ) {
+      DBG_ERR( "Could not allocate screen copy." );
+      return;
+   }
+   SDL_BlitSurface( ps_screen, NULL, ps_surface_screen_copy, NULL ) ;
+
+   /* Create a surface of the requested color to fade with. */
+   ps_surface_fader = SDL_CreateRGBSurface(
+      ps_screen->flags|SDL_SRCALPHA,
+      ps_screen->w,
+      ps_screen->h,
+      ps_screen->format->BitsPerPixel,
+      ps_screen->format->Rmask,
+      ps_screen->format->Gmask,
+      ps_screen->format->Bmask,
+      ps_screen->format->Amask
+   );
+   if( NULL == ps_surface_fader ) {
+      DBG_ERR( "Could not allocate screen fader surface." );
+      SDL_FreeSurface( ps_surface_screen_copy );
+      return;
+   }
+   i_color_temp = SDL_MapRGB(
+      ps_screen->format,
+      ps_color_in->r,
+      ps_color_in->g,
+      ps_color_in->b
+   );
+   SDL_FillRect( ps_surface_fader, NULL, i_color_temp );
+
+   /* Perform the actual fade. */
+   while( 0 < i_alpha ) {
+      if( GFX_FADE_OUT == i_fade_io ) {
+         SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(GFX_ALPHA_MAX - i_alpha) );
+      } else {
+         SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(i_alpha) );
+      }
+
+      SDL_BlitSurface( ps_surface_screen_copy, NULL, ps_screen, NULL );
+      SDL_BlitSurface( ps_surface_fader, NULL, ps_screen, NULL );
+
+      SDL_Flip( ps_screen );
+      SDL_Delay( GFX_ALPHA_FADE_STEP );
+
+      i_alpha -= GFX_ALPHA_FADE_INC;
+   }
+
+   /* Clean up. */
+   SDL_FreeSurface( ps_surface_screen_copy );
+   SDL_FreeSurface( ps_surface_fader );
    #elif defined USEWII
    // XXX
    #else
    #error "No in-fading mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
-}
-
-/* Purpose: Fade the screen out.                                              */
-/* Parameters: The color to which to fade out.                                */
-void graphics_draw_fadeout( GFX_COLOR* ps_color_in ) {
-   #ifdef USESDL
-   // XXX
-   #elif defined USEWII
-   // XXX
-   #else
-   #error "No out-fading mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
 }
 

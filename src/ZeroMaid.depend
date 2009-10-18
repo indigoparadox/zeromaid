@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1255605316 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
+1255892498 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\main.c
 	<stdlib.h>
 	<SDL/SDL.h>
 	<SDL_mixer/SDL_mixer.h>
@@ -207,11 +207,12 @@
 1151385462 c:\lib\sdl\include\sdl_byteorder.h
 	"SDL_endian.h"
 
-1255598535 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
+1255892485 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\defines.h
 	<stdio.h>
-	"bstring\bstrlib.h"
+	"bstring/bstrlib.h"
+	"ezxml/ezxml.h"
 
-1255832830 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
+1255889599 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.h
 	<SDL/SDL.h>
 	<SDL_ttf/SDL_ttf.h>
 	<SDL/SDL.h>
@@ -219,14 +220,17 @@
 	<SDL.h>
 	<SDL_ttf.h>
 	<grrlib.h>
+	<windows.h>
+	<ddraw.h>
 	"defines.h"
+	"util.h"
 
 1147875676 c:\lib\sdl\include\sdl_ttf.h
 	"SDL.h"
 	"begin_code.h"
 	"close_code.h"
 
-1255603678 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
+1255892516 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
 	"systype_title.h"
 
 1255472353 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.h
@@ -235,12 +239,12 @@
 	"graphics.h"
 	"event.h"
 
-1255833543 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
+1255892661 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\graphics.c
 	"graphics.h"
 
 1249375916 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\resource.rc
 
-1255605278 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
+1255880339 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
 	<time.h>
 	<SDL/SDL.h>
 	<SDL/SDL.h>
@@ -248,10 +252,10 @@
 	<grrlib.h>
 	"defines.h"
 
-1255604684 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
+1255880982 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
 	"event.h"
 
-1255815481 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
+1255895714 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
 	"systype_adventure.h"
 
 1255595628 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.h
@@ -260,12 +264,13 @@
 	"event.h"
 	"tilemap.h"
 
-1255815635 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.h
+1255889528 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.h
 	"defines.h"
+	"util.h"
 	"graphics.h"
 	"event.h"
 
-1255816168 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.c
+1255890802 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\tilemap.c
 	"tilemap.h"
 
 1255540130 c:\lib\devkitpro\mllib\include\mllib.h
@@ -437,4 +442,30 @@
 	<ctype.h>
 	"bstrlib.h"
 	"memdbg.h"
+
+1149731850 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\ezxml\ezxml.h
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<fcntl.h>
+
+1255881087 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\ezxml\ezxml.c
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<string.h>
+	<ctype.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/mman.h>
+	<sys/stat.h>
+	"ezxml.h"
+
+1255838834 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\util.c
+	"util.h"
+
+1255838845 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\util.h
+	<stdio.h>
+	"bstring\bstrlib.h"
+	"defines.h"
 
