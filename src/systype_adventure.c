@@ -20,9 +20,9 @@ void sysloop_adventure( void ) {
    int i_bol_running = 1;
    EVENT_EVENT s_event;
    EVENT_TIMER* ps_fps = event_timer_create();
-   bstring ps_tilemap_path = cstr2bstr( PATH_SHARE "/mapdata/field_map.tmx" );
-   TILEMAP_TILEMAP* ps_tilemap = tilemap_create( ps_tilemap_path );
-   free( ps_tilemap_path );
+   bstring ps_map_path = cstr2bstr( PATH_SHARE "/mapdata/field_map.tmx" );
+   TILEMAP_TILEMAP* ps_map = tilemap_create( ps_map_path );
+   free( ps_map_path );
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    GFX_COLOR* ps_color_bg = graphics_create_color( 255, 0, 0 );
    GFX_RECTANGLE s_viewport;
@@ -51,6 +51,8 @@ void sysloop_adventure( void ) {
       /* Loop through and draw all on-screen items. */
       graphics_draw_blank( ps_color_bg );
 
+      tilemap_draw( ps_map );
+
       graphics_do_update();
 
       while( GFX_FPS > ps_fps->i_ticks_start );
@@ -65,5 +67,5 @@ void sysloop_adventure( void ) {
    event_timer_free( ps_fps );
    free( ps_color_fade );
    free( ps_color_bg );
-   free( ps_tilemap );
+   free( ps_map );
 }
