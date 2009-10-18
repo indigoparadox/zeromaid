@@ -23,8 +23,8 @@ void sysloop_title( void ) {
 
    /* These are the surfaces for drawing the title screen. */
    GFX_SURFACE* ps_title_image = NULL;
-   GFX_RECTANGLE s_blit_dest;
-   GFX_RECTANGLE s_blit_error;
+   /* GFX_RECTANGLE s_blit_dest;
+   GFX_RECTANGLE s_blit_error; */
 
    /* Setup the loading title and image, then blit them onto one surface. */
    DBG_OUT( "Setting up the title image..." );

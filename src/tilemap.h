@@ -25,7 +25,17 @@
 
 /* = Definitions = */
 
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   GFX_TILESET* ps_tileset;
+   GFX_RECTANGLE* ps_viewport;
+} TILEMAP_TILEMAP;
+
 /* = Function Prototypes = */
+
+TILEMAP_TILEMAP* tilemap_create( bstring );
+void tilemap_draw( TILEMAP_TILEMAP* );
 
 #endif /* TILEMAP_H */
 
