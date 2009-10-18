@@ -39,21 +39,16 @@
 
 #ifdef USESDL
 #define EVENT_ID_QUIT SDL_QUIT
-#elif defined _ARCH_PPCGR
+#elif defined USEWII
+#define EVENT_ID_QUIT 0
+#elif defined USEDIRECTX
 #define EVENT_ID_QUIT 0
 #else
 #error "No event types defined for this platform!"
-#endif /* USESDL, _ARCH_PPCGR */
+#endif /* USESDL, USEWII, USEDIRECTX */
 
-/* #ifdef USESDL
-#define EVENT_TIMER_TICKS SDL_GetTicks()
-#elif defined _ARCH_PPCGR
-// XXX
-#define EVENT_TIMER_TICKS 0
-#else
-#error "No timer mechanism defined for this platform!"
-#endif */ /* USESDL, _ARCH_PPCGR */
-
+/* It might not be a good idea to use time() as our tick timer, so keep an    *
+ * out for problems this might cause.                                         */
 #define EVENT_TIMER_TICKS time( NULL )
 
 /* = Type and Struct Definitions = */
@@ -67,14 +62,17 @@ typedef struct {
 
 #ifdef USESDL
 typedef SDL_Event EVENT_EVENT;
-#elif defined _ARCH_PPCGR
-/* Nintendo Wii */
+#elif defined USEWII
+typedef struct {
+   int type;
+} EVENT_EVENT;
+#elif defined USEDIRECTX
 typedef struct {
    int type;
 } EVENT_EVENT;
 #else
 #error "No event entity defined for this platform!"
-#endif /* USESDL, _ARCH_PPCGR */
+#endif /* USESDL, USEWII, USEDIRECTX */
 
 /* = Function Prototypes = */
 
