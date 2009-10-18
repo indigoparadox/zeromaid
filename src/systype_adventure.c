@@ -20,22 +20,25 @@ void sysloop_adventure( void ) {
    int i_bol_running = 1;
    EVENT_EVENT s_event;
    EVENT_TIMER* ps_fps = event_timer_create();
+   bstring ps_tilemap_path = cstr2bstr( PATH_SHARE "/mapdata/field_map.tmx" );
+   TILEMAP_TILEMAP* ps_tilemap = tilemap_create( ps_tilemap_path );
+   free( ps_tilemap_path );
+   GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
+   GFX_COLOR* ps_color_bg = graphics_create_color( 255, 0, 0 );
+   GFX_RECTANGLE s_viewport;
 
-   /* Setup the loading title and image, then blit them onto one surface. */
-   /* DBG_OUT( "Setting up the title image..." );
-   bstring ps_path_title = cstr2bstr( PATH_SHARE "/" FILE_TITLE );
-   ps_title_image = graphics_create_image( ps_path_title );
-   bdestroy( ps_path_title ); */
+   /* Setup structures we need to run. */
+   s_viewport.x = 0;
+   s_viewport.y = 0;
+   s_viewport.w = GFX_SCREENWIDTH;
+   s_viewport.h = GFX_SCREENHEIGHT;
 
-   // Show the title screen until the user wants to quit.
-   DBG_OUT( "Running adventure game loop..." );
-
+   /* Draw the initial playing field and fade the screen in. */
+   graphics_draw_blank( ps_color_bg );
+   graphics_draw_fade( GFX_FADE_IN, ps_color_fade );
+   DBG_INFO( "Running adventure game loop..." );
 
    while( i_bol_running ) {
-      /* Once the field is initially drawn, fade the screen in. */
-      // XXX: Coolor struct generation macro.
-      //graphics_draw_fadein(  );
-
       /* Run the title screen menu input wait loop. */
       event_timer_start( ps_fps );
 
@@ -46,9 +49,7 @@ void sysloop_adventure( void ) {
       }
 
       /* Loop through and draw all on-screen items. */
-      GFX_COLOR* ps_color_bg = graphics_create_color( 80, 0, 0 );
       graphics_draw_blank( ps_color_bg );
-      free( ps_color_bg );
 
       graphics_do_update();
 
@@ -56,8 +57,13 @@ void sysloop_adventure( void ) {
    }
 
    /* Fade out the playing field screen. */
-   // XXX
+   graphics_draw_fade( GFX_FADE_OUT, ps_color_fade );
 
-   // Clean up!
+   /* TODO: Perform the between-level autosave. */
+
+   /* Clean up! */
    event_timer_free( ps_fps );
+   free( ps_color_fade );
+   free( ps_color_bg );
+   free( ps_tilemap );
 }

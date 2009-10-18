@@ -20,20 +20,19 @@ void sysloop_title( void ) {
    int i_bol_running = 1, i_command = COMMAND_NONE;
    EVENT_EVENT s_event;
    EVENT_TIMER* ps_fps = event_timer_create();
-
-   /* These are the surfaces for drawing the title screen. */
+   GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    GFX_SURFACE* ps_title_image = NULL;
    /* GFX_RECTANGLE s_blit_dest;
    GFX_RECTANGLE s_blit_error; */
 
    /* Setup the loading title and image, then blit them onto one surface. */
-   DBG_OUT( "Setting up the title image..." );
+   DBG_INFO( "Setting up the title image..." );
    bstring ps_path_title = cstr2bstr( PATH_SHARE "/" FILE_TITLE );
    ps_title_image = graphics_create_image( ps_path_title );
    bdestroy( ps_path_title );
-   //p_surTitleText = new agfx::SurfaceCore( "Maid Quest", strTitleFont, 48, agfx::BLACK );
-   //p_surSubtText  = new agfx::SurfaceCore( "Quest of the maid", strTitleFont, 18, agfx::BLACK );
 
+   /* p_surTitleText = new agfx::SurfaceCore( "Maid Quest", strTitleFont, 48, agfx::BLACK );
+   p_surSubtText  = new agfx::SurfaceCore( "Quest of the maid", strTitleFont, 18, agfx::BLACK ); */
    // Setup the error message text, in case we need it.
    /* p_surErrorText = new agfx::SurfaceCore( "There was an error starting Maid Quest!", strTitleFont, 18, agfx::RED );
    rctBlitError.set_x( 50 );
@@ -41,13 +40,11 @@ void sysloop_title( void ) {
    rctBlitError.set_width( p_surErrorText->get_width() );
    rctBlitError.set_height( p_surErrorText->get_height() ); */
 
-   // Show the title screen until the user wants to quit.
-   DBG_OUT( "Running title screen loop..." );
-
+   /* Show the title screen until the user selects something. */
+   graphics_draw_blit_tile( ps_title_image, NULL, NULL );
+   graphics_draw_fade( GFX_FADE_IN, ps_color_fade );
+   DBG_INFO( "Running title screen loop..." );
    while( i_bol_running ) {
-      // Fade in the title screen.
-      //p_scrScreen->do_fadein( p_surTitleScreen, agfx::BLACK );
-
       /* Run the title screen menu input wait loop. */
       while( COMMAND_NONE == i_command ) {
          event_timer_start( ps_fps );
@@ -84,9 +81,6 @@ void sysloop_title( void ) {
          while( GFX_FPS > ps_fps->i_ticks_start );
       }
 
-      /* Fade out the title screen.                                        */
-      //p_scrScreen->do_fadeout( p_surTitleScreen, agfx::BLACK );
-
       switch( i_command ) {
          /* case TCMD_STORY:
             // TODO: Level loading loop!
@@ -114,9 +108,12 @@ void sysloop_title( void ) {
 
    }
 
-   // Clean up!
+   graphics_draw_fade( GFX_FADE_OUT, ps_color_fade );
+
+   /* Clean up! */
    event_timer_free( ps_fps );
    graphics_free_image( ps_title_image );
+   free( ps_color_fade );
 
    return;
 }

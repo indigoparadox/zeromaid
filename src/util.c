@@ -14,29 +14,19 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef TILEMAP_H
-#define TILEMAP_H
-
-/* = Includes = */
-
-#include "defines.h"
 #include "util.h"
-#include "graphics.h"
-#include "event.h"
 
-/* = Definitions = */
+/* Purpose: Determine if the specified file exists. This could be done with   *
+ *          access(), but that function is unavailable on some target         *
+ *          platforms.                                                        */
+/* Parameters: The path of the file to test.                                  */
+/* Return: TRUE if the file exists and can be read, otherwise FALSE.          */
+int file_exists( bstring ps_path_in ) {
+   FILE* ps_file_test = fopen( ps_path_in->data, "r" );
+   if( NULL != ps_file_test ) {
+      fclose( ps_file_test );
+      return TRUE;
+   }
 
-/* = Type and Struct Definitions = */
-
-typedef struct {
-   GFX_TILESET* tileset;
-   GFX_RECTANGLE* viewport;
-} TILEMAP_TILEMAP;
-
-/* = Function Prototypes = */
-
-TILEMAP_TILEMAP* tilemap_create( bstring );
-void tilemap_draw( TILEMAP_TILEMAP* );
-
-#endif /* TILEMAP_H */
-
+   return FALSE;
+}

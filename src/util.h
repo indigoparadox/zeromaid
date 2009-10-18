@@ -14,29 +14,18 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef TILEMAP_H
-#define TILEMAP_H
+#ifndef UTIL_H
+#define UTIL_H
 
 /* = Includes = */
 
+#include <stdio.h>
+
+#include "bstring\bstrlib.h"
 #include "defines.h"
-#include "util.h"
-#include "graphics.h"
-#include "event.h"
-
-/* = Definitions = */
-
-/* = Type and Struct Definitions = */
-
-typedef struct {
-   GFX_TILESET* tileset;
-   GFX_RECTANGLE* viewport;
-} TILEMAP_TILEMAP;
 
 /* = Function Prototypes = */
 
-TILEMAP_TILEMAP* tilemap_create( bstring );
-void tilemap_draw( TILEMAP_TILEMAP* );
+int file_exists( bstring );
 
-#endif /* TILEMAP_H */
-
+#endif /* UTIL_H */
