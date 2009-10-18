@@ -15,3 +15,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
 #include "tilemap.h"
+
+/* Purpose: Load the map with the given filename into a TILEMAP struct.       */
+/* Parameters: The filename to load.                                          */
+/* Return: The loaded tile map.                                               */
+TILEMAP_TILEMAP* tilemap_create( bstring ps_path_in ) {
+
+}
+
+/* Purpose: Draw the part of the given tile map indicated by its viewport to  *
+ *          the screen.                                                       */
+/* Parameters: The tile map to draw.                                          */
+void tilemap_draw( TILEMAP_TILEMAP* ps_tilemap_in ) {
+
+}

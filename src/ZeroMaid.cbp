@@ -160,24 +160,31 @@
 				<Option compiler="devkitpro_wii_ppc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DUSEWII" />
+					<Add option="-DNOGUFIX" />
+					<Add directory="C:\lib\devkitPro\grrlib\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="C:\lib\devkitPro\MLlib\lib\libMLlib.a" />
-					<Add library="C:\lib\devkitPro\MLlib\lib\libpng.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libogc.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libfat.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libasnd.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libbte.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdb.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdi.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libfat.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libiso9660.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libmad.a" />
+					<Add library="C:\lib\devkitPro\libogc\lib\wii\libmodplay.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libtinysmb.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiikeyboard.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiiuse.a" />
 					<Add library="C:\lib\devkitPro\libogc\lib\wii\libz.a" />
+					<Add library="C:\lib\devkitPro\grrlib\lib\libgrrlib.a" />
+					<Add library="C:\lib\devkitPro\grrlib\lib\libjpeg.a" />
+					<Add library="C:\lib\devkitPro\grrlib\lib\libpng.a" />
+					<Add library="C:\lib\devkitPro\grrlib\lib\libpngu.a" />
 					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+					<Add directory="C:\lib\devkitPro\grrlib\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-DirectX">
@@ -199,12 +206,10 @@
 			<Add directory="..\..\Common\include" />
 			<Add directory="C:\Program Files\Development\lib\boost_1_34_1" />
 		</Compiler>
-		<Unit filename="..\bin\Windows\Debug-SDL\stderr.txt">
-			<Option target="&lt;{~None~}&gt;" />
+		<Unit filename="bstring\bstrlib.c">
+			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\bin\Windows\Debug-SDL\stdout.txt">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
+		<Unit filename="bstring\bstrlib.h" />
 		<Unit filename="defines.h" />
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />

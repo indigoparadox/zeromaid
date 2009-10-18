@@ -56,18 +56,16 @@
 #ifdef USESDL
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
+typedef SDL_Color GFX_COLOR;
 #elif defined USEWII
 typedef GRRLIB_texImg GFX_SURFACE;
 typedef struct {
    int x, y, w, h;
 } GFX_RECTANGLE;
+typedef u32 GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEWII */
-
-typedef struct {
-   unsigned int r, g, b, a;
-} GFX_COLOR;
 
 typedef struct {
    GFX_SURFACE* image;
@@ -76,20 +74,18 @@ typedef struct {
 
 /* = Global Variables = */
 
-GFX_RECTANGLE gs_viewport;
-
 /* = Function Prototypes = */
 
 GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_TILESET* graphics_create_tileset( bstring, int );
-/* GFX_SURFACE* graphics_create_blank( int, int ); */
+GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
 void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blank( int );
-/* void graphics_draw_fadein( GFX_SURFACE *, GFX_SURFACE*, int );
-void graphics_draw_fadeout( GFX_SURFACE *, GFX_SURFACE*, int ); */
+void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
+void graphics_draw_blank( GFX_COLOR* );
+void graphics_draw_fadein( GFX_COLOR* );
+void graphics_draw_fadeout( GFX_COLOR* );
 void graphics_do_update( void );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_tileset( GFX_TILESET* );

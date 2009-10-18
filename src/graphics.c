@@ -58,10 +58,6 @@ GFX_SURFACE* graphics_create_screen(
    #error "No screen-getting mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
 
-   /* Setup platform-agnostic screen accessories. */
-   gs_viewport.w = i_width_in;
-   gs_viewport.h = i_height_in;
-
    return ps_screen;
 }
 
@@ -140,6 +136,35 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in, int i_tile_size_in ) {
    }
 
    return ps_tileset_out;
+}
+
+/* Purpose: Generate a color for the given parameters.                        */
+/* Parameters: Red, green, blue.                                              */
+/* Return: A pointer to the specified color struct.                           */
+GFX_COLOR* graphics_create_color(
+   unsigned char i_red_in,
+   unsigned char i_green_in,
+   unsigned char i_blue_in
+) {
+   GFX_COLOR* ps_color_out = NULL;
+
+   #ifdef USESDL
+   ps_color_out = malloc( sizeof( GFX_COLOR ) );
+   ps_color_out->r = i_red_in;
+   ps_color_out->g = i_green_in;
+   ps_color_out->b = i_blue_in;
+   #elif defined USEWII
+   /* Wii colors are an unsigned 32-bit integer in the format RGBA. */
+   ps_color_out = malloc( sizeof( GFX_COLOR ) );
+   *ps_color_out =
+      (i_red_in * 16777216) +
+      (i_green_in * 65536) +
+      (i_blue_in * 256);
+   #else
+   #error "No color creation mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
+
+   return ps_color_out;
 }
 
 /* Purpose: Render a given text string to the screen.                         */
@@ -230,16 +255,25 @@ void graphics_draw_blit_tile(
 /* Parameters: Source surface, source and destination regions.                */
 void graphics_draw_blit_sprite(
    GFX_SURFACE* ps_src_in,
-   GFX_RECTANGLE* ps_srcreg_in,
-   GFX_RECTANGLE* ps_destreg_in
+   int i_x_in,
+   int i_y_in,
+   int i_frame_in
 ) {
    #ifdef USESDL
-   graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
+   SDL_Rect s_rect_dest;
+   SDL_Rect s_rect_src;
+   s_rect_dest.x = i_x_in;
+   s_rect_dest.y = i_y_in;
+   s_rect_dest.h = s_rect_dest.w = ps_src_in->w;
+   s_rect_src.x = i_frame_in * ps_src_in->w;
+   s_rect_src.y = 0;
+   s_rect_src.h = s_rect_src.w = ps_src_in->w;
+   graphics_draw_blit_tile( ps_src_in, &s_rect_src, &s_rect_dest );
    #elif defined USEWII
    /* XXX: Color, scale, src region. */
    GRRLIB_DrawImg(
-      ps_destreg_in->x,
-      ps_destreg_in->y,
+      i_x_in,
+      i_y_in,
       ps_src_in,
       0,
       100,
@@ -248,6 +282,59 @@ void graphics_draw_blit_sprite(
    );
    #else
    #error "No blitting mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Blank the screen.                                                 */
+/* Parameters: The color to blank the screen.                                 */
+void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
+   #ifdef USESDL
+   GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
+
+   /* Define a rectangle encompassing the screen. */
+   SDL_Rect s_screenrect;
+   s_screenrect.x = 0;
+   s_screenrect.y = 0;
+   s_screenrect.w = ps_screen->w;
+   s_screenrect.h = ps_screen->h;
+
+   /* Define a color in a format te fill function will understand. */
+   Uint32 i_color_temp = SDL_MapRGB(
+      ps_screen->format,
+      ps_color_in->r,
+      ps_color_in->g,
+      ps_color_in->b
+   );
+
+   SDL_FillRect( ps_screen, &s_screenrect, i_color_temp );
+   #elif defined USEWII
+   GRRLIB_FillScreen( ps_color_in );
+   #else
+   #error "No blanking mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Fade the screen in.                                               */
+/* Parameters: The color from which to fade in.                               */
+void graphics_draw_fadein( GFX_COLOR* ps_color_in ) {
+   #ifdef USESDL
+   // XXX
+   #elif defined USEWII
+   // XXX
+   #else
+   #error "No in-fading mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Fade the screen out.                                              */
+/* Parameters: The color to which to fade out.                                */
+void graphics_draw_fadeout( GFX_COLOR* ps_color_in ) {
+   #ifdef USESDL
+   // XXX
+   #elif defined USEWII
+   // XXX
+   #else
+   #error "No out-fading mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
 }
 
