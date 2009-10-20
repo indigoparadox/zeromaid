@@ -49,8 +49,8 @@
 #define GFX_SCREENHEIGHT 480
 #define GFX_SCREENDEPTH 16
 
-#define GFX_FADE_IN 0
-#define GFX_FADE_OUT 1
+#define GFX_TRANS_FADE_IN 0
+#define GFX_TRANS_FADE_OUT 1
 
 #define GFX_ALPHA_MAX 255
 #define GFX_ALPHA_FADE_INC 25
@@ -62,6 +62,14 @@
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
+
+/* Let's not render the text to a new surface several times a second, OK? */
+typedef struct _GFX_TEXTCACHE {
+   bstring text;
+   int size;
+   GFX_SURFACE* render;
+   struct _GFX_TEXTCACHE* next;
+} GFX_TEXTCACHE;
 #elif defined USEWII
 typedef GRRLIB_texImg GFX_SURFACE;
 typedef struct {
@@ -74,6 +82,9 @@ typedef IDirectDrawSurface7 GFX_SURFACE;
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEWII */
 
+/* We might be able to speed up operations using TILEDATA structs by making   *
+ * them tree-able, but there probably won't be very many tiles for a map and  *
+ * we feel the simplicity gained this way is worthwhile.                      */
 typedef struct _GFX_TILEDATA {
    unsigned int gid, hindrance;
    unsigned short int animated;
@@ -94,11 +105,11 @@ GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
-void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
+void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR*, short int );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
 void graphics_draw_blank( GFX_COLOR* );
-void graphics_draw_fade( int, GFX_COLOR* );
+void graphics_draw_transition( int, GFX_COLOR* );
 void graphics_do_update( void );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_tileset( GFX_TILESET* );

@@ -97,9 +97,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    GFX_TILEDATA* ps_tile_iter = NULL;
    ezxml_t ps_xml_tileset, ps_xml_image, ps_xml_tile, ps_xml_props,
       ps_xml_prop_iter;
-   bstring ps_image_filename = NULL, ps_image_path;
-   char* pc_prop_name = NULL;
-   char* pc_prop_val = NULL;
+   bstring ps_image_filename = NULL, ps_image_path = NULL;
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
@@ -121,11 +119,8 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       ps_tileset_out = malloc( sizeof( GFX_TILESET ) );
       if( NULL == ps_tileset_out ) {
          DBG_ERR( "There was a problem allocating tileset memory." );
-         bdestroy( ps_image_path );
-         bdestroy( ps_image_filename );
-         ezxml_free( ps_xml_tileset );
          graphics_free_image( ps_surface );
-         return NULL;
+         goto gct_cleanup;
       }
 
       /* Load the properties of each tile into a linked list. */
@@ -157,14 +152,11 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
          ps_xml_props = ezxml_child( ps_xml_tile, "properties" );
          ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
          while( NULL != ps_xml_prop_iter ) {
-            pc_prop_name = (char*)ezxml_attr( ps_xml_prop_iter, "name" );
-            pc_prop_val = (char*)ezxml_attr( ps_xml_prop_iter, "value" );
-
             /* Load the current property into the struct. */
-            if( 0 == strcmp( pc_prop_name, "hindrance" ) ) {
-               ps_tile_iter->hindrance = atoi( pc_prop_val );
-            } else if( 0 == strcmp( pc_prop_name, "animated" ) ) {
-               ps_tile_iter->animated = atoi( pc_prop_val );
+            if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hindrance" ) ) {
+               ps_tile_iter->hindrance = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
+            } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "animated" ) ) {
+               ps_tile_iter->animated = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
             }
 
             /* Clean up and go to the next one! */
@@ -194,6 +186,8 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       /* There was a problem somewhere. */
       DBG_ERR_FILE( "Unable to load tile image", ps_image_path->data );
    }
+
+gct_cleanup:
 
    /* Clean up. */
    bdestroy( ps_image_path );
@@ -241,13 +235,16 @@ void graphics_draw_text(
    bstring ps_string_in,
    bstring ps_font_name_in,
    int i_size_in,
-   GFX_COLOR* ps_color_in
+   GFX_COLOR* ps_color_in,
+   short int i_bol_dont_cache_in
 ) {
    #ifdef USESDL
    GFX_SURFACE* ps_type_render_out = NULL;
    TTF_Font* ps_font = NULL;
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
+   static GFX_TEXTCACHE* ps_text_cache = NULL;
+   GFX_TEXTCACHE* ps_text_cache_iter = NULL;
 
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
@@ -268,6 +265,42 @@ void graphics_draw_text(
    ps_destreg.w = ps_type_render_out->w;
    ps_destreg.h = ps_type_render_out->h;
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
+
+   /* Store the rendered text for future use. */
+   if( NULL == ps_text_cache ) {
+      ps_text_cache = malloc( sizeof( GFX_TEXTCACHE ) );
+      if( NULL == ps_text_cache ) {
+         DBG_ERR( "Unable to allocate text cache!" );
+         goto gdt_cleanup;
+      }
+      memset( ps_text_cache, 0, sizeof( GFX_TEXTCACHE ) );
+      ps_text_cache_iter = ps_text_cache;
+   } else {
+      /* Tack it onto the end of the list. */
+      ps_text_cache_iter = ps_text_cache;
+      while( NULL != ps_text_cache_iter ) {
+         if( NULL == ps_text_cache_iter->next ) {
+            ps_text_cache_iter->next = malloc( sizeof( GFX_TEXTCACHE ) );
+            if( NULL == ps_text_cache_iter->next ) {
+               DBG_ERR( "Unable to allocate text cache!" );
+               goto gdt_cleanup;
+            }
+            memset( ps_text_cache_iter->next, 0, sizeof( GFX_TEXTCACHE ) );
+            ps_text_cache_iter = ps_text_cache_iter->next;
+            break;
+         }
+
+         /* Go to the next one! */
+         ps_text_cache_iter = ps_text_cache_iter->next;
+      }
+   }
+
+   /* Create the actual cache entry. */
+   ps_text_cache_iter->text = bstrcpy( ps_string_in );
+   ps_text_cache_iter->size = i_size_in;
+   ps_text_cache_iter->render = ps_type_render_out;
+
+gdt_cleanup:
 
    /* Clean up. */
    TTF_CloseFont( ps_font );
@@ -378,7 +411,7 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
 
 /* Purpose: Fade the screen in or out.                                        */
 /* Parameters: Whether to fade in or out, the color from/to which to fade.    */
-void graphics_draw_fade( int i_fade_io, GFX_COLOR* ps_color_in ) {
+void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    GFX_SURFACE* ps_surface_screen_copy = NULL;
@@ -429,7 +462,7 @@ void graphics_draw_fade( int i_fade_io, GFX_COLOR* ps_color_in ) {
 
    /* Perform the actual fade. */
    while( 0 < i_alpha ) {
-      if( GFX_FADE_OUT == i_fade_io ) {
+      if( GFX_TRANS_FADE_OUT == i_fade_io ) {
          SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(GFX_ALPHA_MAX - i_alpha) );
       } else {
          SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(i_alpha) );
