@@ -235,16 +235,13 @@ void graphics_draw_text(
    bstring ps_string_in,
    bstring ps_font_name_in,
    int i_size_in,
-   GFX_COLOR* ps_color_in,
-   short int i_bol_dont_cache_in
+   GFX_COLOR* ps_color_in
 ) {
    #ifdef USESDL
    GFX_SURFACE* ps_type_render_out = NULL;
    TTF_Font* ps_font = NULL;
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
-   static GFX_TEXTCACHE* ps_text_cache = NULL;
-   GFX_TEXTCACHE* ps_text_cache_iter = NULL;
 
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
@@ -265,42 +262,6 @@ void graphics_draw_text(
    ps_destreg.w = ps_type_render_out->w;
    ps_destreg.h = ps_type_render_out->h;
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
-
-   /* Store the rendered text for future use. */
-   if( NULL == ps_text_cache ) {
-      ps_text_cache = malloc( sizeof( GFX_TEXTCACHE ) );
-      if( NULL == ps_text_cache ) {
-         DBG_ERR( "Unable to allocate text cache!" );
-         goto gdt_cleanup;
-      }
-      memset( ps_text_cache, 0, sizeof( GFX_TEXTCACHE ) );
-      ps_text_cache_iter = ps_text_cache;
-   } else {
-      /* Tack it onto the end of the list. */
-      ps_text_cache_iter = ps_text_cache;
-      while( NULL != ps_text_cache_iter ) {
-         if( NULL == ps_text_cache_iter->next ) {
-            ps_text_cache_iter->next = malloc( sizeof( GFX_TEXTCACHE ) );
-            if( NULL == ps_text_cache_iter->next ) {
-               DBG_ERR( "Unable to allocate text cache!" );
-               goto gdt_cleanup;
-            }
-            memset( ps_text_cache_iter->next, 0, sizeof( GFX_TEXTCACHE ) );
-            ps_text_cache_iter = ps_text_cache_iter->next;
-            break;
-         }
-
-         /* Go to the next one! */
-         ps_text_cache_iter = ps_text_cache_iter->next;
-      }
-   }
-
-   /* Create the actual cache entry. */
-   ps_text_cache_iter->text = bstrcpy( ps_string_in );
-   ps_text_cache_iter->size = i_size_in;
-   ps_text_cache_iter->render = ps_type_render_out;
-
-gdt_cleanup:
 
    /* Clean up. */
    TTF_CloseFont( ps_font );

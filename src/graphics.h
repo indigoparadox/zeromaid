@@ -62,14 +62,6 @@
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
-
-/* Let's not render the text to a new surface several times a second, OK? */
-typedef struct _GFX_TEXTCACHE {
-   bstring text;
-   int size;
-   GFX_SURFACE* render;
-   struct _GFX_TEXTCACHE* next;
-} GFX_TEXTCACHE;
 #elif defined USEWII
 typedef GRRLIB_texImg GFX_SURFACE;
 typedef struct {
@@ -105,7 +97,7 @@ GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
-void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR*, short int );
+void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
 void graphics_draw_blank( GFX_COLOR* );
