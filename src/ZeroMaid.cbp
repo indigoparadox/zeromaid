@@ -153,36 +153,33 @@
 			</Target>
 			<Target title="Release-Wii-PPC-DKPWin">
 				<Option platforms="Windows;" />
-				<Option output="..\bin\Release-Wii-PPC-DKPWin\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option output="..\bin\Release-Wii-PPC-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
 				<Option working_dir="..\share" />
 				<Option object_output="..\obj\Release-Wii-PPC-DKPWin" />
 				<Option type="1" />
 				<Option compiler="devkitpro_wii_ppc" />
+				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-DUSEWII" />
 					<Add option="-DNOGUFIX" />
+					<Add option="-DOUTTOFILE" />
+					<Add option="-DUSEWII" />
+					<Add option="-DUSEMUSIC" />
 					<Add directory="C:\lib\devkitPro\grrlib\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libogc.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libasnd.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libbte.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdb.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libdi.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libfat.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libiso9660.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libmad.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libmodplay.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libtinysmb.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiikeyboard.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libwiiuse.a" />
-					<Add library="C:\lib\devkitPro\libogc\lib\wii\libz.a" />
-					<Add library="C:\lib\devkitPro\grrlib\lib\libgrrlib.a" />
-					<Add library="C:\lib\devkitPro\grrlib\lib\libjpeg.a" />
-					<Add library="C:\lib\devkitPro\grrlib\lib\libpng.a" />
-					<Add library="C:\lib\devkitPro\grrlib\lib\libpngu.a" />
+					<Add option="-mrvl" />
+					<Add library="grrlib" />
+					<Add library="pngu" />
+					<Add library="png" />
+					<Add library="jpeg" />
+					<Add library="z" />
+					<Add library="fat" />
+					<Add library="wiiuse" />
+					<Add library="bte" />
+					<Add library="ogc" />
+					<Add library="m" />
 					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
 					<Add directory="C:\lib\devkitPro\grrlib\lib" />
 				</Linker>
@@ -194,6 +191,9 @@
 				<Compiler>
 					<Add option="/Wall" />
 					<Add option="/Zi /D_DEBUG" />
+					<Add option="/DVISUALSTUDIO" />
+					<Add option="/DUSEDIRECTX" />
+					<Add option="/DUSEMUSIC" />
 				</Compiler>
 				<Linker>
 					<Add option="/DEBUG" />
@@ -203,6 +203,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-DTIXML_USE_STL" />
+			<Add option="-DEZXML_NOMMAP" />
 			<Add directory="..\..\Common\include" />
 			<Add directory="C:\Program Files\Development\lib\boost_1_34_1" />
 		</Compiler>
@@ -215,6 +216,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="event.h" />
+		<Unit filename="ezxml\ezxml.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ezxml\ezxml.h" />
 		<Unit filename="graphics.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -243,6 +248,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tilemap.h" />
+		<Unit filename="util.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="util.h" />
 		<Extensions>
 			<code_completion />
 			<envvars set="default" />

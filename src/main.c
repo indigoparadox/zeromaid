@@ -44,7 +44,16 @@
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
+   #ifdef OUTTOFILE
+   gps_debug = fopen( DEBUG_OUT_PATH, "a" );
+   #endif /* OUTTOFILE */
 
+   /* Platform-dependent miscellaneous initialization. */
+   #ifdef USEWII
+   WPAD_Init();
+   #endif /* USEWII */
+
+   /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
    bstring ps_title = cstr2bstr( SYSTEM_TITLE );
    graphics_create_screen(
@@ -55,8 +64,12 @@ int main( int argc, char* argv[] ) {
    );
    bdestroy( ps_title );
 
-   //sysloop_title();
-   sysloop_adventure();
+   sysloop_title();
+   //sysloop_adventure();
+
+   #ifdef OUTTOFILE
+   fclose( gps_debug );
+   #endif /* OUTTOFILE */
 
    #ifdef USEWII
    GRRLIB_Exit();
