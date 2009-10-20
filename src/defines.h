@@ -23,6 +23,47 @@
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
 
+/* = Definitions = */
+
+/* Platform-specific stuff. */
+#ifdef USEWII
+#define FILE_EXTENSION_IMAGE "png"
+#else
+#define FILE_EXTENSION_IMAGE "bmp"
+#endif /* USEWII */
+
+#define SYSTEM_TITLE "ZeroMaid"
+
+#define FALSE 0
+#define TRUE 1
+
+#define PATH_SHARE "."
+#define PATH_MAPDATA "/mapdata"
+#define PATH_SCRDATA "/scrdata"
+#define PATH_FILE_SYSTEM "system.xml"
+
+#define SYSTYPE_TITLE 1
+
+#ifdef OUTTOFILE
+
+FILE* gps_debug;
+
+#define DEBUG_OUT_PATH "./dbg_out.txt"
+#define DEBUG_HANDLE_INFO gps_debug
+#define DEBUG_HANDLE_ERR gps_debug
+
+#else
+
+#define DEBUG_HANDLE_INFO stdout
+#define DEBUG_HANDLE_ERR stderr
+
+/* If output is to the console, we don't need to enable. */
+#define DBG_ENABLE
+
+#define DBG_CLOSE
+
+#endif /* OUTTOFILE */
+
 /* = Macros = */
 
 /* The path separator is different on Windows! */
@@ -42,19 +83,23 @@
 
 /* Print an info message. */
 #define DBG_INFO( msg ) \
-   fprintf( stdout, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
+   fflush( DEBUG_HANDLE_INFO );
 
 /* Print an info message involving a data file filename. */
 #define DBG_INFO_FILE( msg, filename ) \
-   fprintf( stdout, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename );
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename ); \
+   fflush( DEBUG_HANDLE_INFO );
 
 /* Print an error message. */
 #define DBG_ERR( msg ) \
-   fprintf( stderr, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg );
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
+   fflush( DEBUG_HANDLE_ERR );
 
 /* Print an error message involving a data file filename. */
 #define DBG_ERR_FILE( msg, filename ) \
-   fprintf( stderr, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename );
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename ); \
+   fflush( DEBUG_HANDLE_ERR );
 
 #ifdef USESDL
 /* Convert a standard color to SDL color. */
@@ -63,18 +108,6 @@
    color_sdl.g = color_std->g; \
    color_sdl.b = color_std->b;
 #endif /* USESDL */
-
-/* = Definitions = */
-
-#define SYSTEM_TITLE "ZeroMaid"
-
-#define FALSE 0
-#define TRUE 1
-
-#define PATH_SHARE "."
-#define PATH_MAPDATA "/mapdata"
-
-#define SYSTYPE_TITLE 1
 
 /* = Global Variables = */
 

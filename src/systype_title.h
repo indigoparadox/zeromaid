@@ -27,13 +27,26 @@
 
 /* = Definitions = */
 
-#define FILE_TITLE "scrdata/screen_title.bmp"
+/* = Type and Struct Definitions = */
 
-#define COMMAND_NONE 0
-#define COMMAND_QUIT 1
+typedef struct {
+   bstring text;
+   GFX_COLOR* fg_color;
+   int x, y, size;
+} TITLE_TEXT;
+
+typedef struct _TITLE_TITLESCREEN {
+   GFX_SURFACE* bg_image;
+   GFX_COLOR* bg_color;
+   int transition_type, delay;
+   short int show_menu;
+   TITLE_TEXT* text;
+   struct _TITLE_TITLESCREEN* next;
+} TITLE_TITLESCREEN;
 
 /* = Function Prototypes = */
 
 void sysloop_title( void );
+TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
 
 #endif /* SYSLOOP_TITLE_H */
