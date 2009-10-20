@@ -78,14 +78,57 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 
 /* Purpose: Poll user input devices.                                          */
 /* Parameters: An event value in which to store input.                        */
-void event_do_poll( EVENT_EVENT* ps_event_in ) {
+int event_do_poll( void ) {
    #ifdef USESDL
-   SDL_PollEvent( ps_event_in );
+   static SDL_Event* ps_event_temp = NULL;
+
+   /* Create the event object if it doesn't exist yet. */
+   if( NULL == ps_event_temp ) {
+      ps_event_temp = malloc( sizeof( SDL_Event ) );
+   }
+   if( NULL == ps_event_temp ) {
+      DBG_ERR( "Unable to allocate event object." );
+      return SDL_QUIT; /* Safe option. */
+   }
+   memset( ps_event_temp, 0, sizeof( SDL_Event ) );
+
+   /* Perform the polling and event assignment. */
+   SDL_PollEvent( ps_event_temp );
+   if( SDL_QUIT == ps_event_temp->type ) {
+      return EVENT_ID_QUIT;
+   } else if( SDL_KEYDOWN == ps_event_temp->type ) {
+      /* A key was pressed, so be more specific. */
+      switch( ps_event_temp->key.keysym.sym ) {
+         case SDLK_UP:
+            return EVENT_ID_UP;
+
+         case SDLK_DOWN:
+            return EVENT_ID_DOWN;
+
+         case SDLK_RIGHT:
+            return EVENT_ID_RIGHT;
+
+         case SDLK_LEFT:
+            return EVENT_ID_LEFT;
+
+         default:
+            /* It was a key we don't know about... */
+            return EVENT_ID_NULL;
+      }
+   } else {
+      /* Nothing happened... */
+      return EVENT_ID_NULL;
+   }
    #elif defined USEWII
    WPAD_ScanPads();
    if( WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME ) {
-      ps_event_in->type = EVENT_ID_QUIT;
+      return EVENT_ID_QUIT;
+   } else if( WPAD_ButtonsDown(0) & WPAD_BUTTON_UP ) {
+      return EVENT_ID_UP;
+   } else {
+      return EVENT_ID_NULL;
    }
+
    #elif defined USEDIRECTX
    // XXX
    #else

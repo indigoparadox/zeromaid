@@ -18,7 +18,6 @@
 
 void sysloop_adventure( void ) {
    int i_bol_running = 1;
-   EVENT_EVENT s_event;
    EVENT_TIMER* ps_fps = event_timer_create();
    bstring ps_map_path = cstr2bstr( PATH_SHARE "/mapdata/field_map.tmx" );
    TILEMAP_TILEMAP* ps_map = tilemap_create_map( ps_map_path );
@@ -43,9 +42,9 @@ void sysloop_adventure( void ) {
       event_timer_start( ps_fps );
 
       /* Listen for events. */
-      event_do_poll( &s_event );
-      if( EVENT_ID_QUIT == s_event.type ) {
-         break;
+      switch( event_do_poll() ) {
+         case EVENT_ID_QUIT:
+            goto sla_cleanup;
       }
 
       /* Loop through and draw all on-screen items. */
@@ -56,6 +55,8 @@ void sysloop_adventure( void ) {
 
       while( GFX_FPS > ps_fps->i_ticks_start );
    }
+
+sla_cleanup:
 
    /* Fade out the playing field screen. */
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );

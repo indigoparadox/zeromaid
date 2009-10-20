@@ -39,15 +39,12 @@
 
 /* = Definitions = */
 
-#ifdef USESDL
-#define EVENT_ID_QUIT SDL_QUIT
-#elif defined USEWII
-#define EVENT_ID_QUIT 0
-#elif defined USEDIRECTX
-#define EVENT_ID_QUIT 0
-#else
-#error "No event types defined for this platform!"
-#endif /* USESDL, USEWII, USEDIRECTX */
+#define EVENT_ID_NULL 0
+#define EVENT_ID_QUIT 1
+#define EVENT_ID_UP 2
+#define EVENT_ID_DOWN 3
+#define EVENT_ID_RIGHT 4
+#define EVENT_ID_LEFT 5
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */
@@ -62,19 +59,9 @@ typedef struct {
    int i_bol_paused;
 } EVENT_TIMER;
 
-#ifdef USESDL
-typedef SDL_Event EVENT_EVENT;
-#elif defined USEWII
 typedef struct {
    int type;
 } EVENT_EVENT;
-#elif defined USEDIRECTX
-typedef struct {
-   int type;
-} EVENT_EVENT;
-#else
-#error "No event entity defined for this platform!"
-#endif /* USESDL, USEWII, USEDIRECTX */
 
 /* = Function Prototypes = */
 
@@ -84,6 +71,6 @@ void event_timer_start( EVENT_TIMER* );
 void event_timer_start( EVENT_TIMER* );
 void event_timer_pause( EVENT_TIMER* );
 void event_timer_unpause( EVENT_TIMER* );
-void event_do_poll( EVENT_EVENT* );
+int event_do_poll( void );
 
 #endif /* EVENT_H */
