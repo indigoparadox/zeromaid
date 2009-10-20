@@ -82,9 +82,10 @@ void event_do_poll( EVENT_EVENT* ps_event_in ) {
    #ifdef USESDL
    SDL_PollEvent( ps_event_in );
    #elif defined USEWII
-   /* PAD_ScanPads();
-   const u16 i_buttons = PAD_ButtonsHeld( 0 ); */
-   // XXX: Actually handle input.
+   WPAD_ScanPads();
+   if( WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME ) {
+      ps_event_in->type = EVENT_ID_QUIT;
+   }
    #elif defined USEDIRECTX
    // XXX
    #else
