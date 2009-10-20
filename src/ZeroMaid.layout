@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Debug-Windows-i686-SDL" />
+	<ActiveTarget name="Release-Wii-PPC-DKPWin" />
+	<File name="bstring\bstrlib.c" open="0" top="0" tabpos="0">
+		<Cursor position="29462" topLine="991" />
+	</File>
 	<File name="defines.h" open="1" top="0" tabpos="4">
-		<Cursor position="1723" topLine="42" />
+		<Cursor position="1565" topLine="71" />
 	</File>
-	<File name="event.c" open="0" top="0" tabpos="7">
-		<Cursor position="1574" topLine="18" />
+	<File name="event.c" open="1" top="1" tabpos="8">
+		<Cursor position="5113" topLine="120" />
 	</File>
-	<File name="event.h" open="0" top="0" tabpos="6">
-		<Cursor position="2371" topLine="57" />
+	<File name="event.h" open="1" top="0" tabpos="9">
+		<Cursor position="1659" topLine="59" />
 	</File>
 	<File name="ezxml\ezxml.c" open="0" top="0" tabpos="0">
 		<Cursor position="31499" topLine="782" />
@@ -17,31 +20,31 @@
 		<Cursor position="3861" topLine="84" />
 	</File>
 	<File name="graphics.c" open="1" top="0" tabpos="3">
-		<Cursor position="15243" topLine="419" />
+		<Cursor position="9458" topLine="228" />
 	</File>
 	<File name="graphics.h" open="1" top="0" tabpos="2">
-		<Cursor position="3627" topLine="96" />
+		<Cursor position="3364" topLine="91" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2306" topLine="73" />
+		<Cursor position="2397" topLine="51" />
 	</File>
 	<File name="resource.rc" open="0" top="0" tabpos="0">
 		<Cursor position="35" topLine="0" />
 	</File>
-	<File name="systype_adventure.c" open="1" top="0" tabpos="5">
-		<Cursor position="2008" topLine="31" />
+	<File name="systype_adventure.c" open="1" top="0" tabpos="10">
+		<Cursor position="2323" topLine="34" />
 	</File>
-	<File name="systype_adventure.h" open="1" top="0" tabpos="6">
-		<Cursor position="1412" topLine="20" />
+	<File name="systype_adventure.h" open="0" top="0" tabpos="6">
+		<Cursor position="1412" topLine="4" />
 	</File>
-	<File name="systype_title.c" open="1" top="1" tabpos="8">
-		<Cursor position="3326" topLine="52" />
+	<File name="systype_title.c" open="1" top="0" tabpos="6">
+		<Cursor position="3593" topLine="62" />
 	</File>
-	<File name="systype_title.h" open="1" top="0" tabpos="7">
-		<Cursor position="1735" topLine="38" />
+	<File name="systype_title.h" open="1" top="0" tabpos="5">
+		<Cursor position="1711" topLine="29" />
 	</File>
-	<File name="tilemap.c" open="0" top="0" tabpos="4">
-		<Cursor position="5137" topLine="105" />
+	<File name="tilemap.c" open="1" top="0" tabpos="7">
+		<Cursor position="4552" topLine="123" />
 	</File>
 	<File name="tilemap.h" open="0" top="0" tabpos="10">
 		<Cursor position="1430" topLine="28" />

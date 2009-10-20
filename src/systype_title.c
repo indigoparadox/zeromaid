@@ -17,8 +17,8 @@
 #include "systype_title.h"
 
 void sysloop_title( void ) {
-   int i_bol_running = 1;
-   EVENT_EVENT s_event;
+   short int i_bol_running = 1;
+   int i_menu_selected = 0;
    EVENT_TIMER* ps_fps = event_timer_create();
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
@@ -54,15 +54,16 @@ void sysloop_title( void ) {
          ps_title_iter = ps_title_iter->next;
          graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
          graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
-      } else if( NULL != ps_title_iter && 0 < ps_title_iter->delay ) {
+      } else if( NULL != ps_title_iter && 0 < ps_title_iter->delay && NULL != ps_title_iter->next ) {
          ps_title_iter->delay--;
       }
 
       /* Listen for events. */
-      event_do_poll( &s_event );
-      switch( s_event.type ) {
+      int i_event = event_do_poll();
+      switch( i_event ) {
          case EVENT_ID_QUIT:
             /* Quitting is universal. */
+            printf( "Quitting! %d", i_event );
             goto slt_cleanup;
 
          /* case agfx::EVT_KEYESCAPE:
@@ -77,6 +78,9 @@ void sysloop_title( void ) {
       /* Loop through and draw all on-screen items. */
       if( NULL != ps_title_iter ) {
          graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+      }
+      if( ps_title_iter->show_menu ) {
+
       }
 
       /* if( !bolTest ) {

@@ -230,7 +230,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1256015934 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
+1256020909 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.c
 	"systype_title.h"
 
 1255992268 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_title.h
@@ -244,7 +244,7 @@
 
 1249375916 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\resource.rc
 
-1255905474 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
+1256021480 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.h
 	<time.h>
 	<SDL/SDL.h>
 	<SDL/SDL.h>
@@ -254,10 +254,10 @@
 	<grrlib.h>
 	"defines.h"
 
-1255921756 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
+1256021499 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\event.c
 	"event.h"
 
-1256015555 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
+1256020639 source:c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.c
 	"systype_adventure.h"
 
 1255595628 c:\documents and settings\alexanderfb\my documents\programs\desktop applications\zeromaid\src\systype_adventure.h
