@@ -8,3 +8,4 @@ regexp:.*\.pdb
 regexp:.*\.ttf
 glob:share/dbg_out.txt
 regexp:.*\.swp
+glob:src/ZeroMaid.layout
