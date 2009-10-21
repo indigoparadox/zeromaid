@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<gamedata>
+   <title>
+      <titlescreen delay="200" bgcolor="#000000" bgimage="screen_pftlogo" itrans="fade" otrans="fade" showmenu="false" />
+      <titlescreen bgcolor="#ffffff" bgimage="screen_title" itrans="fade" otrans="fade" musicpath="mus-title" showmenu="true"> 
+         <text x="20" y="200" font="font_artillum" fgcolor="#000000" size="48">MAID II</text>
+         <text x="100" y="240" font="font_artillum" fgcolor="#000000" size="12">Return of the Maid</text>
+      </titlescreen>
+   </title>
+ <story>
+  <team>
+   <member type="hilda" />
+   <member type="alice" />
+   <member type="shirley" />
+  </team>
+  <!-- <startmap type="adventure" name="lightworld" pstartx="17" pstarty="17" datetime="06.05.1238.16.00" /> -->
+  <startmap type="visnov" name="intro" datetime="06.05.1238.16.00" />
+ </story>
+</gamedata>

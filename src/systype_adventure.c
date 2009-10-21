@@ -16,10 +16,10 @@
 
 #include "systype_adventure.h"
 
-void sysloop_adventure( void ) {
+void systype_adventure_loop( void ) {
    int i_bol_running = 1;
    EVENT_TIMER* ps_fps = event_timer_create();
-   bstring ps_map_path = cstr2bstr( PATH_SHARE "/mapdata/field_map.tmx" );
+   bstring ps_map_path = bfromcstr( PATH_SHARE "/mapdata/field_map.tmx" );
    TILEMAP_TILEMAP* ps_map = tilemap_create_map( ps_map_path );
    free( ps_map_path );
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );

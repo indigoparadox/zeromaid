@@ -20,17 +20,19 @@
 
 /* #ifdef __APPLE__
    #include <SDL/SDL.h>
-   #include <SDL_mixer/SDL_mixer.h>
+   #include <SDL/SDL_ttf.h>
    #ifdef USEMUSIC
       #include <SDL_mixer/SDL_mixer.h>
    #endif // USEMUSIC
 #elif defined __unix__
    #include <SDL/SDL.h>
+   #include <SDL/SDL_ttf.h>
    #ifdef USEMUSIC
       #include <SDL/SDL_mixer.h>
    #endif // USEMUSIC
 #else
    #include <SDL.h>
+   #include <SDL_ttf.h>
    #ifdef USEMUSIC
       #include <SDL_mixer.h>
    #endif // USEMUSIC
@@ -49,13 +51,15 @@ int main( int argc, char* argv[] ) {
    #endif /* OUTTOFILE */
 
    /* Platform-dependent miscellaneous initialization. */
-   #ifdef USEWII
+   #ifdef USESDL
+   TTF_Init();
+   #elif defined USEWII
    WPAD_Init();
-   #endif /* USEWII */
+   #endif /* USESDL, USEWII */
 
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
-   bstring ps_title = cstr2bstr( SYSTEM_TITLE );
+   bstring ps_title = bfromcstr( SYSTEM_TITLE );
    graphics_create_screen(
       GFX_SCREENWIDTH,
       GFX_SCREENHEIGHT,
@@ -64,16 +68,18 @@ int main( int argc, char* argv[] ) {
    );
    bdestroy( ps_title );
 
-   sysloop_title();
+   systype_title_loop();
    //sysloop_adventure();
 
    #ifdef OUTTOFILE
    fclose( gps_debug );
    #endif /* OUTTOFILE */
 
-   #ifdef USEWII
+   #ifdef USESDL
+   TTF_Quit();
+   #elif defined USEWII
    GRRLIB_Exit();
-   #endif /* USEWII */
+   #endif /* USESDL, USEWII */
 
    return 0;
 }

@@ -29,24 +29,26 @@
 
 /* = Type and Struct Definitions = */
 
-typedef struct {
-   bstring text;
+typedef struct _SYSTYPE_TITLE_TEXT {
+   bstring text, font_name;
    GFX_COLOR* fg_color;
    int x, y, size;
-} TITLE_TEXT;
+   struct _SYSTYPE_TITLE_TEXT* next;
+} SYSTYPE_TITLE_TEXT;
 
-typedef struct _TITLE_TITLESCREEN {
+typedef struct _SYSTYPE_TITLE_TITLESCREEN {
    GFX_SURFACE* bg_image;
    GFX_COLOR* bg_color;
-   int transition_type, delay;
+   int i_trans, o_trans, delay;
    short int show_menu;
-   TITLE_TEXT* text;
-   struct _TITLE_TITLESCREEN* next;
-} TITLE_TITLESCREEN;
+   SYSTYPE_TITLE_TEXT* text_node;
+   struct _SYSTYPE_TITLE_TITLESCREEN* next;
+} SYSTYPE_TITLE_TITLESCREEN;
 
 /* = Function Prototypes = */
 
-void sysloop_title( void );
-TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
+void systype_title_loop( void );
+SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
+void systype_title_show_menu( int );
 
 #endif /* SYSLOOP_TITLE_H */

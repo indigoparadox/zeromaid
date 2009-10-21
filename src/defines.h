@@ -31,6 +31,7 @@
 #else
 #define FILE_EXTENSION_IMAGE "bmp"
 #endif /* USEWII */
+#define FILE_EXTENSION_FONT "ttf"
 
 #define SYSTEM_TITLE "ZeroMaid"
 
