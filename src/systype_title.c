@@ -16,44 +16,35 @@
 
 #include "systype_title.h"
 
-void sysloop_title( void ) {
+void systype_title_loop( void ) {
    short int i_bol_running = 1;
    int i_menu_selected = 0;
    EVENT_TIMER* ps_fps = event_timer_create();
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
-   TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
-   TITLE_TITLESCREEN* ps_title_iter = ps_title_screens;
-   /* GFX_RECTANGLE s_blit_dest;
-   GFX_RECTANGLE s_blit_error; */
-
-   /* Setup the loading title and image, then blit them onto one surface. */
-   DBG_INFO( "Setting up the title image..." );
-
-   /* p_surTitleText = new agfx::SurfaceCore( "Maid Quest", strTitleFont, 48, agfx::BLACK );
-   p_surSubtText  = new agfx::SurfaceCore( "Quest of the maid", strTitleFont, 18, agfx::BLACK ); */
-   // Setup the error message text, in case we need it.
-   /* p_surErrorText = new agfx::SurfaceCore( "There was an error starting Maid Quest!", strTitleFont, 18, agfx::RED );
-   rctBlitError.set_x( 50 );
-   rctBlitError.set_y( 150 );
-   rctBlitError.set_width( p_surErrorText->get_width() );
-   rctBlitError.set_height( p_surErrorText->get_height() ); */
+   SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
+   SYSTYPE_TITLE_TITLESCREEN* ps_title_iter = ps_title_screens;
+   SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
+   bstring ps_font_name = NULL;
 
    /* Show the title screen until the user selects something. */
    DBG_INFO( "Running title screen loop..." );
    if( NULL != ps_title_iter ) {
       graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
-      graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
+      graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
    }
    while( i_bol_running ) {
       /* Run the title screen menu input wait loop. */
       event_timer_start( ps_fps );
 
       /* Load the next title screen or reduce the delay on this one. */
-      if( NULL != ps_title_iter && 0 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
-         graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
+      if( NULL != ps_title_iter && 1 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
+         graphics_draw_transition( ps_title_iter->o_trans, ps_color_fade );
          ps_title_iter = ps_title_iter->next;
          graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
-         graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
+         graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
+
+         /* Every new title resets the menu regardless of anything. */
+         i_menu_selected = 0;
       } else if( NULL != ps_title_iter && 0 < ps_title_iter->delay && NULL != ps_title_iter->next ) {
          ps_title_iter->delay--;
       }
@@ -63,7 +54,7 @@ void sysloop_title( void ) {
       switch( i_event ) {
          case EVENT_ID_QUIT:
             /* Quitting is universal. */
-            printf( "Quitting! %d", i_event );
+            DBG_INFO( "Quitting..." );
             goto slt_cleanup;
 
          /* case agfx::EVT_KEYESCAPE:
@@ -78,9 +69,25 @@ void sysloop_title( void ) {
       /* Loop through and draw all on-screen items. */
       if( NULL != ps_title_iter ) {
          graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+
+         /* Draw the text items. */
+         ps_text_iter = ps_title_iter->text_node;
+         while( NULL != ps_text_iter ) {
+            graphics_draw_text(
+               ps_text_iter->x,
+               ps_text_iter->y,
+               ps_text_iter->text,
+               ps_text_iter->font_name,
+               ps_text_iter->size,
+               ps_text_iter->fg_color
+            );
+
+            /* Go to the next one! */
+            ps_text_iter = ps_text_iter->next;
+         }
       }
       if( ps_title_iter->show_menu ) {
-
+         systype_title_show_menu( i_menu_selected );
       }
 
       /* if( !bolTest ) {
@@ -123,7 +130,7 @@ void sysloop_title( void ) {
 
 slt_cleanup:
 
-   graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
+   graphics_draw_transition( ps_title_iter->o_trans, ps_color_fade );
 
    /* Clean up! */
    ps_title_iter = ps_title_screens;
@@ -136,18 +143,20 @@ slt_cleanup:
    }
    event_timer_free( ps_fps );
    free( ps_color_fade );
+   bdestroy( ps_font_name );
 
    return;
 }
 
 /* Purpose: Load the title screen chain from the system.xml data file.        */
 /* Return: The first screen in the chain.                                     */
-TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
+SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    ezxml_t ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM ),
-      ps_xml_title = NULL, ps_xml_titlescreen_iter = NULL;
-   TITLE_TITLESCREEN* ps_titlescreen_head = NULL;
-   TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
-   bstring ps_string_attrib = NULL, ps_string_temp1 = NULL, ps_string_temp2 = NULL;
+      ps_xml_title = NULL, ps_xml_titlescreen_iter = NULL, ps_xml_text_iter = NULL;
+   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_head = NULL;
+   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
+   SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
+   bstring ps_string_attrib = NULL;
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
@@ -161,34 +170,104 @@ TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    }
 
    /* Loop through and load each title screen's data. */
+   DBG_INFO( "Loading title screens..." );
    ps_xml_titlescreen_iter = ezxml_child( ps_xml_title, "titlescreen" );
    while( NULL != ps_xml_titlescreen_iter ) {
       /* Create a new title screen structure to fill. */
       if( NULL == ps_titlescreen_iter ) {
-         ps_titlescreen_iter = malloc( sizeof( TITLE_TITLESCREEN ) );
+         ps_titlescreen_iter = malloc( sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
          ps_titlescreen_head = ps_titlescreen_iter;
       } else {
-         ps_titlescreen_iter->next = malloc( sizeof( TITLE_TITLESCREEN ) );
+         ps_titlescreen_iter->next = malloc( sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
          ps_titlescreen_iter = ps_titlescreen_iter->next;
       }
       if( NULL == ps_titlescreen_iter ) {
          DBG_ERR( "Unable to allocate title screen!" );
          goto stlt_cleanup;
       }
-      memset( ps_titlescreen_iter, 0, sizeof( TITLE_TITLESCREEN ) );
+      memset( ps_titlescreen_iter, 0, sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
 
       /* Load attribute data into the new title screen. */
-      ps_string_temp1 = cstr2bstr( PATH_SHARE PATH_SCRDATA "/" );
-      ps_string_attrib = cstr2bstr( ezxml_attr( ps_xml_titlescreen_iter, "bgimage" ) );
-      ps_string_temp2 = cstr2bstr( "." FILE_EXTENSION_IMAGE );
-      bconcat( ps_string_temp1, ps_string_attrib );
-      bconcat( ps_string_temp1, ps_string_temp2 );
-      ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_temp1 );
+      /* ATTRIB: BGIMAGE */
+      ps_string_attrib = bformat(
+         PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_IMAGE,
+         ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
+      );
+      ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_attrib );
       bdestroy( ps_string_attrib );
-      bdestroy( ps_string_temp1 );
-      bdestroy( ps_string_temp2 );
 
+      /* ATTRIB: DELAY */
       ps_titlescreen_iter->delay = atoi( ezxml_attr( ps_xml_titlescreen_iter, "delay" ) );
+
+      /* ATTRIB: TRANSITION */
+      /* TODO: When there are other transitions available, the default should *
+       * be to fade.                                                          */
+      /* if( 0 == strcmp( ezxml_attr( ps_xml_titlescreen_iter, "transition" ), "fade" ) { */
+      ps_titlescreen_iter->i_trans = GFX_TRANS_FADE_IN;
+      ps_titlescreen_iter->o_trans = GFX_TRANS_FADE_OUT;
+
+      /* ATTRIB: SHOWMENU */
+      if( 0 == strcmp( ezxml_attr( ps_xml_titlescreen_iter, "showmenu" ), "true" ) ) {
+         ps_titlescreen_iter->show_menu = TRUE;
+      }
+
+      /* Load the text elements for each title screen. */
+      ps_xml_text_iter = ezxml_child( ps_xml_titlescreen_iter, "text" );
+      while( NULL != ps_xml_text_iter ) {
+         if( NULL == ps_titlescreen_iter->text_node ) {
+            /* Create the first text node. */
+            ps_titlescreen_iter->text_node = malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+            ps_text_iter = ps_titlescreen_iter->text_node;
+         } else {
+            /* Append a new text node. */
+            ps_text_iter->next = malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+            ps_text_iter = ps_text_iter->next;
+         }
+         if( NULL == ps_text_iter ) {
+            DBG_ERR( "Unable to allocate title screen text node!" );
+            break;
+         }
+         memset( ps_text_iter, 0, sizeof( SYSTYPE_TITLE_TEXT ) );
+
+         /* Load the text node attributes. */
+         /* ATTRIB: LOCATION /SIZE */
+         ps_text_iter->x = atoi( ezxml_attr( ps_xml_text_iter, "x" ) );
+         ps_text_iter->y = atoi( ezxml_attr( ps_xml_text_iter, "y" ) );
+         ps_text_iter->size = atoi( ezxml_attr( ps_xml_text_iter, "size" ) );
+
+         /* ATTRIB: FG COLOR */
+         ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );
+         if( NULL != ps_string_attrib ) {
+            ps_text_iter->fg_color = graphics_create_color_html( ps_string_attrib );
+         }
+         bdestroy( ps_string_attrib );
+
+         /* ATTRIB: FONT NAME */
+         ps_text_iter->font_name = bformat(
+            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            ezxml_attr( ps_xml_text_iter, "font" )
+         );
+
+         /* ATTRIB: TEXT */
+         ps_text_iter->text = bformat( "%s", ps_xml_text_iter->txt );
+         if( NULL == ps_text_iter->text ) {
+            DBG_ERR( "Created empty text node!" );
+            /* We're not really gonna do anything about this, but it's not    *
+             * valid.                                                         */
+         }
+
+         /* Report. */
+         ps_string_attrib = bformat(
+            "Successfully loaded text node at %d, %d",
+            ps_text_iter->x,
+            ps_text_iter->y
+         );
+         DBG_INFO( ps_string_attrib->data );
+         bdestroy( ps_string_attrib );
+
+         /* Go to the next one! */
+         ps_xml_text_iter = ps_xml_text_iter->next;
+      }
 
       /* Verify title screen integrity against missing attributes. */
 
@@ -200,9 +279,15 @@ stlt_cleanup:
 
    /* Clean up. */
    ezxml_free( ps_xml_system );
-   bdestroy( ps_string_attrib );
-   bdestroy( ps_string_temp1 );
-   bdestroy( ps_string_temp2 );
+   /* Freeing this string here causes weird things to happen. It's freed      *
+    * every time it's used above already, so whatever.                        */
+   /* bdestroy( ps_string_attrib ); */
 
    return ps_titlescreen_head;
+}
+
+/* Purpose: Display the root menu.                                         */
+/* Parameters: The currently selected index.                               */
+void systype_title_show_menu( int i_index_in ) {
+
 }

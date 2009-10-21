@@ -42,8 +42,8 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    /* Load the tileset data if it exists, or just let cleanup run if it       *
     * doesn't.                                                                */
    ps_xml_tiledata = ezxml_child( ps_xml_map, "tileset" );
-   ps_tiledata_path = cstr2bstr( PATH_SHARE PATH_MAPDATA "/" );
-   ps_tiledata_filename = cstr2bstr( ezxml_attr( ps_xml_tiledata, "source" ) );
+   ps_tiledata_path = bfromcstr( PATH_SHARE PATH_MAPDATA "/" );
+   ps_tiledata_filename = bfromcstr( ezxml_attr( ps_xml_tiledata, "source" ) );
    bconcat( ps_tiledata_path, ps_tiledata_filename );
    if( file_exists( ps_tiledata_path ) ) {
       /* Load the map property data. */
@@ -52,10 +52,10 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
       while( NULL != ps_xml_prop_iter ) {
          /* Load the current property into the struct. */
          if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "mapname" ) ) {
-            ps_map_out->map_name = cstr2bstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
+            ps_map_out->map_name = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
 
          } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "musicpath" ) ) {
-            ps_map_out->music_path = cstr2bstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
+            ps_map_out->music_path = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
 
          } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "timegoes" ) ) {
             if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "value" ), "true" ) ) {

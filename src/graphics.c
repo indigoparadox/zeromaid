@@ -108,8 +108,8 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
 
    /* Load the image file. */
    ps_xml_image = ezxml_child( ps_xml_tileset, "image" );
-   ps_image_path = cstr2bstr( PATH_SHARE PATH_MAPDATA "/" );
-   ps_image_filename = cstr2bstr( ezxml_attr( ps_xml_image, "source" ) );
+   ps_image_path = bfromcstr( PATH_SHARE PATH_MAPDATA "/" );
+   ps_image_filename = bfromcstr( ezxml_attr( ps_xml_image, "source" ) );
    bconcat( ps_image_path, ps_image_filename );
    ps_surface = graphics_create_image( ps_image_path );
 
@@ -198,7 +198,7 @@ gct_cleanup:
 }
 
 /* Purpose: Generate a color for the given parameters.                        */
-/* Parameters: Red, green, blue.                                              */
+/* Parameters: Red, green, blue, with 255 being the strongest.                */
 /* Return: A pointer to the specified color struct.                           */
 GFX_COLOR* graphics_create_color(
    unsigned char i_red_in,
@@ -226,6 +226,32 @@ GFX_COLOR* graphics_create_color(
    return ps_color_out;
 }
 
+/* Purpose: Parse a color from HTML #XXXXXX notation.                         */
+/* Parameters: A string containing the color to parse.                        */
+/* Return: The requested color.                                               */
+GFX_COLOR* graphics_create_color_html( bstring ps_color_in ) {
+   int i_red = 0, i_green = 0, i_blue = 0;
+   char ac_color_iter[3] = { '\0' };
+   char* pc_color_in = bdata( ps_color_in );
+
+   /* Red */
+   ac_color_iter[0] = pc_color_in[1];
+   ac_color_iter[1] = pc_color_in[2];
+   i_red = strtol( ac_color_iter, NULL, 16 );
+
+   /* Green */
+   ac_color_iter[0] = pc_color_in[3];
+   ac_color_iter[1] = pc_color_in[4];
+   i_green = strtol( ac_color_iter, NULL, 16 );
+
+   /* Blue */
+   ac_color_iter[0] = pc_color_in[5];
+   ac_color_iter[1] = pc_color_in[6];
+   i_blue = strtol( ac_color_iter, NULL, 16 );
+
+   return graphics_create_color( i_red, i_green, i_blue );
+}
+
 /* Purpose: Render a given text string to the screen.                         */
 /* Parameters: Coordinates to render to, string to render, font name, point   *
  * size, render color.                                                        */
@@ -237,11 +263,25 @@ void graphics_draw_text(
    int i_size_in,
    GFX_COLOR* ps_color_in
 ) {
+   if( NULL == ps_string_in ) {
+      DBG_ERR( "Attempted to blit NULL string!" );
+      return;
+   }
+   if( NULL == ps_font_name_in ) {
+      DBG_ERR( "Attempted to blit string with NULL font!" );
+      return;
+   }
+   if( NULL == ps_color_in ) {
+      DBG_ERR( "Attempted to blit string with NULL color!" );
+      return;
+   }
+
    #ifdef USESDL
    GFX_SURFACE* ps_type_render_out = NULL;
    TTF_Font* ps_font = NULL;
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
+   static bstring ps_last_font = NULL;
 
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
@@ -249,7 +289,13 @@ void graphics_draw_text(
    /* Open the font and render the text. */
    ps_font = TTF_OpenFont( ps_font_name_in->data, i_size_in );
    if( NULL == ps_font ) {
-      DBG_ERR_FILE( "Unable to load font", ps_font_name_in->data );
+      /* Only log the error once. */
+      if( 0 != bstrcmp( ps_last_font, ps_font_name_in ) ) {
+         DBG_ERR_FILE( "Unable to load font", ps_font_name_in->data );
+         DBG_ERR_FILE( "SDL TTF Error was", TTF_GetError() );
+         bdestroy( ps_last_font );
+         ps_last_font = bstrcpy( ps_font_name_in );
+      }
       return;
    }
    ps_type_render_out = TTF_RenderText_Solid(

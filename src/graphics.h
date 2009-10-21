@@ -97,6 +97,7 @@ GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
+GFX_COLOR* graphics_create_color_html( bstring );
 void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
