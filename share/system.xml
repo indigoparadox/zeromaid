@@ -2,7 +2,7 @@
 <gamedata>
    <title>
       <titlescreen delay="200" bgcolor="#000000" bgimage="screen_pftlogo" itrans="fade" otrans="fade" showmenu="false" />
-      <titlescreen bgcolor="#ffffff" bgimage="screen_title" itrans="fade" otrans="fade" musicpath="mus-title" showmenu="true"> 
+      <titlescreen bgcolor="#ffffff" bgimage="screen_title" itrans="fade" otrans="fade" musicpath="mus-title" showmenu="true" menufont="font_prstart"> 
          <text x="20" y="200" font="font_artillum" fgcolor="#000000" size="48">MAID II</text>
          <text x="100" y="240" font="font_artillum" fgcolor="#000000" size="12">Return of the Maid</text>
       </titlescreen>

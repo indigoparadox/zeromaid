@@ -37,6 +37,7 @@ typedef struct _SYSTYPE_TITLE_TEXT {
 } SYSTYPE_TITLE_TEXT;
 
 typedef struct _SYSTYPE_TITLE_TITLESCREEN {
+   bstring menu_font;
    GFX_SURFACE* bg_image;
    GFX_COLOR* bg_color;
    int i_trans, o_trans, delay;

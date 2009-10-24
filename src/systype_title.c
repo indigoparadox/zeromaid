@@ -187,6 +187,8 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       }
       memset( ps_titlescreen_iter, 0, sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
 
+      DBG_INFO( "Started loading title screen..." );
+
       /* Load attribute data into the new title screen. */
       /* ATTRIB: BGIMAGE */
       ps_string_attrib = bformat(
@@ -198,6 +200,12 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
       /* ATTRIB: DELAY */
       ps_titlescreen_iter->delay = atoi( ezxml_attr( ps_xml_titlescreen_iter, "delay" ) );
+      if( 0 != ps_titlescreen_iter->delay ) {
+         DBG_INFO_FILE(
+            "Title screen: Set delay",
+            ezxml_attr( ps_xml_titlescreen_iter, "delay" )
+         );
+      }
 
       /* ATTRIB: TRANSITION */
       /* TODO: When there are other transitions available, the default should *
@@ -205,10 +213,24 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* if( 0 == strcmp( ezxml_attr( ps_xml_titlescreen_iter, "transition" ), "fade" ) { */
       ps_titlescreen_iter->i_trans = GFX_TRANS_FADE_IN;
       ps_titlescreen_iter->o_trans = GFX_TRANS_FADE_OUT;
+      DBG_INFO( "Title screen: Set transitions." );
 
       /* ATTRIB: SHOWMENU */
       if( 0 == strcmp( ezxml_attr( ps_xml_titlescreen_iter, "showmenu" ), "true" ) ) {
          ps_titlescreen_iter->show_menu = TRUE;
+         DBG_INFO( "Title screen: Showing menu." );
+      }
+
+      /* ATTRIB: MENUFONT */
+      if( NULL != ezxml_attr( ps_xml_titlescreen_iter, "menufont" ) ) {
+         ps_titlescreen_iter->menu_font = bformat(
+            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
+         );
+         DBG_INFO_FILE(
+            "Title screen: Set menu font",
+            ps_titlescreen_iter->menu_font->data
+         );
       }
 
       /* Load the text elements for each title screen. */
@@ -258,7 +280,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
          /* Report. */
          ps_string_attrib = bformat(
-            "Successfully loaded text node at %d, %d",
+            "Title screen: Successfully loaded text node at %d, %d.",
             ps_text_iter->x,
             ps_text_iter->y
          );
@@ -270,6 +292,9 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       }
 
       /* Verify title screen integrity against missing attributes. */
+
+
+      DBG_INFO( "Finished loading title screen." );
 
       /* Go to the next one! */
       ps_xml_titlescreen_iter = ps_xml_titlescreen_iter->next;
