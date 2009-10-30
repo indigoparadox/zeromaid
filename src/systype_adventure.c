@@ -16,8 +16,10 @@
 
 #include "systype_adventure.h"
 
-void systype_adventure_loop( void ) {
-   int i_bol_running = 1;
+/* Purpose: Adventure game loop.                                              */
+/* Return: The code for the next action to take.                              */
+int systype_adventure_loop( void ) {
+   int i_act_return = RETURN_ACTION_QUIT;
    EVENT_TIMER* ps_fps = event_timer_create();
    bstring ps_map_path = bfromcstr( PATH_SHARE "/mapdata/field_map.tmx" );
    TILEMAP_TILEMAP* ps_map = tilemap_create_map( ps_map_path );
@@ -32,12 +34,14 @@ void systype_adventure_loop( void ) {
    s_viewport.w = GFX_SCREENWIDTH;
    s_viewport.h = GFX_SCREENHEIGHT;
 
+   /* TODO: Check the scratch file for the game we're supposed to load. */
+
    /* Draw the initial playing field and fade the screen in. */
    graphics_draw_blank( ps_color_bg );
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
 
-   while( i_bol_running ) {
+   while( 1 ) {
       /* Run the title screen menu input wait loop. */
       event_timer_start( ps_fps );
 
@@ -68,4 +72,6 @@ sla_cleanup:
    free( ps_color_fade );
    free( ps_color_bg );
    free( ps_map );
+
+   return i_act_return;
 }

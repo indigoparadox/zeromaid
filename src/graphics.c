@@ -214,6 +214,7 @@ GFX_COLOR* graphics_create_color(
    ps_color_out->b = i_blue_in;
    #elif defined USEWII
    /* Wii colors are an unsigned 32-bit integer in the format RGBA. */
+   /* TODO: Use bit shifting for efficiency. */
    ps_color_out = malloc( sizeof( GFX_COLOR ) );
    *ps_color_out =
       (i_red_in * 16777216) +

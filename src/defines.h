@@ -43,6 +43,10 @@
 #define PATH_SCRDATA "/scrdata"
 #define PATH_FILE_SYSTEM "system.xml"
 
+#define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
+#define RETURN_ACTION_LOADCACHE 1 /* Load the next instruction/data from the  *
+                                   * cache.                                   */
+
 #define SYSTYPE_TITLE 1
 
 #ifdef OUTTOFILE
@@ -111,7 +115,5 @@ FILE* gps_debug;
 #endif /* USESDL */
 
 /* = Global Variables = */
-
-
 
 #endif /* DEFINES_H */

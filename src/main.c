@@ -46,6 +46,9 @@
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
+   short unsigned int i_bol_running = TRUE;
+   int i_last_return; /* Contains the last loop-returned value. */
+
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
    #endif /* OUTTOFILE */
@@ -68,8 +71,20 @@ int main( int argc, char* argv[] ) {
    );
    bdestroy( ps_title );
 
-   systype_title_loop();
-   //sysloop_adventure();
+   while( i_bol_running ) {
+      i_last_return = systype_title_loop();
+      switch( i_last_return ) {
+         case RETURN_ACTION_LOADCACHE:
+            /* TODO: Execute the next instruction based on the cache file. */
+            systype_adventure_loop();
+            break;
+
+         case RETURN_ACTION_QUIT:
+            /* Quit! */
+            i_bol_running = 0;
+            break;
+      }
+   }
 
    #ifdef OUTTOFILE
    fclose( gps_debug );

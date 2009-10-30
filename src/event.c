@@ -111,6 +111,12 @@ int event_do_poll( void ) {
          case SDLK_LEFT:
             return EVENT_ID_LEFT;
 
+         case SDLK_z:
+            return EVENT_ID_FIRE;
+
+         case SDLK_x:
+            return EVENT_ID_JUMP;
+
          default:
             /* It was a key we don't know about... */
             return EVENT_ID_NULL;
