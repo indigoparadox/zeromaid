@@ -28,6 +28,6 @@
 
 /* = Function Prototypes = */
 
-void systype_adventure_loop( void );
+int systype_adventure_loop( void );
 
 #endif /* SYSTYPE_ADVENTURE_H */

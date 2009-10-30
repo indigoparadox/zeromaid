@@ -45,6 +45,8 @@
 #define EVENT_ID_DOWN 3
 #define EVENT_ID_RIGHT 4
 #define EVENT_ID_LEFT 5
+#define EVENT_ID_FIRE 6
+#define EVENT_ID_JUMP 7
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */

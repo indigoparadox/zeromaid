@@ -27,6 +27,17 @@
 
 /* = Definitions = */
 
+#define SYSTYPE_TITLE_MENU_LABEL_SPSTART "Start"
+#define SYSTYPE_TITLE_MENU_LABEL_LOAD "Load"
+#define SYSTYPE_TITLE_MENU_LABEL_QUIT "Quit"
+
+#define SYSTYPE_TITLE_MENU_INDEX_SPSTART 0
+#define SYSTYPE_TITLE_MENU_INDEX_LOAD 1
+#define SYSTYPE_TITLE_MENU_INDEX_QUIT 2
+
+/* The following must be the length of the list above. */
+#define SYSTYPE_TITLE_MENU_LEN 3
+
 /* = Type and Struct Definitions = */
 
 typedef struct _SYSTYPE_TITLE_TEXT {
@@ -39,7 +50,7 @@ typedef struct _SYSTYPE_TITLE_TEXT {
 typedef struct _SYSTYPE_TITLE_TITLESCREEN {
    bstring menu_font;
    GFX_SURFACE* bg_image;
-   GFX_COLOR* bg_color;
+   GFX_COLOR* bg_color, * fg_color, * fg_highlight;
    int i_trans, o_trans, delay;
    short int show_menu;
    SYSTYPE_TITLE_TEXT* text_node;
@@ -48,8 +59,8 @@ typedef struct _SYSTYPE_TITLE_TITLESCREEN {
 
 /* = Function Prototypes = */
 
-void systype_title_loop( void );
+int systype_title_loop( void );
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
-void systype_title_show_menu( int );
+void systype_title_show_menu( int, bstring[], bstring, GFX_COLOR*, GFX_COLOR* );
 
 #endif /* SYSLOOP_TITLE_H */
