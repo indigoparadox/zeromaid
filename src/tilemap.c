@@ -34,7 +34,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
-      DBG_ERR_FILE( "Unable to load map", ps_path_in->data );
+      DBG_ERR_STR( "Unable to load map", ps_path_in->data );
       return NULL;
    }
    ps_xml_map = ezxml_parse_file( ps_path_in->data );
@@ -81,7 +81,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
             ps_map_out->tile_h = atoi( ezxml_attr( ps_xml_layer, "height" ) );
             ps_map_out->tile_list = tilemap_create_layer( ps_map_out, ps_xml_layer );
          } else {
-            DBG_INFO_FILE(
+            DBG_INFO_STR(
                "Found unrecognized map layer",
                ezxml_attr( ps_xml_layer, "name" )
             );
@@ -92,7 +92,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
       }
 
    } else {
-      DBG_ERR_FILE( "Unable to load tile data", ps_tiledata_path->data );
+      DBG_ERR_STR( "Unable to load tile data", ps_tiledata_path->data );
    }
 
    /* Clean up. */
@@ -107,11 +107,15 @@ TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_l
    ezxml_t ps_xml_tile = NULL, ps_xml_data = NULL;
    TILEMAP_TILE* ps_tile_head = NULL;
    TILEMAP_TILE* ps_tile_iter = NULL;
-   unsigned int i_tile_count;
+   unsigned int i_row_count = 0, /* The current tile row. */
+      i_tile_count = 0; /* The X-row coordinate of the current tile iterated. *
+                         * Resets as we move down to the next row.            */
 
-   DBG_INFO_FILE( "Loading background layer for map", ps_map_in->map_name->data );
+   DBG_INFO_STR( "Loading background layer for map", ps_map_in->map_name->data );
 
    ps_xml_data = ezxml_child( ps_xml_layer_in, "data" );
+
+   /* Now load the data for each tile. */
    ps_xml_tile = ezxml_child( ps_xml_data, "tile" );
    while( NULL != ps_xml_tile ) {
       if( NULL == ps_tile_iter ) {
@@ -127,11 +131,18 @@ TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_l
          DBG_ERR( "Unable to allocate map tile." );
          break;
       }
+      memset( ps_tile_iter, 0, sizeof( TILEMAP_TILE ) );
+
+      /* Update the tile and row counters. */
+      if( i_tile_count >= ps_map_in->tile_w ) {
+         i_tile_count = 0;
+         i_row_count++;
+      }
 
       /* Load the tile's properties. */
       ps_tile_iter->gid = atoi( ezxml_attr( ps_xml_tile, "gid" ) );
-      ps_tile_iter->x = i_tile_count % ps_map_in->tile_w;
-      ps_tile_iter->y = i_tile_count / ps_map_in->tile_w;
+      ps_tile_iter->x = i_tile_count;
+      ps_tile_iter->y = i_row_count;
 
       /* Go to the next one! */
       ps_xml_tile = ps_xml_tile->next;
@@ -146,7 +157,57 @@ TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_l
 
 /* Purpose: Draw the part of the given tile map indicated by its viewport to  *
  *          the screen.                                                       */
-/* Parameters: The tile map to draw.                                          */
-void tilemap_draw( TILEMAP_TILEMAP* ps_map_in ) {
+/* Parameters: The tile map to draw, the current viewport.                    */
+void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
+   int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
+      i_tile_width = 0, i_tile_height = 0;     /* which to draw.              */
+   TILEMAP_TILE* ps_tile_iter = NULL;
+   GFX_TILEDATA* ps_tile_data = NULL; /* The data for the iterated tile. */
+   GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
 
+   /* Setup the blit source and destination. */
+   s_screen_rect.w = ps_map_in->tileset->pixel_size;
+   s_screen_rect.h = ps_map_in->tileset->pixel_size;
+   s_tile_rect.w = ps_map_in->tileset->pixel_size;
+   s_tile_rect.h = ps_map_in->tileset->pixel_size;
+
+   /* Figure out which tiles should be drawn from the viewport given. */
+   i_tile_start_x = ps_viewport_in->x / ps_map_in->tileset->pixel_size;
+   i_tile_start_y = ps_viewport_in->y / ps_map_in->tileset->pixel_size;
+   i_tile_width = ps_viewport_in->w / ps_map_in->tileset->pixel_size;
+   i_tile_height = ps_viewport_in->h / ps_map_in->tileset->pixel_size;
+
+   /* Loop through all of the tiles in the map and draw the ones within the   *
+    * current viewable range.                                                 */
+   ps_tile_iter = ps_map_in->tile_list;
+   while( NULL != ps_tile_iter ) {
+      if(
+         ps_tile_iter->x < (i_tile_start_x + i_tile_width) &&
+         ps_tile_iter->y < (i_tile_start_y + i_tile_height) &&
+         ps_tile_iter->x >= i_tile_start_x &&
+         ps_tile_iter->y >= i_tile_start_y
+      ) {
+         /* Figure out the offset of the tile onscreen. */
+         s_screen_rect.x = (ps_tile_iter->x - i_tile_start_x) * ps_map_in->tileset->pixel_size;
+         s_screen_rect.y = (ps_tile_iter->y - i_tile_start_y) * ps_map_in->tileset->pixel_size;
+
+         /* Figure out where on the tilesheet the tile is. Bear in mind that  *
+          * GIDs are 1-indexed.                                               */
+         s_tile_rect.x = 0;
+         s_tile_rect.y = (ps_tile_iter->gid - 1) * ps_map_in->tileset->pixel_size;
+
+         /* Draw the tile! */
+         ps_tile_data = graphics_get_tiledata(
+            ps_tile_iter->gid, ps_map_in->tileset
+         );
+         graphics_draw_blit_tile(
+            ps_map_in->tileset->image,
+            &s_tile_rect,
+            &s_screen_rect
+         );
+      }
+
+      /* Go to the next one! */
+      ps_tile_iter = ps_tile_iter->next;
+   }
 }

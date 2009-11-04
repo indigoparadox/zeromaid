@@ -20,7 +20,6 @@
 /* Return: The code for the next action to take.                              */
 int systype_title_loop( void ) {
    int i_menu_selected = 0, i = 0, i_act_return = RETURN_ACTION_QUIT;
-   EVENT_TIMER* ps_fps = event_timer_create();
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
    SYSTYPE_TITLE_TITLESCREEN* ps_title_iter = ps_title_screens;
@@ -31,6 +30,10 @@ int systype_title_loop( void ) {
          bformat( SYSTYPE_TITLE_MENU_LABEL_LOAD ),
          bformat( SYSTYPE_TITLE_MENU_LABEL_QUIT )
       };
+   #ifdef USESDL
+   #else
+   EVENT_TIMER* ps_fps = event_timer_create();
+   #endif /* USESDL */
 
    /* Show the title screen until the user selects something. */
    DBG_INFO( "Running title screen loop..." );
@@ -39,8 +42,12 @@ int systype_title_loop( void ) {
       graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
    }
    while( 1 ) {
+      #ifdef USESDL
+      /* SDL uses its own sleep function. */
+      #else
       /* Run the title screen menu input wait loop. */
       event_timer_start( ps_fps );
+      #endif /* USESDL */
 
       /* Load the next title screen or reduce the delay on this one. */
       if( NULL != ps_title_iter && 1 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
@@ -56,7 +63,7 @@ int systype_title_loop( void ) {
       }
 
       /* Listen for events. */
-      int i_event = event_do_poll();
+      int i_event = event_do_poll_once();
       switch( i_event ) {
          case EVENT_ID_QUIT:
             /* Quitting is universal. */
@@ -138,7 +145,12 @@ int systype_title_loop( void ) {
 
       graphics_do_update();
 
+      /* If possible, try to delay without busy-spinning. */
+      #ifdef USESDL
+      SDL_Delay( 10 );
+      #else
       while( GFX_FPS > ps_fps->i_ticks_start );
+      #endif /* USESDL */
    }
 
 slt_cleanup:
@@ -157,7 +169,10 @@ slt_cleanup:
       free( ps_title_iter->fg_highlight );
       free( ps_title_iter );
    }
+   #ifdef USESDL
+   #else
    event_timer_free( ps_fps );
+   #endif /* USESDL */
    free( ps_color_fade );
    bdestroy( ps_font_name );
    for( i = 0 ; SYSTYPE_TITLE_MENU_LEN > i ; i++ ) {
@@ -179,12 +194,12 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
-      DBG_ERR_FILE( "Unable to parse system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
+      DBG_ERR_STR( "Unable to parse system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
       goto stlt_cleanup;
    }
    ps_xml_title = ezxml_child( ps_xml_system, "title" );
    if( NULL == ps_xml_title ) {
-      DBG_ERR_FILE( "Unable to parse title data in system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
+      DBG_ERR_STR( "Unable to parse title data in system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
       goto stlt_cleanup;
    }
 
@@ -220,7 +235,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* ATTRIB: DELAY */
       ps_titlescreen_iter->delay = atoi( ezxml_attr( ps_xml_titlescreen_iter, "delay" ) );
       if( 0 != ps_titlescreen_iter->delay ) {
-         DBG_INFO_FILE(
+         DBG_INFO_STR(
             "Title screen: Set delay",
             ezxml_attr( ps_xml_titlescreen_iter, "delay" )
          );
@@ -246,7 +261,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
             PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
-         DBG_INFO_FILE(
+         DBG_INFO_STR(
             "Title screen: Set menu font",
             ps_titlescreen_iter->menu_font->data
          );

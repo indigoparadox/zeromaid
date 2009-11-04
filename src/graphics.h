@@ -79,13 +79,13 @@ typedef IDirectDrawSurface7 GFX_SURFACE;
  * we feel the simplicity gained this way is worthwhile.                      */
 typedef struct _GFX_TILEDATA {
    unsigned int gid, hindrance;
-   unsigned short int animated;
-   struct _GFX_TILEDATA* tile_next;
+   short int animated;
+   struct _GFX_TILEDATA* next;
 } GFX_TILEDATA;
 
 typedef struct {
+   unsigned int pixel_size;
    GFX_SURFACE* image;
-   unsigned int tile_size;
    GFX_TILEDATA* tile_list;
 } GFX_TILESET;
 
@@ -100,10 +100,11 @@ GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
 GFX_COLOR* graphics_create_color_html( bstring );
 void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blit_sprite( GFX_SURFACE*, int, int, int );
+void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blank( GFX_COLOR* );
 void graphics_draw_transition( int, GFX_COLOR* );
 void graphics_do_update( void );
+GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_tileset( GFX_TILESET* );
 

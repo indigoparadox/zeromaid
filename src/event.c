@@ -76,8 +76,23 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
    }
 }
 
+/* Purpose: Poll user input devices, but reject repeat results.               */
+int event_do_poll_once( void ) {
+   static int i_last_result = EVENT_ID_NULL;
+   int i_result = EVENT_ID_NULL;
+
+   /* Poll and compare it to the last result. */
+   i_result = event_do_poll();
+   if( i_result != i_last_result ) {
+      i_last_result = i_result;
+      return i_result;
+   }
+
+   /* No new result detected. */
+   return EVENT_ID_NULL;
+}
+
 /* Purpose: Poll user input devices.                                          */
-/* Parameters: An event value in which to store input.                        */
 int event_do_poll( void ) {
    #ifdef USESDL
    static SDL_Event* ps_event_temp = NULL;
@@ -134,9 +149,6 @@ int event_do_poll( void ) {
    } else {
       return EVENT_ID_NULL;
    }
-
-   #elif defined USEDIRECTX
-   // XXX
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
