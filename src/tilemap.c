@@ -16,6 +16,12 @@
 
 #include "tilemap.h"
 
+/* = Global Variables= */
+
+extern int gi_animation_frame;
+
+/* = Functions = */
+
 /* Purpose: Load the map with the given filename into a TILEMAP struct.       */
 /* Parameters: The filename to load.                                          */
 /* Return: The loaded tile map.                                               */
@@ -161,6 +167,7 @@ TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_l
 void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0;     /* which to draw.              */
+
    TILEMAP_TILE* ps_tile_iter = NULL;
    GFX_TILEDATA* ps_tile_data = NULL; /* The data for the iterated tile. */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
@@ -193,7 +200,8 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
 
          /* Figure out where on the tilesheet the tile is. Bear in mind that  *
           * GIDs are 1-indexed.                                               */
-         s_tile_rect.x = 0;
+         /* TODO: Add offset for night time. */
+         s_tile_rect.x = gi_animation_frame * ps_map_in->tileset->pixel_size;
          s_tile_rect.y = (ps_tile_iter->gid - 1) * ps_map_in->tileset->pixel_size;
 
          /* Draw the tile! */

@@ -26,6 +26,8 @@
 
 /* = Definitions = */
 
+/* = Global Variables = */
+
 /* = Function Prototypes = */
 
 int systype_adventure_loop( void );

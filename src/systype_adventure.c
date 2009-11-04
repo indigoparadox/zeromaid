@@ -78,11 +78,12 @@ int systype_adventure_loop( void ) {
       /* Loop through and draw all on-screen items. */
       tilemap_draw( ps_map, &s_viewport );
 
+      graphics_do_heartbeat();
       graphics_do_update();
 
       /* If possible, try to delay without busy-spinning. */
       #ifdef USESDL
-      SDL_Delay( 10 );
+      SDL_Delay( 1000 / GFX_FPS );
       #else
       while( GFX_FPS > ps_fps->i_ticks_start );
       #endif /* USESDL */

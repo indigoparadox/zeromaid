@@ -18,6 +18,11 @@
 
 #include "graphics.h"
 
+/* = Global Variables = */
+
+int gi_animation_frame = GFX_ANIMATION_MAX_HEARTBEAT; /* The current anime    *
+                                                       * frame.               */
+
 /* = Functions = */
 
 /* Purpose: Create a surface that, when drawn to, draws to the screen.        */
@@ -477,6 +482,24 @@ void graphics_do_update( void ) {
    #else
    #error "No surface flipping mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Increment the animation frame counter.                            */
+void graphics_do_heartbeat( void ) {
+   /* Draws left till frame changes. */
+   static short int i_animation_draws_left = GFX_ANIMATION_MAX_DRAWS;
+
+   /* Increment the animation frame. */
+   if( i_animation_draws_left <= 0 ) {
+      i_animation_draws_left = GFX_ANIMATION_MAX_DRAWS;
+      if( GFX_ANIMATION_MAX_HEARTBEAT <= gi_animation_frame ) {
+         gi_animation_frame = 0;
+      } else {
+         gi_animation_frame++;
+      }
+   } else {
+      i_animation_draws_left--;
+   }
 }
 
 /* Purpose: Get the data for the tile with the given GID.                     */
