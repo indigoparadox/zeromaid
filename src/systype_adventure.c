@@ -71,6 +71,7 @@ int systype_adventure_loop( void ) {
             s_viewport.x -= 32;
             break;
 
+         case EVENT_ID_ESC:
          case EVENT_ID_QUIT:
             goto sla_cleanup;
       }
