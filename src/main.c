@@ -39,9 +39,14 @@
 #endif */
 
 #include "defines.h"
+#include "cache.h"
 #include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
+
+/* = Global Variables = */
+
+extern SYS_CACHE* gps_cache;
 
 /* = Functions = */
 
