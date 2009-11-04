@@ -18,7 +18,7 @@
 
 /* = Global Variables = */
 
-SYS_CACHE* gps_cache;
+CACHE_CACHE* gps_cache;
 
 /* = Functions = */
 

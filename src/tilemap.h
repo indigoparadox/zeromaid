@@ -29,7 +29,7 @@
 /* = Type and Struct Definitions = */
 
 typedef struct _TILEMAP_TILE {
-   int gid, x, y;
+   int gid, tile_x, tile_y;
    struct _TILEMAP_TILE* next;
 } TILEMAP_TILE;
 

@@ -92,6 +92,16 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
     return ps_image;
 }
 
+/* Purpose: Create a spritesheet that can be used to populate a mobile or     *
+ *          foreground object.                                                */
+/* Parameters: File system path to the spritesheet data file.                 */
+/* Return: A spritesheet struct with the image and data prescribed by the     *
+ *         data file.                                                         */
+GFX_SPRITESHEET* graphics_create_spritesheet( bstring ps_path_in ) {
+   // XXX
+   return NULL;
+}
+
 /* Purpose: Create a tileset that can be used to populate a map.              */
 /* Parameters: File system path to the tileset data file.                     */
 /* Return: A tileset struct with the image and data prescribed by the data    *

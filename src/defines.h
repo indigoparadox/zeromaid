@@ -35,6 +35,11 @@
 
 #define SYSTEM_TITLE "ZeroMaid"
 
+#define SYSTEM_TYPE_ADVENTURE 1
+#define SYSTEM_TYPE_TACTICS 2
+#define SYSTEM_TYPE_FISHING 3
+#define SYSTEM_TYPE_VISNOV 4
+
 #define FALSE 0
 #define TRUE 1
 
@@ -44,12 +49,15 @@
 #define PATH_FILE_SYSTEM "system.xml"
 
 #define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
-#define RETURN_ACTION_LOADCACHE 1 /* Load the next instruction/data from the  *
+#define RETURN_ACTION_TITLE 1 /* Display the title screen. */
+#define RETURN_ACTION_LOADCACHE 2 /* Load the next instruction/data from the  *
                                    * cache.                                   */
 
 #define TEAM_MAX_SIZE 10
 
 #define SYSTYPE_TITLE 1
+
+#define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory! */
 
 #ifdef OUTTOFILE
 

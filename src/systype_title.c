@@ -16,6 +16,12 @@
 
 #include "systype_title.h"
 
+/* = Global Variables = */
+
+extern CACHE_CACHE* gps_cache;
+
+/* = Functions = */
+
 /* Purpose: Title screen loop.                                                */
 /* Return: The code for the next action to take.                              */
 int systype_title_loop( void ) {
@@ -98,8 +104,12 @@ int systype_title_loop( void ) {
                /* Select a menu item. */
                if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
                   /* Menu: SP Start */
-                  /* TODO: Set the cache to a new single-player game. */
+
+                  /* TODO: Set the cache to a new single-player game          *
+                   * according to story data files.                           */
+                  gps_cache->game_type = SYSTEM_TYPE_ADVENTURE;
                   i_act_return = RETURN_ACTION_LOADCACHE;
+
                   goto slt_cleanup;
 
                } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {

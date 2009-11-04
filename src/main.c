@@ -46,13 +46,14 @@
 
 /* = Global Variables = */
 
-extern SYS_CACHE* gps_cache;
+extern CACHE_CACHE* gps_cache;
 
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
-   short unsigned int i_bol_running = TRUE;
-   int i_last_return; /* Contains the last loop-returned value. */
+   // short unsigned int i_bol_running = TRUE;
+   int i_last_return, /* Contains the last loop-returned value. */
+      i_error_level = 0; /* The program error level returned to the shell. */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
@@ -78,22 +79,35 @@ int main( int argc, char* argv[] ) {
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
-   gps_cache = malloc( sizeof( SYS_CACHE ) );
+   gps_cache = malloc( sizeof( CACHE_CACHE ) );
+   if( NULL == gps_cache ) {
+      DBG_ERR( "There was a problem allocating the system cache." );
+      i_error_level = ERROR_LEVEL_MALLOC;
+      goto main_cleanup;
+   }
+   memset( gps_cache, 0, sizeof( CACHE_CACHE ) );
 
-   while( i_bol_running ) {
-      i_last_return = systype_title_loop();
+   /* Start the loop that loads the other gameplay loops. */
+   i_last_return = systype_title_loop();
+   while( RETURN_ACTION_QUIT != i_last_return ) {
+
       switch( i_last_return ) {
          case RETURN_ACTION_LOADCACHE:
-            /* TODO: Execute the next instruction based on the cache file. */
-            systype_adventure_loop();
+            /* Execute the next instruction based on the system cache. */
+            if( SYSTEM_TYPE_ADVENTURE == gps_cache->game_type ) {
+               i_last_return = systype_adventure_loop();
+            } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
+               /* TODO: Visual Novel */
+            }
             break;
 
-         case RETURN_ACTION_QUIT:
-            /* Quit! */
-            i_bol_running = 0;
+         default:
+            i_last_return = systype_title_loop();
             break;
       }
    }
+
+main_cleanup:
 
    #ifdef OUTTOFILE
    fclose( gps_debug );
