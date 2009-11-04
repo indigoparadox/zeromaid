@@ -65,6 +65,7 @@ int systype_title_loop( void ) {
       /* Listen for events. */
       int i_event = event_do_poll_once();
       switch( i_event ) {
+         case EVENT_ID_ESC:
          case EVENT_ID_QUIT:
             /* Quitting is universal. */
             DBG_INFO( "Quitting..." );
