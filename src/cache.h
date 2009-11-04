@@ -28,4 +28,9 @@ typedef struct {
    MOBILE player[TEAM_MAX_SIZE];
 } SYS_CACHE;
 
+/* = Function Prototypes = */
+
+short int cache_save( bstring );
+short int cache_load( bstring );
+
 #endif /* CACHE_H */
