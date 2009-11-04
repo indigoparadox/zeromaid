@@ -121,18 +121,4 @@ FILE* gps_debug;
    color_sdl.b = color_std->b;
 #endif /* USESDL */
 
-/* = Type and Struct Definitions = */
-
-typedef struct {
-   unsigned int hp;
-} MOBILE;
-
-typedef struct {
-   MOBILE player[TEAM_MAX_SIZE];
-} SYS_CACHE;
-
-/* = Global Variables = */
-
-SYS_CACHE* gps_cache;
-
 #endif /* DEFINES_H */
