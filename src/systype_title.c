@@ -147,7 +147,7 @@ int systype_title_loop( void ) {
 
       /* If possible, try to delay without busy-spinning. */
       #ifdef USESDL
-      SDL_Delay( 10 );
+      SDL_Delay( 1000 / GFX_FPS );
       #else
       while( GFX_FPS > ps_fps->i_ticks_start );
       #endif /* USESDL */
