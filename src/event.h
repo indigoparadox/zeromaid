@@ -73,6 +73,7 @@ void event_timer_start( EVENT_TIMER* );
 void event_timer_start( EVENT_TIMER* );
 void event_timer_pause( EVENT_TIMER* );
 void event_timer_unpause( EVENT_TIMER* );
+int event_do_poll_once( void );
 int event_do_poll( void );
 
 #endif /* EVENT_H */

@@ -29,7 +29,7 @@
 /* = Type and Struct Definitions = */
 
 typedef struct _TILEMAP_TILE {
-   unsigned int gid, x, y;
+   int gid, x, y;
    struct _TILEMAP_TILE* next;
 } TILEMAP_TILE;
 
@@ -38,15 +38,15 @@ typedef struct {
    GFX_RECTANGLE* viewport;
    TILEMAP_TILE* tile_list;
    bstring map_name, music_path;
-   unsigned short int time_moves;
-   unsigned int tile_w, tile_h;
+   short int time_moves;
+   int tile_w, tile_h;
 } TILEMAP_TILEMAP;
 
 /* = Function Prototypes = */
 
 TILEMAP_TILEMAP* tilemap_create_map( bstring );
 TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP*, ezxml_t );
-void tilemap_draw( TILEMAP_TILEMAP* );
+void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE* );
 
 #endif /* TILEMAP_H */
 

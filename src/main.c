@@ -71,6 +71,10 @@ int main( int argc, char* argv[] ) {
    );
    bdestroy( ps_title );
 
+   /* The "cache" is an area in memory which holds all relevant data to the   *
+    * current player/team.                                                    */
+   gps_cache = malloc( sizeof( SYS_CACHE ) );
+
    while( i_bol_running ) {
       i_last_return = systype_title_loop();
       switch( i_last_return ) {

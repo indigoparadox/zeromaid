@@ -35,7 +35,7 @@ GFX_SURFACE* graphics_create_screen(
    );
 
    if( NULL == ps_screen ) {
-      DBG_ERR_FILE( "Unable to setup screen", SDL_GetError() );
+      DBG_ERR_STR( "Unable to setup screen", SDL_GetError() );
       return NULL;
    }
 
@@ -74,9 +74,9 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
       SDL_SetColorKey( ps_image, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
 
-      DBG_INFO_FILE( "Successfully loaded image", ps_path_in->data );
+      DBG_INFO_STR( "Successfully loaded image", ps_path_in->data );
    } else {
-      DBG_ERR_FILE( "Failed to load image", ps_path_in->data );
+      DBG_ERR_STR( "Failed to load image", ps_path_in->data );
    }
    #elif defined USEWII
    ps_image = GRRLIB_LoadTexturePNG( (const u8*)ps_path_in->data );
@@ -99,9 +99,11 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       ps_xml_prop_iter;
    bstring ps_image_filename = NULL, ps_image_path = NULL;
 
+   DBG_INFO_STR( "Loading tile data", ps_path_in->data );
+
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
-      DBG_ERR_FILE( "Unable to load tile data", ps_path_in->data );
+      DBG_ERR_STR( "Unable to load tile data", ps_path_in->data );
       return NULL;
    }
    ps_xml_tileset = ezxml_parse_file( ps_path_in->data );
@@ -133,10 +135,10 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
             /* Link the first tile to the tileset struct. */
             ps_tileset_out->tile_list = ps_tile_iter;
          } else {
-            ps_tile_iter->tile_next = malloc( sizeof( GFX_TILEDATA ) );
+            ps_tile_iter->next = malloc( sizeof( GFX_TILEDATA ) );
 
             /* Move the cursor to the new tile. */
-            ps_tile_iter = ps_tile_iter->tile_next;
+            ps_tile_iter = ps_tile_iter->next;
          }
 
          /* A second null check to verify memory allocaton. */
@@ -169,7 +171,10 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
 
       /* Place the image into the tileset struct. */
       ps_tileset_out->image = ps_surface;
-      ps_tileset_out->tile_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
+
+      /* Figure out the file size. */
+      ps_tileset_out->pixel_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
+      DBG_INFO_NUM( "Found tile size", ps_tileset_out->pixel_size );
 
       /* Do any platform-specific stuff. */
       #ifdef USEWII
@@ -181,10 +186,10 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       );
       #endif
 
-      DBG_INFO_FILE( "Successfully loaded tile data", ps_path_in->data );
+      DBG_INFO_STR( "Successfully loaded tile data", ps_path_in->data );
    } else {
       /* There was a problem somewhere. */
-      DBG_ERR_FILE( "Unable to load tile image", ps_image_path->data );
+      DBG_ERR_STR( "Unable to load tile image", ps_image_path->data );
    }
 
 gct_cleanup:
@@ -292,8 +297,8 @@ void graphics_draw_text(
    if( NULL == ps_font ) {
       /* Only log the error once. */
       if( 0 != bstrcmp( ps_last_font, ps_font_name_in ) ) {
-         DBG_ERR_FILE( "Unable to load font", ps_font_name_in->data );
-         DBG_ERR_FILE( "SDL TTF Error was", TTF_GetError() );
+         DBG_ERR_STR( "Unable to load font", ps_font_name_in->data );
+         DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
          bdestroy( ps_last_font );
          ps_last_font = bstrcpy( ps_font_name_in );
       }
@@ -336,21 +341,9 @@ void graphics_draw_blit_tile(
 
    /* No problems, blit! */
    SDL_BlitSurface( ps_src_in, ps_srcreg_in, SDL_GetVideoSurface(), ps_destreg_in );
-   #elif defined USEWII
-   /* XXX: Color, scale, src region. */
-   GRRLIB_DrawImg(
-      ps_destreg_in->x,
-      ps_destreg_in->y,
-      ps_src_in,
-      0,
-      100,
-      100,
-      0xffffffff
-   );
-
    #else
-   #error "No blitting mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #error "No tile blitting mechanism defined for this platform!"
+   #endif /* USESDL */
 }
 
 /* Purpose: Blit a sprite from a surface to the screen. We should never be    *
@@ -358,33 +351,14 @@ void graphics_draw_blit_tile(
 /* Parameters: Source surface, source and destination regions.                */
 void graphics_draw_blit_sprite(
    GFX_SURFACE* ps_src_in,
-   int i_x_in,
-   int i_y_in,
-   int i_frame_in
+   GFX_RECTANGLE* ps_srcreg_in,
+   GFX_RECTANGLE* ps_destreg_in
 ) {
    #ifdef USESDL
-   SDL_Rect s_rect_dest;
-   SDL_Rect s_rect_src;
-   s_rect_dest.x = i_x_in;
-   s_rect_dest.y = i_y_in;
-   s_rect_dest.h = s_rect_dest.w = ps_src_in->w;
-   s_rect_src.x = i_frame_in * ps_src_in->w;
-   s_rect_src.y = 0;
-   s_rect_src.h = s_rect_src.w = ps_src_in->w;
-   graphics_draw_blit_tile( ps_src_in, &s_rect_src, &s_rect_dest );
-   #elif defined USEWII
-   /* XXX: Color, scale, src region. */
-   GRRLIB_DrawImg(
-      i_x_in,
-      i_y_in,
-      ps_src_in,
-      0,
-      100,
-      100,
-      0xffffffff
-   );
+
+   graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #else
-   #error "No blitting mechanism defined for this platform!"
+   #error "No sprite blitting mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
 }
 
@@ -488,8 +462,6 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    /* Clean up. */
    SDL_FreeSurface( ps_surface_screen_copy );
    SDL_FreeSurface( ps_surface_fader );
-   #elif defined USEWII
-   // XXX
    #else
    #error "No in-fading mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
@@ -505,6 +477,27 @@ void graphics_do_update( void ) {
    #else
    #error "No surface flipping mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Get the data for the tile with the given GID.                     */
+/* Parameters: The index to lookup and the tileset in which to look it up.    */
+/* Return: The address of the requested tile.                                 */
+GFX_TILEDATA* graphics_get_tiledata( int i_index_in, GFX_TILESET* ps_tileset_in ) {
+   GFX_TILEDATA* ps_tiledata_out = NULL;
+
+   ps_tiledata_out = ps_tileset_in->tile_list;
+   while( NULL != ps_tiledata_out ) {
+      if( i_index_in == ps_tiledata_out->gid ) {
+         /* Found it! */
+         return ps_tiledata_out;
+      }
+
+      /* Go to the next one! */
+      ps_tiledata_out = ps_tiledata_out->next;
+   }
+
+   /* Not found! */
+   return NULL;
 }
 
 /* Purpose: Free the given surface buffer.                                    */

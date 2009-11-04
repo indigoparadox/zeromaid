@@ -47,6 +47,8 @@
 #define RETURN_ACTION_LOADCACHE 1 /* Load the next instruction/data from the  *
                                    * cache.                                   */
 
+#define TEAM_MAX_SIZE 10
+
 #define SYSTYPE_TITLE 1
 
 #ifdef OUTTOFILE
@@ -91,9 +93,14 @@ FILE* gps_debug;
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
    fflush( DEBUG_HANDLE_INFO );
 
-/* Print an info message involving a data file filename. */
-#define DBG_INFO_FILE( msg, filename ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename ); \
+/* Print an info message involving a string. */
+#define DBG_INFO_STR( msg, string ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
+   fflush( DEBUG_HANDLE_INFO );
+
+/* Print an info message involving a number. */
+#define DBG_INFO_NUM( msg, number ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
    fflush( DEBUG_HANDLE_INFO );
 
 /* Print an error message. */
@@ -101,9 +108,9 @@ FILE* gps_debug;
    fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
    fflush( DEBUG_HANDLE_ERR );
 
-/* Print an error message involving a data file filename. */
-#define DBG_ERR_FILE( msg, filename ) \
-   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, filename ); \
+/* Print an error message involving a string. */
+#define DBG_ERR_STR( msg, string ) \
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
    fflush( DEBUG_HANDLE_ERR );
 
 #ifdef USESDL
@@ -114,6 +121,18 @@ FILE* gps_debug;
    color_sdl.b = color_std->b;
 #endif /* USESDL */
 
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   unsigned int hp;
+} MOBILE;
+
+typedef struct {
+   MOBILE player[TEAM_MAX_SIZE];
+} SYS_CACHE;
+
 /* = Global Variables = */
+
+SYS_CACHE* gps_cache;
 
 #endif /* DEFINES_H */
