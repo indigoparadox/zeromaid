@@ -147,8 +147,8 @@ TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_l
 
       /* Load the tile's properties. */
       ps_tile_iter->gid = atoi( ezxml_attr( ps_xml_tile, "gid" ) );
-      ps_tile_iter->x = i_tile_count;
-      ps_tile_iter->y = i_row_count;
+      ps_tile_iter->tile_x = i_tile_count;
+      ps_tile_iter->tile_y = i_row_count;
 
       /* Go to the next one! */
       ps_xml_tile = ps_xml_tile->next;
@@ -189,14 +189,16 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
    ps_tile_iter = ps_map_in->tile_list;
    while( NULL != ps_tile_iter ) {
       if(
-         ps_tile_iter->x < (i_tile_start_x + i_tile_width) &&
-         ps_tile_iter->y < (i_tile_start_y + i_tile_height) &&
-         ps_tile_iter->x >= i_tile_start_x &&
-         ps_tile_iter->y >= i_tile_start_y
+         ps_tile_iter->tile_x < (i_tile_start_x + i_tile_width) &&
+         ps_tile_iter->tile_y < (i_tile_start_y + i_tile_height) &&
+         ps_tile_iter->tile_x >= i_tile_start_x &&
+         ps_tile_iter->tile_y >= i_tile_start_y
       ) {
          /* Figure out the offset of the tile onscreen. */
-         s_screen_rect.x = (ps_tile_iter->x - i_tile_start_x) * ps_map_in->tileset->pixel_size;
-         s_screen_rect.y = (ps_tile_iter->y - i_tile_start_y) * ps_map_in->tileset->pixel_size;
+         s_screen_rect.x = (ps_tile_iter->tile_x - i_tile_start_x) *
+            ps_map_in->tileset->pixel_size;
+         s_screen_rect.y = (ps_tile_iter->tile_y - i_tile_start_y) *
+            ps_map_in->tileset->pixel_size;
 
          /* Figure out where on the tilesheet the tile is. Bear in mind that  *
           * GIDs are 1-indexed.                                               */

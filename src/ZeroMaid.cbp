@@ -211,6 +211,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="bstring\bstrlib.h" />
+		<Unit filename="cache.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cache.h" />
 		<Unit filename="defines.h" />
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -227,6 +231,7 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="mobile.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Debug-Windows-i686-SDL" />

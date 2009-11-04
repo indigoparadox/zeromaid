@@ -92,10 +92,16 @@ typedef struct {
    GFX_TILEDATA* tile_list;
 } GFX_TILESET;
 
+typedef struct {
+   unsigned int pixel_size;
+   GFX_SURFACE* image;
+} GFX_SPRITESHEET;
+
 /* = Function Prototypes = */
 
 GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
+GFX_SPRITESHEET* graphics_create_spritesheet( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
 GFX_COLOR* graphics_create_color_html( bstring );
@@ -108,6 +114,7 @@ void graphics_do_update( void );
 void graphics_do_heartbeat( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 void graphics_free_image( GFX_SURFACE* );
+void graphics_free_spritesheet( GFX_SPRITESHEET );
 void graphics_free_tileset( GFX_TILESET* );
 
 #endif /* GRAPHICS_H */

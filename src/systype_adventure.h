@@ -23,6 +23,8 @@
 #include "graphics.h"
 #include "event.h"
 #include "tilemap.h"
+#include "mobile.h"
+#include "cache.h"
 
 /* = Definitions = */
 

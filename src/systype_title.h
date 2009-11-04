@@ -24,6 +24,7 @@
 #include "defines.h"
 #include "graphics.h"
 #include "event.h"
+#include "cache.h"
 
 /* = Definitions = */
 
