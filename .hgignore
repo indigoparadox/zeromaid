@@ -10,3 +10,5 @@ glob:share/dbg_out.txt
 regexp:.*\.swp
 glob:src/ZeroMaid.layout
 glob:src/ZeroMaid.depend
+glob:share
+glob:src/resource.aps
