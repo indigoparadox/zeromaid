@@ -22,6 +22,12 @@ extern int gi_animation_frame;
 
 /* = Functions = */
 
+/* Purpose: Create a MOBILE struct from the mobile data at the given path.    */
+/* Parameters: The path to the mobile's data file.                            */
+/* Return: A new MOBILE struct.                                               */
+MOBILE_MOBILE* mobile_create_mobile( bstring ps_path_in ) {
+
+}
 
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
  *          viewport.                                                         */
@@ -47,8 +53,10 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
    ) {
       /* Figure out the offset of the tile onscreen. */
       /* TODO: Center the mobile. */
-      s_screen_rect.x = (ps_mob_in->tile_x - i_tile_start_x) * ps_mob_in->pixel_size;
-      s_screen_rect.y = (ps_mob_in->tile_y - i_tile_start_y) * ps_mob_in->pixel_size;
+      s_screen_rect.x = (ps_mob_in->tile_x - i_tile_start_x) *
+         ps_mob_in->pixel_size;
+      s_screen_rect.y = (ps_mob_in->tile_y - i_tile_start_y) *
+         ps_mob_in->pixel_size;
 
       /* Figure out where on the spritesheet the sprite is. */
       //s_tile_rect.x = gi_animation_frame * ps_mob_in->pixel_size;
@@ -68,15 +76,17 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
 
 /* Purpose: Draw the in-viewport mobiles from the given list of mobiles to    *
  *          the screen starting with the first linked mobile.                 */
-/* Parameters: The mobile to draw, the current viewport.                      */
-void mobile_draw_list( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
+/* Parameters: The list of mobiles to draw, the number of mobiles in the      *
+ *             list, the current viewport.                                    */
+void mobile_draw_list(
+   MOBILE_MOBILE as_mob_in[],
+   int i_mob_count_in,
+   GFX_RECTANGLE* ps_viewport_in
+) {
    MOBILE_MOBILE* ps_mobile_iter = NULL; /* The mobile drawing iterator. */
+   int i; /* Loop iterator. */
 
-   ps_mobile_iter = ps_mob_in;
-   while( NULL != ps_mobile_iter ) {
-      mobile_draw( ps_mobile_iter, ps_viewport_in );
-
-      /* Go to the next one. */
-      ps_mobile_iter = ps_mobile_iter->next;
+   for( i = 0 ; i < i_mob_count_in ; i++ ) {
+      mobile_draw( &as_mob_in[i], ps_viewport_in );
    }
 }

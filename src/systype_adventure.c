@@ -36,7 +36,8 @@ int systype_adventure_loop( void ) {
    #else
    EVENT_TIMER* ps_fps = event_timer_create();
    #endif /* USESDL */
-   MOBILE_MOBILE* ps_mobile_list = NULL;
+   MOBILE_MOBILE* as_mobile_list;
+   int i_mobile_count = 0;
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
@@ -80,14 +81,18 @@ int systype_adventure_loop( void ) {
 
          case EVENT_ID_ESC:
          case EVENT_ID_QUIT:
-            gps_cache->game_type = SYSTEM_TITLE;
+            gps_cache->game_type = SYSTEM_TYPE_TITLE;
             goto sla_cleanup;
       }
 
       /* Loop through and draw all on-screen items. */
       tilemap_draw( ps_map, &s_viewport );
-      mobile_draw_list( ps_mobile_list, &s_viewport );
-      mobile_draw_list( gps_cache->player_team, &s_viewport );
+      mobile_draw_list( as_mobile_list, i_mobile_count, &s_viewport );
+      mobile_draw_list(
+         gps_cache->player_team,
+         gps_cache->player_team_count,
+         &s_viewport
+      );
 
       graphics_do_heartbeat();
       graphics_do_update();

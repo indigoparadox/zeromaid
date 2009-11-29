@@ -98,8 +98,29 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
 /* Return: A spritesheet struct with the image and data prescribed by the     *
  *         data file.                                                         */
 GFX_SPRITESHEET* graphics_create_spritesheet( bstring ps_path_in ) {
-   // XXX
-   return NULL;
+   GFX_SPRITESHEET* ps_spritesheet_out =
+      calloc( sizeof( GFX_SPRITESHEET ), 1 );
+
+   /* Create the spritesheet structure. */
+   if( NULL == ps_spritesheet_out ) {
+      DBG_ERR( "Unable to allocate spritesheet." );
+      goto gcs_cleanup;
+   }
+
+   /* Load the spritesheet image. */
+   ps_spritesheet_out->image = graphics_create_image( ps_path_in );
+   if( NULL == ps_spritesheet_out ) {
+      /* graphics_create_image() should handle any error output. */
+      free( ps_spritesheet_out );
+      goto gcs_cleanup;
+   }
+
+   /* XXX: Figure out the pixel size automatically. */
+   ps_spritesheet_out->pixel_size = 32;
+
+gcs_cleanup:
+
+   return ps_spritesheet_out;
 }
 
 /* Purpose: Create a tileset that can be used to populate a map.              */
@@ -543,6 +564,20 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
    #else
    #error "No surface freeing mechanism defined for this platform!"
    #endif /* USESDL, USEWII */
+}
+
+/* Purpose: Free the given spritesheet buffer.                                */
+/* Parameters: The spritesheet to free.                                       */
+void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
+   #ifdef USESDL
+   SDL_FreeSurface( ps_spritesheet_in->image );
+   #elif defined USEWII
+   GRRLIB_FlushTex( ps_spritesheet_in->image );
+   #else
+   #error "No surface freeing mechanism defined for this platform!"
+   #endif /* USESDL, USEWII */
+
+   free( ps_spritesheet_in );
 }
 
 /* Purpose: Free the given tileset buffer.                                    */

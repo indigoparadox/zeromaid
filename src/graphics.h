@@ -114,7 +114,7 @@ void graphics_do_update( void );
 void graphics_do_heartbeat( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 void graphics_free_image( GFX_SURFACE* );
-void graphics_free_spritesheet( GFX_SPRITESHEET );
+void graphics_free_spritesheet( GFX_SPRITESHEET* );
 void graphics_free_tileset( GFX_TILESET* );
 
 #endif /* GRAPHICS_H */
