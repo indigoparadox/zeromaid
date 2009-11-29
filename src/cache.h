@@ -25,8 +25,9 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int game_type;
-   MOBILE_MOBILE* player_team;
+   int game_type,
+      player_team_count;
+   MOBILE_MOBILE player_team[];
 } CACHE_CACHE;
 
 /* = Function Prototypes = */

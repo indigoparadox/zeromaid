@@ -23,18 +23,18 @@
 
 /* = Type and Struct Definitions = */
 
-typedef struct _MOBILE_MOBILE {
+typedef struct {
    unsigned int hp;
    int tile_x, tile_y,
       pixel_size; /* The size of the mobile's sprite. */
    float pixel_multiplier; /* The size to expand the mobile to when blitted. */
-   struct _MOBILE_MOBILE* next;
    GFX_SPRITESHEET* spritesheet;
 } MOBILE_MOBILE;
 
 /* = Function Prototypes = */
 
+MOBILE_MOBILE* mobile_create_mobile( bstring );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
-void mobile_draw_list( MOBILE_MOBILE*, GFX_RECTANGLE* );
+void mobile_draw_list( MOBILE_MOBILE[], int, GFX_RECTANGLE* );
 
 #endif /* MOBILE_H */

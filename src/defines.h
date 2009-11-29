@@ -35,6 +35,7 @@
 
 #define SYSTEM_TITLE "ZeroMaid"
 
+#define SYSTEM_TYPE_TITLE 0
 #define SYSTEM_TYPE_ADVENTURE 1
 #define SYSTEM_TYPE_TACTICS 2
 #define SYSTEM_TYPE_FISHING 3
@@ -60,8 +61,6 @@
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory! */
 
 #ifdef OUTTOFILE
-
-FILE* gps_debug;
 
 #define DEBUG_OUT_PATH "./dbg_out.txt"
 #define DEBUG_HANDLE_INFO gps_debug
