@@ -16,6 +16,12 @@
 
 #include "event.h"
 
+/* = Global Variables = */
+
+extern FILE* gps_debug;
+
+/* = Functions = */
+
 /* Purpose: Create a new timer.                                               */
 /* Parameters: The timer to operate on.                                       */
 EVENT_TIMER* event_timer_create( void ) {

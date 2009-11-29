@@ -18,6 +18,7 @@
 
 /* = Global Variables = */
 
+extern FILE* gps_debug;
 extern CACHE_CACHE* gps_cache;
 
 /* = Functions = */

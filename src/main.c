@@ -18,31 +18,23 @@
 
 #include <stdlib.h>
 
-/* #ifdef __APPLE__
-   #include <SDL/SDL.h>
-   #include <SDL/SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL_mixer/SDL_mixer.h>
-   #endif // USEMUSIC
+#ifdef USESDL
+#ifdef __APPLE__
+#include <SDL/SDL.h>
 #elif defined __unix__
-   #include <SDL/SDL.h>
-   #include <SDL/SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL/SDL_mixer.h>
-   #endif // USEMUSIC
+#include <SDL/SDL.h>
 #else
-   #include <SDL.h>
-   #include <SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL_mixer.h>
-   #endif // USEMUSIC
-#endif */
+#include <SDL.h>
+#endif /* __APPLE__, __unix__ */
+#endif /* USESDL */
 
 #include "defines.h"
 #include "cache.h"
 #include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
+
+DBG_ENABLE
 
 /* = Global Variables = */
 

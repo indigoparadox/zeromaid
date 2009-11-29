@@ -18,6 +18,7 @@
 
 /* = Global Variables= */
 
+extern FILE* gps_debug;
 extern int gi_animation_frame;
 
 /* = Functions = */

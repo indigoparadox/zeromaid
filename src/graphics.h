@@ -21,21 +21,19 @@
 
 #ifdef USESDL
 #ifdef __APPLE__
-   #include <SDL/SDL.h>
-   #include <SDL_ttf/SDL_ttf.h>
+#include <SDL/SDL.h>
+#include <SDL_ttf/SDL_ttf.h>
 #elif defined __unix__
-   #include <SDL/SDL.h>
-   #include <SDL/SDL_ttf.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 #else
-   #include <SDL.h>
-   #include <SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 #endif /* __APPLE__, __unix__ */
-#elif defined USEWII
-#include <grrlib.h>
 #elif defined USEDIRECTX
 #include <windows.h>
 #include <ddraw.h>
-#endif /* USESDL, USEWII */
+#endif /* USESDL, USEDIRECTX */
 
 #include "defines.h"
 #include "util.h"
