@@ -20,8 +20,10 @@
 
 /* = Global Variables = */
 
+extern FILE* gps_debug;
 int gi_animation_frame = GFX_ANIMATION_MAX_HEARTBEAT; /* The current anime    *
                                                        * frame.               */
+
 
 /* = Functions = */
 

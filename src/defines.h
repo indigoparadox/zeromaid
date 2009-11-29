@@ -66,6 +66,8 @@
 #define DEBUG_HANDLE_INFO gps_debug
 #define DEBUG_HANDLE_ERR gps_debug
 
+#define DBG_ENABLE FILE* gps_debug;
+
 #else
 
 #define DEBUG_HANDLE_INFO stdout
