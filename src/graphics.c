@@ -18,12 +18,12 @@
 
 #include "graphics.h"
 
+DBG_ENABLE
+
 /* = Global Variables = */
 
-extern FILE* gps_debug;
 int gi_animation_frame = GFX_ANIMATION_MAX_HEARTBEAT; /* The current anime    *
                                                        * frame.               */
-
 
 /* = Functions = */
 
@@ -51,14 +51,9 @@ GFX_SURFACE* graphics_create_screen(
    #endif /* __arm__ */
 
    SDL_WM_SetCaption( ps_title_in->data, ps_title_in->data );
-
-   #elif defined USEWII
-   /* Nintendo Wii doesn't have a screen object. It does have some things to  *
-    * take care of, though.                                                   */
-   GRRLIB_Init();
    #else
    #error "No screen-getting mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    return ps_screen;
 }
@@ -85,11 +80,9 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    } else {
       DBG_ERR_STR( "Failed to load image", ps_path_in->data );
    }
-   #elif defined USEWII
-   ps_image = GRRLIB_LoadTexturePNG( (const u8*)ps_path_in->data );
    #else
    #error "No image loading mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
     return ps_image;
 }
@@ -214,16 +207,6 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       ps_tileset_out->pixel_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
       DBG_INFO_NUM( "Found tile size", ps_tileset_out->pixel_size );
 
-      /* Do any platform-specific stuff. */
-      #ifdef USEWII
-      GRRLIB_InitTileSet(
-         ps_tileset_out->image,
-         ps_tileset_out->tile_size,
-         ps_tileset_out->tile_size,
-         0
-      );
-      #endif
-
       DBG_INFO_STR( "Successfully loaded tile data", ps_path_in->data );
    } else {
       /* There was a problem somewhere. */
@@ -255,17 +238,9 @@ GFX_COLOR* graphics_create_color(
    ps_color_out->r = i_red_in;
    ps_color_out->g = i_green_in;
    ps_color_out->b = i_blue_in;
-   #elif defined USEWII
-   /* Wii colors are an unsigned 32-bit integer in the format RGBA. */
-   /* TODO: Use bit shifting for efficiency. */
-   ps_color_out = malloc( sizeof( GFX_COLOR ) );
-   *ps_color_out =
-      (i_red_in * 16777216) +
-      (i_green_in * 65536) +
-      (i_blue_in * 256);
    #else
    #error "No color creation mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    return ps_color_out;
 }
@@ -356,11 +331,9 @@ void graphics_draw_text(
    /* Clean up. */
    TTF_CloseFont( ps_font );
    SDL_FreeSurface( ps_type_render_out );
-   #elif defined USEWII
-
    #else
    #error "No text rendering mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Blit a tile from a surface to the screen. We should never be      *
@@ -397,7 +370,7 @@ void graphics_draw_blit_sprite(
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #else
    #error "No sprite blitting mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Blank the screen.                                                 */
@@ -422,11 +395,9 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    );
 
    SDL_FillRect( ps_screen, &s_screenrect, i_color_temp );
-   #elif defined USEWII
-   GRRLIB_FillScreen( ps_color_in );
    #else
    #error "No blanking mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Fade the screen in or out.                                        */
@@ -502,7 +473,7 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    SDL_FreeSurface( ps_surface_fader );
    #else
    #error "No in-fading mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Flip the screen surface buffer.                                   */
@@ -510,11 +481,9 @@ void graphics_do_update( void ) {
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    SDL_Flip( ps_screen );
-   #elif defined USEWII
-   GRRLIB_Render();
    #else
    #error "No surface flipping mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Increment the animation frame counter.                            */
@@ -561,11 +530,9 @@ GFX_TILEDATA* graphics_get_tiledata( int i_index_in, GFX_TILESET* ps_tileset_in 
 void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
-   #elif defined USEWII
-   GRRLIB_FlushTex( ps_surface_in );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }
 
 /* Purpose: Free the given spritesheet buffer.                                */
@@ -573,11 +540,9 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
 void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_spritesheet_in->image );
-   #elif defined USEWII
-   GRRLIB_FlushTex( ps_spritesheet_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    free( ps_spritesheet_in );
 }
@@ -587,11 +552,9 @@ void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
 void graphics_free_tileset( GFX_TILESET* ps_tileset_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_tileset_in->image );
-   #elif defined USEWII
-   GRRLIB_FlushTex( ps_tileset_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    free( ps_tileset_in );
 }

@@ -16,9 +16,10 @@
 
 #include "systype_title.h"
 
+DBG_ENABLE
+
 /* = Global Variables = */
 
-extern FILE* gps_debug;
 extern CACHE_CACHE* gps_cache;
 
 /* = Functions = */
