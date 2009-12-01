@@ -121,7 +121,7 @@ sla_cleanup:
    #endif /* USESDL */
    free( ps_color_fade );
    free( ps_color_bg );
-   free( ps_map );
+   tilemap_free( ps_map );
 
    return i_act_return;
 }
