@@ -28,25 +28,26 @@
 
 /* = Type and Struct Definitions = */
 
-typedef struct _TILEMAP_TILE {
+typedef struct {
    int gid, tile_x, tile_y;
-   struct _TILEMAP_TILE* next;
 } TILEMAP_TILE;
 
 typedef struct {
    GFX_TILESET* tileset;
    GFX_RECTANGLE* viewport;
-   TILEMAP_TILE* tile_list;
+   TILEMAP_TILE* tiles; /* Pointer to a flexible array of tiles. */
    bstring map_name, music_path;
    short int time_moves;
-   int tile_w, tile_h;
+   int tile_w, tile_h,
+      tiles_count; /* Number of tiles in the tile list. */
 } TILEMAP_TILEMAP;
 
 /* = Function Prototypes = */
 
 TILEMAP_TILEMAP* tilemap_create_map( bstring );
-TILEMAP_TILE* tilemap_create_layer( TILEMAP_TILEMAP*, ezxml_t );
+void tilemap_create_layer( TILEMAP_TILEMAP*, ezxml_t );
 void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE* );
+void tilemap_free( TILEMAP_TILEMAP* );
 
 #endif /* TILEMAP_H */
 
