@@ -63,17 +63,11 @@
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
-#elif defined USEWII
-typedef GRRLIB_texImg GFX_SURFACE;
-typedef struct {
-   int x, y, w, h;
-} GFX_RECTANGLE;
-typedef u32 GFX_COLOR;
 #elif defined USEDIRECTX
 typedef IDirectDrawSurface7 GFX_SURFACE;
 #else
 #error "No graphics types defined for this platform!"
-#endif /* USESDL, USEWII */
+#endif /* USESDL */
 
 /* We might be able to speed up operations using TILEDATA structs by making   *
  * them tree-able, but there probably won't be very many tiles for a map and  *

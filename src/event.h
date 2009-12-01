@@ -29,11 +29,7 @@
 #else
    #include <SDL.h>
 #endif /* __APPLE__, __unix__ */
-#elif defined USEWII
-#include <gccore.h>
-#include <wiiuse/wpad.h>
-#include <grrlib.h>
-#endif /* USESDL, USEWII */
+#endif /* USESDL */
 
 #include "defines.h"
 

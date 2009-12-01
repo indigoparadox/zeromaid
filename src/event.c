@@ -16,11 +16,7 @@
 
 #include "event.h"
 
-/* = Global Variables = */
-
-extern FILE* gps_debug;
-
-/* = Functions = */
+DBG_ENABLE
 
 /* Purpose: Create a new timer.                                               */
 /* Parameters: The timer to operate on.                                       */
@@ -149,16 +145,7 @@ int event_do_poll( void ) {
       /* Nothing happened... */
       return EVENT_ID_NULL;
    }
-   #elif defined USEWII
-   WPAD_ScanPads();
-   if( WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME ) {
-      return EVENT_ID_QUIT;
-   } else if( WPAD_ButtonsDown(0) & WPAD_BUTTON_UP ) {
-      return EVENT_ID_UP;
-   } else {
-      return EVENT_ID_NULL;
-   }
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 }

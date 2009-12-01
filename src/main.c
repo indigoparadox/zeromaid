@@ -34,7 +34,7 @@
 #include "systype_title.h"
 #include "systype_adventure.h"
 
-DBG_ENABLE
+DBG_MAIN
 
 /* = Global Variables = */
 
@@ -54,9 +54,7 @@ int main( int argc, char* argv[] ) {
    /* Platform-dependent miscellaneous initialization. */
    #ifdef USESDL
    TTF_Init();
-   #elif defined USEWII
-   WPAD_Init();
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
@@ -107,9 +105,7 @@ main_cleanup:
 
    #ifdef USESDL
    TTF_Quit();
-   #elif defined USEWII
-   GRRLIB_Exit();
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
    return 0;
 }

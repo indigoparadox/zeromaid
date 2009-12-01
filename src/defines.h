@@ -26,11 +26,7 @@
 /* = Definitions = */
 
 /* Platform-specific stuff. */
-#ifdef USEWII
-#define FILE_EXTENSION_IMAGE "png"
-#else
 #define FILE_EXTENSION_IMAGE "bmp"
-#endif /* USEWII */
 #define FILE_EXTENSION_FONT "ttf"
 
 #define SYSTEM_TITLE "ZeroMaid"
@@ -66,7 +62,8 @@
 #define DEBUG_HANDLE_INFO gps_debug
 #define DEBUG_HANDLE_ERR gps_debug
 
-#define DBG_ENABLE FILE* gps_debug;
+#define DBG_MAIN FILE* gps_debug;
+#define DBG_ENABLE extern FILE* gps_debug;
 
 #else
 
@@ -74,6 +71,7 @@
 #define DEBUG_HANDLE_ERR stderr
 
 /* If output is to the console, we don't need to enable. */
+#define DBG_MAIN
 #define DBG_ENABLE
 
 #define DBG_CLOSE
