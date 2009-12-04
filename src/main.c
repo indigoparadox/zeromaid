@@ -34,6 +34,11 @@
 #include "systype_title.h"
 #include "systype_adventure.h"
 
+#ifdef USEWII
+/* Include the Wii data files. */
+#include "zeromaid_wii_data.h"
+#endif /* USEWII */
+
 DBG_MAIN
 
 /* = Global Variables = */
@@ -46,6 +51,11 @@ int main( int argc, char* argv[] ) {
    // short unsigned int i_bol_running = TRUE;
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0; /* The program error level returned to the shell. */
+
+   /* If we're on the Wii, start the dolfs ramdisk. */
+   #ifdef USEWII
+   dolfsInit( &zeromaid_wii_data );
+   #endif /* USEWII */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );

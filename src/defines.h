@@ -31,6 +31,7 @@
 
 #define SYSTEM_TITLE "ZeroMaid"
 
+/* System loop types. */
 #define SYSTEM_TYPE_TITLE 0
 #define SYSTEM_TYPE_ADVENTURE 1
 #define SYSTEM_TYPE_TACTICS 2
@@ -40,16 +41,19 @@
 #define FALSE 0
 #define TRUE 1
 
-#define PATH_SHARE "."
-#define PATH_MAPDATA "/mapdata"
-#define PATH_SCRDATA "/scrdata"
+/* The directory from which to fetch data files. */
+#ifdef USEWII
+#define PATH_SHARE "ramdisk:/"
+#else
+#define PATH_SHARE "./"
+#endif /* USEWII */
+
 #define PATH_FILE_SYSTEM "system.xml"
 
 #define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
 #define RETURN_ACTION_TITLE 1 /* Display the title screen. */
 #define RETURN_ACTION_LOADCACHE 2 /* Load the next instruction/data from the  *
                                    * cache.                                   */
-
 #define TEAM_MAX_SIZE 10
 
 #define SYSTYPE_TITLE 1
