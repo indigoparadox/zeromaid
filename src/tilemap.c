@@ -27,7 +27,7 @@ extern int gi_animation_frame;
 /* Parameters: The filename to load.                                          */
 /* Return: The loaded tile map.                                               */
 TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
-   TILEMAP_TILEMAP* ps_map_out = malloc( sizeof( TILEMAP_TILEMAP ) );
+   TILEMAP_TILEMAP* ps_map_out = calloc( 1, sizeof( TILEMAP_TILEMAP ) );
    ezxml_t ps_xml_map = NULL, ps_xml_layer = NULL, ps_xml_props = NULL,
       ps_xml_prop_iter = NULL, ps_xml_tiledata = NULL;
    bstring ps_tiledata_path = NULL, ps_tiledata_filename = NULL;
@@ -35,8 +35,6 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    /* Verify memory allocation. */
    if( NULL == ps_map_out ) {
       DBG_ERR( "Unable to allocate map." );
-   } else {
-      memset( ps_map_out, 0, sizeof( TILEMAP_TILEMAP ) );
    }
 
    /* Verify the XML file exists and open or abort accordingly. */
@@ -49,7 +47,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    /* Load the tileset data if it exists, or just let cleanup run if it       *
     * doesn't.                                                                */
    ps_xml_tiledata = ezxml_child( ps_xml_map, "tileset" );
-   ps_tiledata_path = bfromcstr( PATH_SHARE PATH_MAPDATA "/" );
+   ps_tiledata_path = bfromcstr( PATH_SHARE );
    ps_tiledata_filename = bfromcstr( ezxml_attr( ps_xml_tiledata, "source" ) );
    bconcat( ps_tiledata_path, ps_tiledata_filename );
    if( file_exists( ps_tiledata_path ) ) {

@@ -141,7 +141,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
 
    /* Load the image file. */
    ps_xml_image = ezxml_child( ps_xml_tileset, "image" );
-   ps_image_path = bfromcstr( PATH_SHARE PATH_MAPDATA "/" );
+   ps_image_path = bfromcstr( PATH_SHARE );
    ps_image_filename = bfromcstr( ezxml_attr( ps_xml_image, "source" ) );
    bconcat( ps_image_path, ps_image_filename );
    ps_surface = graphics_create_image( ps_image_path );

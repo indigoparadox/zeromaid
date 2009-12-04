@@ -28,7 +28,7 @@ extern CACHE_CACHE* gps_cache;
 /* Return: The code for the next action to take.                              */
 int systype_adventure_loop( void ) {
    int i_act_return = RETURN_ACTION_TITLE;
-   bstring ps_map_path = bfromcstr( PATH_SHARE "/mapdata/field_map.tmx" );
+   bstring ps_map_path = bfromcstr( PATH_SHARE "map_field_map.tmx" );
    TILEMAP_TILEMAP* ps_map = tilemap_create_map( ps_map_path );
    free( ps_map_path );
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );

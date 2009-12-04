@@ -239,7 +239,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* Load attribute data into the new title screen. */
       /* ATTRIB: BGIMAGE */
       ps_string_attrib = bformat(
-         PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_IMAGE,
+         PATH_SHARE "%s." FILE_EXTENSION_IMAGE,
          ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
       );
       ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_attrib );
@@ -271,7 +271,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* ATTRIB: MENUFONT */
       if( NULL != ezxml_attr( ps_xml_titlescreen_iter, "menufont" ) ) {
          ps_titlescreen_iter->menu_font = bformat(
-            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
          DBG_INFO_STR(
@@ -327,7 +327,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
          /* ATTRIB: FONT NAME */
          ps_text_iter->font_name = bformat(
-            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_text_iter, "font" )
          );
 
