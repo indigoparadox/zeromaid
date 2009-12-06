@@ -35,7 +35,6 @@
 #include "systype_adventure.h"
 
 #ifdef USEWII
-/* Include the Wii data files. */
 #include "zeromaid_wii_data.h"
 #endif /* USEWII */
 
@@ -48,13 +47,14 @@ extern CACHE_CACHE* gps_cache;
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
-   // short unsigned int i_bol_running = TRUE;
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0; /* The program error level returned to the shell. */
+   bstring ps_system_path = cstr2bstr( PATH_SHARE PATH_FILE_SYSTEM );
 
-   /* If we're on the Wii, start the dolfs ramdisk. */
+   /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
    dolfsInit( &zeromaid_wii_data );
+   WPAD_Init();
    #endif /* USEWII */
 
    #ifdef OUTTOFILE
@@ -76,6 +76,13 @@ int main( int argc, char* argv[] ) {
       ps_title
    );
    bdestroy( ps_title );
+
+   /* Verify the integrity of the system data file. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR( "Unable to find system.xml." );
+      i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
@@ -117,7 +124,7 @@ main_cleanup:
    TTF_Quit();
    #endif /* USESDL */
 
-   return 0;
+   return i_error_level;
 }
 
 #ifdef USEALLEGRO

@@ -24,10 +24,18 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
+
+} MOBILE_PORTRAIT;
+
+typedef struct {
    unsigned int hp;
+   MOBILE_PORTRAIT* portraits;
    int tile_x, tile_y,
-      pixel_size; /* The size of the mobile's sprite. */
+      pixel_size, /* The size of the mobile's sprite. */
+      portraits_count,
+      current_animation; /* Vertical offset of current frame on spritesheet. */
    float pixel_multiplier; /* The size to expand the mobile to when blitted. */
+   bstring proper_name; /* The name to display for this mobile. */
    GFX_SPRITESHEET* spritesheet;
 } MOBILE_MOBILE;
 
