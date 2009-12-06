@@ -26,8 +26,8 @@
 
 typedef struct {
    int game_type,
-      player_team_count;
-   MOBILE_MOBILE player_team[];
+      player_team_count; /* Number of members in the player's party. */
+   MOBILE_MOBILE player_team[]; /* Mobiles in player's party. */
 } CACHE_CACHE;
 
 /* = Function Prototypes = */

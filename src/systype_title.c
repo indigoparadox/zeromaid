@@ -145,15 +145,15 @@ int systype_title_loop( void ) {
             /* Go to the next one! */
             ps_text_iter = ps_text_iter->next;
          }
-      }
-      if( ps_title_iter->show_menu ) {
-         systype_title_show_menu(
-            i_menu_selected,
-            as_menu_text,
-            ps_title_iter->menu_font,
-            ps_title_iter->fg_color,
-            ps_title_iter->fg_highlight
-         );
+         if( ps_title_iter->show_menu ) {
+            systype_title_show_menu(
+               i_menu_selected,
+               as_menu_text,
+               ps_title_iter->menu_font,
+               ps_title_iter->fg_color,
+               ps_title_iter->fg_highlight
+            );
+         }
       }
 
       graphics_do_update();
@@ -204,6 +204,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
    bstring ps_string_attrib = NULL;
+   char* pc_ezxml_attr;
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
@@ -246,12 +247,15 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       bdestroy( ps_string_attrib );
 
       /* ATTRIB: DELAY */
-      ps_titlescreen_iter->delay = atoi( ezxml_attr( ps_xml_titlescreen_iter, "delay" ) );
-      if( 0 != ps_titlescreen_iter->delay ) {
-         DBG_INFO_STR(
-            "Title screen: Set delay",
-            ezxml_attr( ps_xml_titlescreen_iter, "delay" )
-         );
+      pc_ezxml_attr = ezxml_attr( ps_xml_titlescreen_iter, "delay" );
+      if( NULL != pc_ezxml_attr ) {
+         ps_titlescreen_iter->delay = atoi( pc_ezxml_attr );
+         if( 0 != ps_titlescreen_iter->delay ) {
+            DBG_INFO_STR(
+               "Title screen: Set delay",
+               ezxml_attr( ps_xml_titlescreen_iter, "delay" )
+            );
+         }
       }
 
       /* ATTRIB: TRANSITION */
@@ -314,9 +318,18 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
          /* Load the text node attributes. */
          /* ATTRIB: LOCATION /SIZE */
-         ps_text_iter->x = atoi( ezxml_attr( ps_xml_text_iter, "x" ) );
-         ps_text_iter->y = atoi( ezxml_attr( ps_xml_text_iter, "y" ) );
-         ps_text_iter->size = atoi( ezxml_attr( ps_xml_text_iter, "size" ) );
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "x" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->x = atoi( pc_ezxml_attr );
+         }
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "y" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->y = atoi( pc_ezxml_attr );
+         }
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "size" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->size = atoi( pc_ezxml_attr );
+         }
 
          /* ATTRIB: FG COLOR */
          ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );

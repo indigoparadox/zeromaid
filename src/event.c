@@ -113,6 +113,27 @@ int event_do_poll( void ) {
    SDL_PollEvent( ps_event_temp );
    if( SDL_QUIT == ps_event_temp->type ) {
       return EVENT_ID_QUIT;
+
+   #ifdef USEWII
+   } else if( SDL_JOYBUTTONDOWN == ps_event_temp->type ) {
+      /* A button was pressed on a Wii gamepad. */
+      switch( ps_event_temp->jbutton.button ) {
+         case SDL_WII_JS_BTN_1:
+            return EVENT_ID_FIRE;
+
+         case SDL_WII_JS_BTN_2:
+            return EVENT_ID_JUMP;
+
+         case SDL_WII_JS_BTN_HOME:
+            return EVENT_ID_ESC;
+
+         default:
+            /* It was a button we don't know about... */
+            return EVENT_ID_NULL;
+      }
+
+   #endif /* USEWII */
+   #ifndef USEWII
    } else if( SDL_KEYDOWN == ps_event_temp->type ) {
       /* A key was pressed, so be more specific. */
       switch( ps_event_temp->key.keysym.sym ) {
@@ -141,7 +162,22 @@ int event_do_poll( void ) {
             /* It was a key we don't know about... */
             return EVENT_ID_NULL;
       }
+   #endif /* USEWII */
    } else {
+      #ifdef USEWII
+      /* Passively check the Wii's D-Pad, which is seen as a joystick hat by  *
+       * Wii SDL.                                                             */
+      if( SDL_HAT_UP == ps_event_temp->jhat.value ) {
+         return EVENT_ID_LEFT;
+      } else if( SDL_HAT_DOWN == ps_event_temp->jhat.value ) {
+         return EVENT_ID_RIGHT;
+      } else if( SDL_HAT_LEFT == ps_event_temp->jhat.value ) {
+         return EVENT_ID_DOWN;
+      } else if( SDL_HAT_RIGHT == ps_event_temp->jhat.value ) {
+         return EVENT_ID_UP;
+      }
+      #endif /* USEWII */
+
       /* Nothing happened... */
       return EVENT_ID_NULL;
    }

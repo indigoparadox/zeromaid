@@ -43,7 +43,7 @@
 
 /* The directory from which to fetch data files. */
 #ifdef USEWII
-#define PATH_SHARE "ramdisk:/"
+#define PATH_SHARE "zeromaid_wii_data:/"
 #else
 #define PATH_SHARE "./"
 #endif /* USEWII */
@@ -58,28 +58,26 @@
 
 #define SYSTYPE_TITLE 1
 
-#define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory! */
+#define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
+#define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
 
 #ifdef OUTTOFILE
-
+#ifdef USEWII
+#define DEBUG_OUT_PATH "sd:/zeromaid_out.txt"
+#else
 #define DEBUG_OUT_PATH "./dbg_out.txt"
+#endif /* USEWII */
 #define DEBUG_HANDLE_INFO gps_debug
 #define DEBUG_HANDLE_ERR gps_debug
-
 #define DBG_MAIN FILE* gps_debug;
 #define DBG_ENABLE extern FILE* gps_debug;
-
 #else
-
 #define DEBUG_HANDLE_INFO stdout
 #define DEBUG_HANDLE_ERR stderr
-
 /* If output is to the console, we don't need to enable. */
 #define DBG_MAIN
 #define DBG_ENABLE
-
 #define DBG_CLOSE
-
 #endif /* OUTTOFILE */
 
 /* = Macros = */

@@ -137,12 +137,6 @@ void tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in )
          sizeof( TILEMAP_TILE )
       );
 
-      /* Update the tile and row counters. */
-      /* if(  >= ps_map_in->tile_w ) {
-         i_tile_count = 0;
-         i_row_count++;
-      } */
-
       /* Load the tile's properties. */
       ps_map_in->tiles[ps_map_in->tiles_count - 1].gid =
          atoi( ezxml_attr( ps_xml_tile, "gid" ) );
@@ -150,10 +144,6 @@ void tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in )
          (ps_map_in->tiles_count - 1) % ps_map_in->tile_w;
       ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_y =
          (ps_map_in->tiles_count - 1) / ps_map_in->tile_w;
-
-      DBG_INFO_NUM( "x", ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_x );
-      DBG_INFO_NUM( "y", ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_y );
-      DBG_INFO( "---" );
 
       /* Go to the next one! */
       ps_xml_tile = ps_xml_tile->next;

@@ -16,6 +16,8 @@
 
 #include "mobile.h"
 
+DBG_ENABLE
+
 /* = Global Variables= */
 
 extern int gi_animation_frame;
@@ -26,7 +28,39 @@ extern int gi_animation_frame;
 /* Parameters: The path to the mobile's data file.                            */
 /* Return: A new MOBILE struct.                                               */
 MOBILE_MOBILE* mobile_create_mobile( bstring ps_path_in ) {
+   MOBILE_MOBILE* ps_mob_out = calloc( 1, sizeof( MOBILE_MOBILE ) );
+   ezxml_t ps_xml_mob = NULL, ps_xml_props = NULL, ps_xml_prop_iter = NULL;
 
+   /* Verify memory allocation. */
+   if( NULL == ps_mob_out ) {
+      DBG_ERR( "Unable to allocate map." );
+   }
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !file_exists( ps_path_in ) ) {
+      DBG_ERR_STR( "Unable to load mobile", ps_path_in->data );
+      return NULL;
+   }
+   ps_xml_mob = ezxml_parse_file( ps_path_in->data );
+
+   /* Load the properties tree. */
+   ps_xml_props = ezxml_child( ps_xml_mob, "properties" );
+   ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
+   while( NULL != ps_xml_prop_iter ) {
+      /* Load the current property into the struct. */
+      if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "propername" ) ) {
+         ps_mob_out->proper_name = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
+
+      } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hp" ) ) {
+         ps_mob_out->hp = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
+
+      }
+
+      /* Go on to the next one. */
+      ps_xml_prop_iter = ezxml_next( ps_xml_prop_iter );
+   }
+
+   return ps_mob_out;
 }
 
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
@@ -59,14 +93,11 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
          ps_mob_in->pixel_size;
 
       /* Figure out where on the spritesheet the sprite is. */
-      //s_tile_rect.x = gi_animation_frame * ps_mob_in->pixel_size;
-      //s_tile_rect.y = (ps_tile_iter->gid - 1) * ps_mob_in->pixel_size;
+      s_tile_rect.x = gi_animation_frame * ps_mob_in->pixel_size;
+      s_tile_rect.y = ps_mob_in->current_animation * ps_mob_in->pixel_size;
 
       /* Draw the tile! */
-      /* ps_tile_data = graphics_get_tiledata(
-         ps_tile_iter->gid, ps_map_in->tileset
-      ); */
-      graphics_draw_blit_tile(
+      graphics_draw_blit_sprite(
          ps_mob_in->spritesheet->image,
          &s_tile_rect,
          &s_screen_rect
