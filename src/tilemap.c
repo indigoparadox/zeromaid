@@ -16,10 +16,7 @@
 
 #include "tilemap.h"
 
-/* = Global Variables= */
-
-extern FILE* gps_debug;
-extern int gi_animation_frame;
+DBG_ENABLE
 
 /* = Functions = */
 
@@ -165,6 +162,19 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
       i = 0; /* Loop iterator. */
    GFX_TILEDATA* ps_tile_data = NULL; /* The data for the iterated tile. */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
+   static int ti_anim_frame = 0;
+   static int ti_frame_draws = 0;
+
+   /* What animation frame are we on? */
+   ti_frame_draws++;
+   if( TILEMAP_ANIM_DRAWS <= ti_frame_draws ) {
+      if( TILEMAP_ANIM_FRAMES <= ti_anim_frame ) {
+         ti_anim_frame = 0;
+      } else {
+         ti_anim_frame++;
+      }
+      ti_frame_draws = 0;
+   }
 
    /* Setup the blit source and destination. */
    s_screen_rect.w = ps_map_in->tileset->pixel_size;
@@ -196,7 +206,7 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
          /* Figure out where on the tilesheet the tile is. Bear in mind that  *
           * GIDs are 1-indexed.                                               */
          /* TODO: Add offset for night time. */
-         s_tile_rect.x = gi_animation_frame * ps_map_in->tileset->pixel_size;
+         s_tile_rect.x = ti_anim_frame * ps_map_in->tileset->pixel_size;
          s_tile_rect.y =
             (ps_map_in->tiles[i].gid - 1) * ps_map_in->tileset->pixel_size;
 

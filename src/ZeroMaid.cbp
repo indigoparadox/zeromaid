@@ -268,7 +268,6 @@
 					<Add library="nds9" />
 					<Add library="SDL_ttf" />
 					<Add library="SDL" />
-					<Add library="nds9" />
 					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
@@ -334,6 +333,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_adventure.h" />
+		<Unit filename="systype_platform.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_platform.h" />
 		<Unit filename="systype_title.c">
 			<Option compilerVar="CC" />
 		</Unit>

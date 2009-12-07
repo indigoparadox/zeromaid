@@ -101,7 +101,6 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          mobile_draw( &gps_cache->player_team[i], &s_viewport ); /* PCs */
       }
 
-      graphics_do_heartbeat();
       graphics_do_update();
 
       /* If possible, try to delay without busy-spinning. */

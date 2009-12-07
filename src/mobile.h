@@ -21,6 +21,11 @@
 
 #include "graphics.h"
 
+/* = Defines = */
+
+#define MOBILE_ANIM_FRAMES 3 /* Max index of animation frames. */
+#define MOBILE_ANIM_DRAWS 20 /* Max index of drawing cycles per frame. */
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
