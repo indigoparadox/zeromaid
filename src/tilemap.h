@@ -26,6 +26,9 @@
 
 /* = Definitions = */
 
+#define TILEMAP_ANIM_FRAMES 1 /* Max index of animation frames. */
+#define TILEMAP_ANIM_DRAWS 10 /* Max index of drawing cycles per frame. */
+
 /* = Type and Struct Definitions = */
 
 typedef struct {

@@ -18,10 +18,6 @@
 
 DBG_ENABLE
 
-/* = Global Variables= */
-
-extern int gi_animation_frame;
-
 /* = Functions = */
 
 /* Purpose: Create a MOBILE struct from the mobile data at the given path.    */
@@ -105,6 +101,19 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0;     /* which to draw.              */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
+   static int ti_anim_frame = 0;
+   static int ti_frame_draws = 0;
+
+   /* What animation frame are we on? */
+   ti_frame_draws++;
+   if( MOBILE_ANIM_DRAWS <= ti_frame_draws ) {
+      if( MOBILE_ANIM_FRAMES <= ti_anim_frame ) {
+         ti_anim_frame = 0;
+      } else {
+         ti_anim_frame++;
+      }
+      ti_frame_draws = 0;
+   }
 
    /* Setup the blit source and destination. */
    s_screen_rect.w = ps_mob_in->pixel_size;
@@ -133,7 +142,15 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
          ps_mob_in->pixel_size;
 
       /* Figure out where on the spritesheet the sprite is. */
-      s_tile_rect.x = gi_animation_frame * ps_mob_in->pixel_size;
+      if( 2 == ti_anim_frame ) {
+         /* On frame 3, use the first frame again. */
+         s_tile_rect.x = 0 * ps_mob_in->pixel_size;
+      } else if( 3 == ti_anim_frame ) {
+         /* On frame 4, use the third frame. */
+         s_tile_rect.x = 2 * ps_mob_in->pixel_size;
+      } else {
+         s_tile_rect.x = ti_anim_frame * ps_mob_in->pixel_size;
+      }
       s_tile_rect.y = ps_mob_in->current_animation * ps_mob_in->pixel_size;
 
       /* Draw the tile! */

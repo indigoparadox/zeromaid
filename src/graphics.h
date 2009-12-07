@@ -54,9 +54,6 @@
 #define GFX_ALPHA_FADE_INC 25
 #define GFX_ALPHA_FADE_STEP 50
 
-#define GFX_ANIMATION_MAX_HEARTBEAT 1
-#define GFX_ANIMATION_MAX_DRAWS 10
-
 #define GFX_TILE_DEFAULT_SIZE 32
 
 /* = Type and Struct Definitions = */
@@ -105,7 +102,6 @@ void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blank( GFX_COLOR* );
 void graphics_draw_transition( int, GFX_COLOR* );
 void graphics_do_update( void );
-void graphics_do_heartbeat( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_spritesheet( GFX_SPRITESHEET* );
