@@ -204,7 +204,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
    bstring ps_string_attrib = NULL;
-   char* pc_ezxml_attr;
+   const char* pc_ezxml_attr;
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
@@ -317,7 +317,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          memset( ps_text_iter, 0, sizeof( SYSTYPE_TITLE_TEXT ) );
 
          /* Load the text node attributes. */
-         /* ATTRIB: LOCATION /SIZE */
+         /* ATTRIB: LOCATION/SIZE */
          pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "x" );
          if( NULL != pc_ezxml_attr ) {
             ps_text_iter->x = atoi( pc_ezxml_attr );
