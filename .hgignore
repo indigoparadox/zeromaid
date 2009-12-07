@@ -12,3 +12,4 @@ glob:src/ZeroMaid.layout
 glob:src/ZeroMaid.depend
 glob:share
 glob:src/resource.aps
+glob:src/zeromaid_wii_data.h
