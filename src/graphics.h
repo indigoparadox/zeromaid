@@ -57,6 +57,8 @@
 #define GFX_ANIMATION_MAX_HEARTBEAT 1
 #define GFX_ANIMATION_MAX_DRAWS 10
 
+#define GFX_TILE_DEFAULT_SIZE 32
+
 /* = Type and Struct Definitions = */
 
 #ifdef USESDL

@@ -102,7 +102,7 @@ int main( int argc, char* argv[] ) {
          case RETURN_ACTION_LOADCACHE:
             /* Execute the next instruction based on the system cache. */
             if( SYSTEM_TYPE_ADVENTURE == gps_cache->game_type ) {
-               i_last_return = systype_adventure_loop();
+               i_last_return = systype_adventure_loop( cstr2bstr( "field" ) );
             } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
                /* TODO: Visual Novel */
             }

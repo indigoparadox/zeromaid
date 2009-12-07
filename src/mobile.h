@@ -24,7 +24,7 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-
+   GFX_SURFACE* image;
 } MOBILE_PORTRAIT;
 
 typedef struct {
@@ -35,14 +35,16 @@ typedef struct {
       portraits_count,
       current_animation; /* Vertical offset of current frame on spritesheet. */
    float pixel_multiplier; /* The size to expand the mobile to when blitted. */
-   bstring proper_name; /* The name to display for this mobile. */
+   bstring proper_name, /* The name to display for this mobile. */
+      mobile_type; /* The system mobile type of this mobile. */
    GFX_SPRITESHEET* spritesheet;
 } MOBILE_MOBILE;
 
 /* = Function Prototypes = */
 
-MOBILE_MOBILE* mobile_create_mobile( bstring );
+void mobile_load_mobile( MOBILE_MOBILE*, bstring );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
-void mobile_draw_list( MOBILE_MOBILE[], int, GFX_RECTANGLE* );
+void mobile_free_arr( MOBILE_MOBILE* );
+void mobile_free( MOBILE_MOBILE* );
 
 #endif /* MOBILE_H */

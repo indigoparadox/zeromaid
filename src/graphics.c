@@ -539,7 +539,9 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
 /* Parameters: The spritesheet to free.                                       */
 void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
    #ifdef USESDL
-   SDL_FreeSurface( ps_spritesheet_in->image );
+   if( NULL != ps_spritesheet_in ) {
+      SDL_FreeSurface( ps_spritesheet_in->image );
+   }
    #else
    #error "No surface freeing mechanism defined for this platform!"
    #endif /* USESDL */

@@ -45,7 +45,7 @@ typedef struct {
 /* = Function Prototypes = */
 
 TILEMAP_TILEMAP* tilemap_create_map( bstring );
-void tilemap_create_layer( TILEMAP_TILEMAP*, ezxml_t );
+void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
 void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE* );
 void tilemap_free( TILEMAP_TILEMAP* );
 

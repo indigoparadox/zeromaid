@@ -32,6 +32,7 @@
 
 /* = Function Prototypes = */
 
-int systype_adventure_loop( void );
+int systype_adventure_loop( bstring );
+MOBILE_MOBILE* systype_adventure_load_mobiles( bstring, int* );
 
 #endif /* SYSTYPE_ADVENTURE_H */

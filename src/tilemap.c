@@ -84,7 +84,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
          if( 0 == strcmp( ezxml_attr( ps_xml_layer, "name" ), "background" ) ) {
             ps_map_out->tile_w = atoi( ezxml_attr( ps_xml_layer, "width" ) );
             ps_map_out->tile_h = atoi( ezxml_attr( ps_xml_layer, "height" ) );
-            tilemap_create_layer( ps_map_out, ps_xml_layer );
+            tilemap_load_layer( ps_map_out, ps_xml_layer );
          } else {
             DBG_INFO_STR(
                "Found unrecognized map layer",
@@ -108,7 +108,10 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    return ps_map_out;
 }
 
-void tilemap_create_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
+/* Purpose: Load the specified layer into the given map struct.               */
+/* Parameters: The map struct into which to load, the XML struct describing   *
+ *             the layer.                                                     */
+void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
    ezxml_t ps_xml_tile = NULL, ps_xml_data = NULL;
    //unsigned int i_row_count = 0; /* The current tile row. *//
 
