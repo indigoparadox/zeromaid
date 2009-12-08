@@ -95,6 +95,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       /* Loop through and draw all on-screen items. */
       tilemap_draw( ps_map, &s_viewport ); /* Map. */
       for( i = 0 ; i < i_mobile_count ; i++ ) {
+         mobile_execute_ai( &as_mobile_list[i], MOBILE_AI_ADV_NORMAL );
          mobile_draw( &as_mobile_list[i], &s_viewport ); /* NPCs */
       }
       for( i = 0 ; i < gps_cache->player_team_count ; i++ ) {
@@ -132,6 +133,45 @@ sal_cleanup:
    free( as_mobile_list );
 
    return i_act_return;
+}
+
+/* Purpose: Start the mobile walking in the given direction.                  */
+/* Parameters: The mobile to walk, the direction to walk in                   */
+/* Return: A boolean indicating whether or not the mobile was able to -start- *
+ *         walking.                                                           */
+BOOL systype_adventure_mobile_walk(
+   MOBILE_MOBILE* ps_mob_in,
+   TILEMAP_DIR i_dir_in,
+   MOBILE_MOBILE as_mob_npc_in[],
+   TILEMAP_TILEMAP ps_map_in
+) {
+   static SYSTYPE_ADVENTURE_WALK* tps_walking_ops = NULL; /* Walking mobiles. */
+   static int ti_walking_ops_count = 0;
+   int i; /* Loop iterator. */
+
+   if( NULL == ps_mob_in && TILEMAP_DIR_NULL == i_dir_in ) {
+      /* If this function was called with a NULL direction then go through    *
+       * the table of already walking mobiles and advance them.               */
+      for( i = 0 ; i < ti_walking_ops_count ; i++ ) {
+         // TODO
+         switch( tps_walking_ops[i].direction ) {
+            /* case TILEMAP_DIR_NORTH:
+               tps_walking_ops[i]. */
+         }
+      }
+      return FALSE;
+   }
+
+   if( ps_mob_in->moving ) {
+      /* Don't bother doing anything if the specified mobile already moves. */
+      return FALSE;
+   }
+
+   /* The specified mobile is neither walking already nor otherwise moving,   *
+    * so start walking and add the mobile to the list of walking mobiles.     */
+   // TODO
+
+   return TRUE;
 }
 
 /* Purpose: Load the mobiles for this map into the given dynamic array.       */

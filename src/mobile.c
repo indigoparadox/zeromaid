@@ -18,6 +18,10 @@
 
 DBG_ENABLE
 
+/* = Global Variables = */
+
+extern CACHE_CACHE* gps_cache;
+
 /* = Functions = */
 
 /* Purpose: Create a MOBILE struct from the mobile data at the given path.    */
@@ -25,7 +29,9 @@ DBG_ENABLE
  *             mobile's data file.                                            */
 void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
    ezxml_t ps_xml_mob = NULL, ps_xml_props = NULL, ps_xml_prop_iter = NULL;
-   bstring ps_path_sprites = NULL;
+   bstring ps_path_temp = NULL;
+   BOOL b_serial_dupe = TRUE; /* Was the generated serial a dupe? */
+   int i; /* Loop iterator. */
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
@@ -49,14 +55,24 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
          DBG_INFO_NUM( "Mobile HP", ps_mob_out->hp );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "spritesheet" ) ) {
-         ps_path_sprites = bformat(
+         ps_path_temp = bformat(
             "%smob_sprites_%s.%s",
             PATH_SHARE,
             ezxml_attr( ps_xml_prop_iter, "value" ),
             FILE_EXTENSION_IMAGE
          );
-         ps_mob_out->spritesheet = graphics_create_spritesheet( ps_path_sprites );
-         bdestroy( ps_path_sprites );
+         ps_mob_out->spritesheet = graphics_create_spritesheet( ps_path_temp );
+         bdestroy( ps_path_temp );
+
+      } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "ai_adv_normal" ) ) {
+         ps_path_temp = bformat(
+            "%sai_%s.%s",
+            PATH_SHARE,
+            ezxml_attr( ps_xml_prop_iter, "value" ),
+            FILE_EXTENSION_AI
+         );
+         mobile_load_ai( ps_mob_out, MOBILE_AI_ADV_NORMAL, ps_path_temp );
+         bdestroy( ps_path_temp );
 
       }
 
@@ -72,7 +88,6 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
       ps_mob_out->pixel_multiplier = 1.0f;
    }
 
-
    /* Mobiles should have a sprite sheet. */
    if( NULL == ps_mob_out->spritesheet ) {
       DBG_ERR( "Mobile validation failed: No sprite sheet!" );
@@ -85,6 +100,25 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
       ps_mob_out->proper_name = bformat( "???" );
    }
 
+   /* It looks like the mobile loaded OK, so assign it a serial. Keep a       *
+    * record of the serials used so that there are no duplicates.             */
+   while( b_serial_dupe ) {
+      ps_mob_out->serial = rand();
+      b_serial_dupe = FALSE;
+      for( i = 0 ; i < gps_cache->serials_count ; i++ ) {
+         if( ps_mob_out->serial == gps_cache->serials[i] ) {
+            /* A duplicate was found! */
+            b_serial_dupe = TRUE;
+            break;
+         }
+      }
+   }
+   gps_cache->serials_count++;
+   gps_cache->serials =
+      realloc( gps_cache->serials, gps_cache->serials_count * sizeof( int ) );
+   gps_cache->serials[gps_cache->serials_count - 1] = ps_mob_out->serial;
+   DBG_INFO_NUM( "Mobile serial", ps_mob_out->serial );
+
    DBG_INFO_STR( "Mobile loaded", ps_mob_out->mobile_type->data );
 
    /* Clean up. */
@@ -92,6 +126,17 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
 mlm_cleanup:
 
    ezxml_free( ps_xml_mob );
+}
+
+/* Purpose: Load the given script into the given mobile's selected AI.        */
+/* Parameters: The mobile to load into, the ID of the list to load into, and  *
+ *             the path to the file from which to load the ai.                */
+void mobile_load_ai(
+   MOBILE_MOBILE* ps_mob_in,
+   MOBILE_AI i_list_in,
+   bstring ps_path_in
+) {
+
 }
 
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
@@ -160,6 +205,17 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
          &s_screen_rect
       );
    }
+}
+
+/* Purpose: Execute the next instruction in the mobile's AI.                  */
+/* Parameters: The mobile to act and the ID of the list to execute from.      */
+void mobile_execute_ai( MOBILE_MOBILE* ps_mob_in, MOBILE_AI i_list_in ) {
+   if( ps_mob_in->moving ) {
+      /* Wait until the mobile's done acting to execute the next instruction. */
+      return;
+   }
+
+
 }
 
 /* Purpose: Free the given mobile's sub-pointers. Don't free the given ptr.   */

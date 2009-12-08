@@ -28,6 +28,7 @@
 /* Platform-specific stuff. */
 #define FILE_EXTENSION_IMAGE "bmp"
 #define FILE_EXTENSION_FONT "ttf"
+#define FILE_EXTENSION_AI "aib"
 
 #define SYSTEM_TITLE "ZeroMaid"
 
@@ -38,6 +39,7 @@
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
 
+typedef int BOOL;
 #define FALSE 0
 #define TRUE 1
 

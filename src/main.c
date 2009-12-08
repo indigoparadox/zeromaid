@@ -51,6 +51,9 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path = cstr2bstr( PATH_SHARE PATH_FILE_SYSTEM );
 
+   /* Setup the random number generator. */
+   srand( time( NULL ) );
+
    /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
    dolfsInit( &zeromaid_wii_data );
