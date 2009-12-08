@@ -29,6 +29,13 @@
 #define TILEMAP_ANIM_FRAMES 1 /* Max index of animation frames. */
 #define TILEMAP_ANIM_DRAWS 10 /* Max index of drawing cycles per frame. */
 
+typedef int TILEMAP_DIR;
+#define TILEMAP_DIR_NULL 0
+#define TILEMAP_DIR_NORTH 1
+#define TILEMAP_DIR_SOUTH 2
+#define TILEMAP_DIR_EAST 3
+#define TILEMAP_DIR_WEST 4
+
 /* = Type and Struct Definitions = */
 
 typedef struct {

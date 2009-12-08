@@ -28,11 +28,20 @@
 
 /* = Definitions = */
 
-/* = Global Variables = */
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   int serial;
+   int speed; /* The number of pixels to move per cycle. */
+   TILEMAP_DIR direction; /* The direction being walked in. */
+} SYSTYPE_ADVENTURE_WALK;
 
 /* = Function Prototypes = */
 
 int systype_adventure_loop( bstring );
+BOOL systype_adventure_mobile_walk(
+   MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], TILEMAP_TILEMAP
+);
 MOBILE_MOBILE* systype_adventure_load_mobiles( bstring, int* );
 
 #endif /* SYSTYPE_ADVENTURE_H */

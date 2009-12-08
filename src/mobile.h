@@ -19,9 +19,14 @@
 
 /* = Includes = */
 
+#include "defines.h"
 #include "graphics.h"
 
 /* = Defines = */
+
+typedef int MOBILE_AI;
+#define MOBILE_AI_ADV_NORMAL 0
+#define MOBILE_AI_ADV_ATTACKED 1
 
 #define MOBILE_ANIM_FRAMES 3 /* Max index of animation frames. */
 #define MOBILE_ANIM_DRAWS 20 /* Max index of drawing cycles per frame. */
@@ -33,6 +38,17 @@ typedef struct {
 } MOBILE_PORTRAIT;
 
 typedef struct {
+
+} MOBILE_AI_LIST;
+typedef int MOBILE_AI_LIST_COUNTER;
+
+typedef struct {
+   MOBILE_AI_LIST ai_normal;
+   MOBILE_AI_LIST_COUNTER ai_normal_counter;
+
+   int serial; /* A unique identifier for this mobile. */
+
+   BOOL moving; /* Is the mobile moving or acting right now? */
    unsigned int hp;
    MOBILE_PORTRAIT* portraits;
    int tile_x, tile_y,
@@ -48,8 +64,13 @@ typedef struct {
 /* = Function Prototypes = */
 
 void mobile_load_mobile( MOBILE_MOBILE*, bstring );
+void mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
+void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );
 void mobile_free( MOBILE_MOBILE* );
+
+/* = Additional Includes = */
+#include "cache.h"
 
 #endif /* MOBILE_H */
