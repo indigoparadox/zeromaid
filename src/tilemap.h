@@ -62,7 +62,7 @@ int tilemap_get_tile_x( int, TILEMAP_TILEMAP* );
 int tilemap_get_tile_y( int, TILEMAP_TILEMAP* );
 TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
 void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
-void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE* );
+void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE*, BOOL );
 void tilemap_free( TILEMAP_TILEMAP* );
 
 #endif /* TILEMAP_H */
