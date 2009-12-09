@@ -31,7 +31,7 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int serial;
+   MOBILE_MOBILE* mobile;
    int speed; /* The number of pixels to move per cycle. */
    TILEMAP_DIR direction; /* The direction being walked in. */
 } SYSTYPE_ADVENTURE_WALK;
@@ -40,8 +40,8 @@ typedef struct {
 
 int systype_adventure_loop( bstring );
 BOOL systype_adventure_mobile_walk(
-   MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], TILEMAP_TILEMAP
+   MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*
 );
-MOBILE_MOBILE* systype_adventure_load_mobiles( bstring, int* );
+MOBILE_MOBILE* systype_adventure_load_mobiles( int*, TILEMAP_TILEMAP* );
 
 #endif /* SYSTYPE_ADVENTURE_H */

@@ -28,11 +28,6 @@ typedef struct {
    int game_type,
       player_team_count; /* Number of members in the player's party. */
    MOBILE_MOBILE* player_team; /* Mobiles in player's party. */
-
-   /* A record of the serials currently in use by mobiles. Should be updated  *
-    * whenever a mobile is created/destroyed.                                 */
-   int* serials;
-   int serials_count;
 } CACHE_CACHE;
 
 /* = Function Prototypes = */

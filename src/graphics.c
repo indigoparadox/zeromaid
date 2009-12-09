@@ -120,10 +120,12 @@ gcs_cleanup:
 GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    GFX_TILESET* ps_tileset_out = NULL;
    GFX_SURFACE* ps_surface = NULL;
-   GFX_TILEDATA* ps_tile_iter = NULL;
+   GFX_TILEDATA* ps_tile_new_malloc = NULL;
    ezxml_t ps_xml_tileset, ps_xml_image, ps_xml_tile, ps_xml_props,
       ps_xml_prop_iter;
-   bstring ps_image_filename = NULL, ps_image_path = NULL;
+   bstring ps_image_filename = NULL, ps_image_path = NULL,
+      ps_gid_string = NULL, ps_prop_string = NULL;
+   int i_gid; /* Tile GID iterator. */
 
    DBG_INFO_STR( "Loading tile data", ps_path_in->data );
 
@@ -144,7 +146,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    /* If the surface loaded all right, then construct the tileset. */
    if( NULL != ps_surface ) {
       /* Create the tileset struct. */
-      ps_tileset_out = malloc( sizeof( GFX_TILESET ) );
+      ps_tileset_out = calloc( 1, sizeof( GFX_TILESET ) );
       if( NULL == ps_tileset_out ) {
          DBG_ERR( "There was a problem allocating tileset memory." );
          graphics_free_image( ps_surface );
@@ -154,26 +156,41 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       /* Load the properties of each tile into a linked list. */
       ps_xml_tile = ezxml_child( ps_xml_tileset, "tile" );
       while( NULL != ps_xml_tile ) {
-         /* Allocate a fresh new tile! */
-         if( NULL == ps_tile_iter ) {
-            ps_tile_iter = malloc( sizeof( GFX_TILEDATA ) );
-
-            /* Link the first tile to the tileset struct. */
-            ps_tileset_out->tile_list = ps_tile_iter;
+         /* Get the GID of the next tile. */
+         ps_gid_string = bformat( "%s", ezxml_attr( ps_xml_tile, "id" ) );
+         if( NULL != ps_gid_string ) {
+            i_gid = atoi( ps_gid_string->data );
+            bdestroy( ps_gid_string );
          } else {
-            ps_tile_iter->next = malloc( sizeof( GFX_TILEDATA ) );
-
-            /* Move the cursor to the new tile. */
-            ps_tile_iter = ps_tile_iter->next;
+            /* A tile with no GID is useless. */
+            bdestroy( ps_gid_string );
+            continue;
          }
 
-         /* A second null check to verify memory allocaton. */
-         if( NULL == ps_tile_iter ) {
-            /* There was a memory allocation problem! */
-            DBG_ERR( "There was a problem allocating tile memory." );
-            break;
+         /* Ensure the tile list is big enough to reach this GID. */
+         if( ps_tileset_out->tile_list_count <= i_gid ) {
+            ps_tileset_out->tile_list_count = i_gid + 1;
+            ps_tile_new_malloc = realloc(
+               ps_tileset_out->tile_list,
+               ps_tileset_out->tile_list_count * sizeof( GFX_TILEDATA )
+            );
+
+            /* Verify memory allocaton. */
+            if( NULL == ps_tile_new_malloc ) {
+               /* There was a memory allocation problem! */
+               DBG_ERR( "There was a problem allocating tile memory." );
+               break;
+            } else {
+               ps_tileset_out->tile_list = ps_tile_new_malloc;
+            }
          }
-         memset( ps_tile_iter, 0, sizeof( GFX_TILEDATA ) );
+
+         /* Ensure that the GID's cell is empty. */
+         memset(
+            &ps_tileset_out->tile_list[i_gid],
+            0,
+            sizeof( GFX_TILEDATA )
+         );
 
          /* Cycle through all present properties and add each one to the      *
           * final struct.                                                     */
@@ -181,18 +198,30 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
          ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
          while( NULL != ps_xml_prop_iter ) {
             /* Load the current property into the struct. */
-            if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hindrance" ) ) {
-               ps_tile_iter->hindrance = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
-            } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "animated" ) ) {
-               ps_tile_iter->animated = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
+            ps_prop_string = bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
+            if(
+               NULL != ps_prop_string &&
+               0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hindrance" )
+            ) {
+               ps_tileset_out->tile_list[i_gid].hindrance =
+                  atoi( ps_prop_string->data );
+
+            } else if(
+               NULL != ps_prop_string &&
+               0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "animated" )
+            ) {
+               ps_tileset_out->tile_list[i_gid].animated =
+                  atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
+
             }
 
             /* Clean up and go to the next one! */
-            ps_xml_prop_iter = ps_xml_prop_iter->next;
+            bdestroy( ps_prop_string );
+            ps_xml_prop_iter = ezxml_next( ps_xml_prop_iter );
          }
 
          /* Go to the next one! */
-         ps_xml_tile = ps_xml_tile->next;
+         ps_xml_tile = ezxml_next( ps_xml_tile );
       }
 
       /* Place the image into the tileset struct. */
@@ -484,22 +513,8 @@ void graphics_do_update( void ) {
 /* Purpose: Get the data for the tile with the given GID.                     */
 /* Parameters: The index to lookup and the tileset in which to look it up.    */
 /* Return: The address of the requested tile.                                 */
-GFX_TILEDATA* graphics_get_tiledata( int i_index_in, GFX_TILESET* ps_tileset_in ) {
-   GFX_TILEDATA* ps_tiledata_out = NULL;
-
-   ps_tiledata_out = ps_tileset_in->tile_list;
-   while( NULL != ps_tiledata_out ) {
-      if( i_index_in == ps_tiledata_out->gid ) {
-         /* Found it! */
-         return ps_tiledata_out;
-      }
-
-      /* Go to the next one! */
-      ps_tiledata_out = ps_tiledata_out->next;
-   }
-
-   /* Not found! */
-   return NULL;
+GFX_TILEDATA* graphics_get_tiledata( int i_gid_in, GFX_TILESET* ps_tileset_in ) {
+   return &ps_tileset_in->tile_list[i_gid_in - 1];
 }
 
 /* Purpose: Free the given surface buffer.                                    */

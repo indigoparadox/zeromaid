@@ -39,9 +39,11 @@
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
 
+#ifndef __GCTYPES_H__
 typedef int BOOL;
 #define FALSE 0
 #define TRUE 1
+#endif /* BOOL */
 
 /* The directory from which to fetch data files. */
 #ifdef USEWII
@@ -62,6 +64,8 @@ typedef int BOOL;
 
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
 #define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
+
+#define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */
 
 #ifdef OUTTOFILE
 #ifdef USEWII

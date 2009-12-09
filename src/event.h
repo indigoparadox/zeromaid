@@ -31,6 +31,11 @@
 #endif /* __APPLE__, __unix__ */
 #endif /* USESDL */
 
+#ifdef USEWII
+/* This creates a conflict between libogc and SDL. */
+/* #include <ogcsys.h> */
+#endif /* USEWII */
+
 #include "defines.h"
 
 /* = Definitions = */
@@ -44,22 +49,6 @@
 #define EVENT_ID_FIRE 6
 #define EVENT_ID_JUMP 7
 #define EVENT_ID_ESC 8
-
-#ifdef USESDL
-#ifdef USEWII
-/* Some special constants need to be defined for using the controls through   *
- * SDL on the Wii.                                                            */
-#define SDL_WII_JS_BTN_A 0
-#define SDL_WII_JS_BTN_B 1
-#define SDL_WII_JS_BTN_1 2
-#define SDL_WII_JS_BTN_2 3
-#define SDL_WII_JS_BTN_MINUS 4
-#define SDL_WII_JS_BTN_PLUS 5
-#define SDL_WII_JS_BTN_HOME 6
-#define SDL_WII_JS_BTN_Z 7
-#define SDL_WII_JS_BTN_C 8
-#endif /* USEWII */
-#endif /* USESDL */
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */

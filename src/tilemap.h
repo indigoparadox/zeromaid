@@ -39,14 +39,17 @@ typedef int TILEMAP_DIR;
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int gid, tile_x, tile_y;
+   int gid,
+      dirty; /* Should this tile be redrawn next cycle? */
 } TILEMAP_TILE;
 
 typedef struct {
    GFX_TILESET* tileset;
    GFX_RECTANGLE* viewport;
    TILEMAP_TILE* tiles; /* Pointer to a flexible array of tiles. */
-   bstring map_name, music_path;
+   bstring proper_name,
+      music_path,
+      sys_name;
    short int time_moves;
    int tile_w, tile_h,
       tiles_count; /* Number of tiles in the tile list. */
@@ -54,7 +57,10 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-TILEMAP_TILEMAP* tilemap_create_map( bstring );
+TILEMAP_TILEMAP* tilemap_create_map( bstring, bstring );
+int tilemap_get_tile_x( int, TILEMAP_TILEMAP* );
+int tilemap_get_tile_y( int, TILEMAP_TILEMAP* );
+TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
 void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
 void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE* );
 void tilemap_free( TILEMAP_TILEMAP* );
