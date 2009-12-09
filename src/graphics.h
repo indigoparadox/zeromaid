@@ -72,15 +72,16 @@ typedef IDirectDrawSurface7 GFX_SURFACE;
  * them tree-able, but there probably won't be very many tiles for a map and  *
  * we feel the simplicity gained this way is worthwhile.                      */
 typedef struct _GFX_TILEDATA {
-   unsigned int gid, hindrance;
-   short int animated;
-   struct _GFX_TILEDATA* next;
+   unsigned int gid;
+   short int animated,
+      hindrance;
 } GFX_TILEDATA;
 
 typedef struct {
    unsigned int pixel_size;
    GFX_SURFACE* image;
    GFX_TILEDATA* tile_list;
+   int tile_list_count;
 } GFX_TILESET;
 
 typedef struct {

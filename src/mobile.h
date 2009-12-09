@@ -28,6 +28,19 @@ typedef int MOBILE_AI;
 #define MOBILE_AI_ADV_NORMAL 0
 #define MOBILE_AI_ADV_ATTACKED 1
 
+#define MOBILE_ANI_WALK_SOUTH 0
+#define MOBILE_ANI_WALK_NORTH 1
+#define MOBILE_ANI_WALK_EAST 2
+#define MOBILE_ANI_WALK_WEST 3
+#define MOBILE_ANI_ATTACKING_SOUTH 4
+#define MOBILE_ANI_ATTACKING_NORTH 5
+#define MOBILE_ANI_ATTACKING_EAST 6
+#define MOBILE_ANI_ATTACKING_WEST 7
+#define MOBILE_ANI_ATTACKED_SOUTH 8
+#define MOBILE_ANI_ATTACKED_NORTH 9
+#define MOBILE_ANI_ATTACKED_EAST 10
+#define MOBILE_ANI_ATTACKED_WEST 11
+
 #define MOBILE_ANIM_FRAMES 3 /* Max index of animation frames. */
 #define MOBILE_ANIM_DRAWS 20 /* Max index of drawing cycles per frame. */
 
@@ -46,12 +59,10 @@ typedef struct {
    MOBILE_AI_LIST ai_normal;
    MOBILE_AI_LIST_COUNTER ai_normal_counter;
 
-   int serial; /* A unique identifier for this mobile. */
-
    BOOL moving; /* Is the mobile moving or acting right now? */
    unsigned int hp;
    MOBILE_PORTRAIT* portraits;
-   int tile_x, tile_y,
+   int pixel_x, pixel_y,
       pixel_size, /* The size of the mobile's sprite. */
       portraits_count,
       current_animation; /* Vertical offset of current frame on spritesheet. */

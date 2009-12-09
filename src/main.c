@@ -57,7 +57,7 @@ int main( int argc, char* argv[] ) {
    /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
    dolfsInit( &zeromaid_wii_data );
-   WPAD_Init();
+   PAD_Init();
    #endif /* USEWII */
 
    #ifdef OUTTOFILE

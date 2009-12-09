@@ -30,8 +30,6 @@ extern CACHE_CACHE* gps_cache;
 void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
    ezxml_t ps_xml_mob = NULL, ps_xml_props = NULL, ps_xml_prop_iter = NULL;
    bstring ps_path_temp = NULL;
-   BOOL b_serial_dupe = TRUE; /* Was the generated serial a dupe? */
-   int i; /* Loop iterator. */
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
@@ -100,25 +98,6 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
       ps_mob_out->proper_name = bformat( "???" );
    }
 
-   /* It looks like the mobile loaded OK, so assign it a serial. Keep a       *
-    * record of the serials used so that there are no duplicates.             */
-   while( b_serial_dupe ) {
-      ps_mob_out->serial = rand();
-      b_serial_dupe = FALSE;
-      for( i = 0 ; i < gps_cache->serials_count ; i++ ) {
-         if( ps_mob_out->serial == gps_cache->serials[i] ) {
-            /* A duplicate was found! */
-            b_serial_dupe = TRUE;
-            break;
-         }
-      }
-   }
-   gps_cache->serials_count++;
-   gps_cache->serials =
-      realloc( gps_cache->serials, gps_cache->serials_count * sizeof( int ) );
-   gps_cache->serials[gps_cache->serials_count - 1] = ps_mob_out->serial;
-   DBG_INFO_NUM( "Mobile serial", ps_mob_out->serial );
-
    DBG_INFO_STR( "Mobile loaded", ps_mob_out->mobile_type->data );
 
    /* Clean up. */
@@ -143,8 +122,6 @@ void mobile_load_ai(
  *          viewport.                                                         */
 /* Parameters: The mobile to draw, the current viewport.                      */
 void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
-   int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
-      i_tile_width = 0, i_tile_height = 0;     /* which to draw.              */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
@@ -166,25 +143,17 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
    s_tile_rect.w = ps_mob_in->pixel_size;
    s_tile_rect.h = ps_mob_in->pixel_size;
 
-   /* Figure out which tiles should be drawn from the viewport given. */
-   i_tile_start_x = ps_viewport_in->x / ps_mob_in->pixel_size;
-   i_tile_start_y = ps_viewport_in->y / ps_mob_in->pixel_size;
-   i_tile_width = ps_viewport_in->w / ps_mob_in->pixel_size;
-   i_tile_height = ps_viewport_in->h / ps_mob_in->pixel_size;
-
    /* Only draw the mobile if it's visible. */
    if(
-      ps_mob_in->tile_x < (i_tile_start_x + i_tile_width) &&
-      ps_mob_in->tile_y < (i_tile_start_y + i_tile_height) &&
-      ps_mob_in->tile_x >= i_tile_start_x &&
-      ps_mob_in->tile_y >= i_tile_start_y
+      ps_mob_in->pixel_x < (ps_viewport_in->x + ps_viewport_in->w) &&
+      ps_mob_in->pixel_y < (ps_viewport_in->y + ps_viewport_in->h) &&
+      ps_mob_in->pixel_x >= ps_viewport_in->x &&
+      ps_mob_in->pixel_y >= ps_viewport_in->y
    ) {
       /* Figure out the offset of the tile onscreen. */
       /* TODO: Center the mobile. */
-      s_screen_rect.x = (ps_mob_in->tile_x - i_tile_start_x) *
-         ps_mob_in->pixel_size;
-      s_screen_rect.y = (ps_mob_in->tile_y - i_tile_start_y) *
-         ps_mob_in->pixel_size;
+      s_screen_rect.x = ps_mob_in->pixel_x - ps_viewport_in->x;
+      s_screen_rect.y = ps_mob_in->pixel_y - ps_viewport_in->y;
 
       /* Figure out where on the spritesheet the sprite is. */
       if( 2 == ti_anim_frame ) {

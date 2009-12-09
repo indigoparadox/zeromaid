@@ -23,7 +23,7 @@ DBG_ENABLE
 /* Purpose: Load the map with the given filename into a TILEMAP struct.       */
 /* Parameters: The filename to load.                                          */
 /* Return: The loaded tile map.                                               */
-TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
+TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
    TILEMAP_TILEMAP* ps_map_out = calloc( 1, sizeof( TILEMAP_TILEMAP ) );
    ezxml_t ps_xml_map = NULL, ps_xml_layer = NULL, ps_xml_props = NULL,
       ps_xml_prop_iter = NULL, ps_xml_tiledata = NULL;
@@ -33,6 +33,9 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    if( NULL == ps_map_out ) {
       DBG_ERR( "Unable to allocate map." );
    }
+
+   /* Set the system map name. */
+   ps_map_out->sys_name = bformat( "%s", ps_name_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_in ) ) {
@@ -54,7 +57,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
       while( NULL != ps_xml_prop_iter ) {
          /* Load the current property into the struct. */
          if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "mapname" ) ) {
-            ps_map_out->map_name = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
+            ps_map_out->proper_name = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
 
          } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "musicpath" ) ) {
             ps_map_out->music_path = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
@@ -105,6 +108,28 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_path_in ) {
    return ps_map_out;
 }
 
+/* Purpose: Get the X position in tiles for the given tile on the given map.  */
+int tilemap_get_tile_x( int i_tile_index_in, TILEMAP_TILEMAP* ps_map_in ) {
+   return i_tile_index_in % ps_map_in->tile_w;
+}
+
+/* Purpose: Get the Y position in tiles for the given tile on the given map.  */
+int tilemap_get_tile_y( int i_tile_index_in, TILEMAP_TILEMAP* ps_map_in ) {
+   return i_tile_index_in / ps_map_in->tile_w;
+}
+
+/* Purpose: Get a pointer to the tile at the given X, Y coordinates on the    *
+ *          given map.                                                        */
+/* Parameters: The X and Y coordinates of the desired tile and a pointer to   *
+ *             the desired map.                                               */
+TILEMAP_TILE* tilemap_get_tile(
+   int i_x_in,
+   int i_y_in,
+   TILEMAP_TILEMAP* ps_map_in
+) {
+   return &ps_map_in->tiles[(i_y_in * ps_map_in->tile_w) + i_x_in];
+}
+
 /* Purpose: Load the specified layer into the given map struct.               */
 /* Parameters: The map struct into which to load, the XML struct describing   *
  *             the layer.                                                     */
@@ -112,7 +137,10 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
    ezxml_t ps_xml_tile = NULL, ps_xml_data = NULL;
    //unsigned int i_row_count = 0; /* The current tile row. *//
 
-   DBG_INFO_STR( "Loading background layer for map", ps_map_in->map_name->data );
+   DBG_INFO_STR(
+      "Loading background layer for map",
+      ps_map_in->proper_name->data
+   );
 
    ps_xml_data = ezxml_child( ps_xml_layer_in, "data" );
 
@@ -140,10 +168,10 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
       /* Load the tile's properties. */
       ps_map_in->tiles[ps_map_in->tiles_count - 1].gid =
          atoi( ezxml_attr( ps_xml_tile, "gid" ) );
-      ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_x =
+      /* ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_x =
          (ps_map_in->tiles_count - 1) % ps_map_in->tile_w;
       ps_map_in->tiles[ps_map_in->tiles_count - 1].tile_y =
-         (ps_map_in->tiles_count - 1) / ps_map_in->tile_w;
+         (ps_map_in->tiles_count - 1) / ps_map_in->tile_w; */
 
       /* Go to the next one! */
       ps_xml_tile = ps_xml_tile->next;
@@ -160,7 +188,6 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0,     /* which to draw.              */
       i = 0; /* Loop iterator. */
-   GFX_TILEDATA* ps_tile_data = NULL; /* The data for the iterated tile. */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
@@ -190,17 +217,20 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
 
    /* Loop through all of the tiles in the map and draw the ones within the   *
     * current viewable range.                                                 */
+   /* TODO: Mathematically figure out the tile indexes on-screen and don't    *
+    * iterate.                                                                */
+   /* TODO: Only redraw the dirty and animated tiles. */
    for( i = 0 ; i < ps_map_in->tiles_count ; i++ ) {
       if(
-         ps_map_in->tiles[i].tile_x < (i_tile_start_x + i_tile_width) &&
-         ps_map_in->tiles[i].tile_y < (i_tile_start_y + i_tile_height) &&
-         ps_map_in->tiles[i].tile_x >= i_tile_start_x &&
-         ps_map_in->tiles[i].tile_y >= i_tile_start_y
+         tilemap_get_tile_x( i, ps_map_in ) < (i_tile_start_x + i_tile_width) &&
+         tilemap_get_tile_y( i, ps_map_in ) < (i_tile_start_y + i_tile_height) &&
+         tilemap_get_tile_x( i, ps_map_in ) >= i_tile_start_x &&
+         tilemap_get_tile_y( i, ps_map_in ) >= i_tile_start_y
       ) {
          /* Figure out the offset of the tile onscreen. */
-         s_screen_rect.x = (ps_map_in->tiles[i].tile_x - i_tile_start_x) *
+         s_screen_rect.x = (tilemap_get_tile_x( i, ps_map_in ) - i_tile_start_x) *
             ps_map_in->tileset->pixel_size;
-         s_screen_rect.y = (ps_map_in->tiles[i].tile_y - i_tile_start_y) *
+         s_screen_rect.y = (tilemap_get_tile_y( i, ps_map_in ) - i_tile_start_y) *
             ps_map_in->tileset->pixel_size;
 
          /* Figure out where on the tilesheet the tile is. Bear in mind that  *
@@ -210,10 +240,7 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
          s_tile_rect.y =
             (ps_map_in->tiles[i].gid - 1) * ps_map_in->tileset->pixel_size;
 
-         /* Draw the tile! */
-         ps_tile_data = graphics_get_tiledata(
-            ps_map_in->tiles[i].gid, ps_map_in->tileset
-         );
+         /* Draw the tile. */
          graphics_draw_blit_tile(
             ps_map_in->tileset->image,
             &s_tile_rect,
@@ -227,7 +254,8 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
 /* Parameters: The tile map pointer to free.                                  */
 void tilemap_free( TILEMAP_TILEMAP* ps_map_in ) {
    free( ps_map_in->tiles );
-   bdestroy( ps_map_in->map_name );
+   bdestroy( ps_map_in->proper_name );
+   bdestroy( ps_map_in->sys_name );
    bdestroy( ps_map_in->music_path );
    graphics_free_tileset( ps_map_in->tileset );
    free( ps_map_in->viewport );
