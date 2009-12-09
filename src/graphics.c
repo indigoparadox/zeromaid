@@ -210,9 +210,9 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
                NULL != ps_prop_string &&
                0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "animated" )
             ) {
-               ps_tileset_out->tile_list[i_gid].animated =
-                  atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
-
+               if( string_is_true( ps_prop_string ) ) {
+                  ps_tileset_out->tile_list[i_gid].animated = TRUE;
+               }
             }
 
             /* Clean up and go to the next one! */

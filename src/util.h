@@ -27,5 +27,6 @@
 /* = Function Prototypes = */
 
 int file_exists( bstring );
+BOOL string_is_true( bstring );
 
 #endif /* UTIL_H */

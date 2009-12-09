@@ -30,3 +30,19 @@ int file_exists( bstring ps_path_in ) {
 
    return FALSE;
 }
+
+/* Purpose: Determine if the property set with the given string should        *
+ *          evaluate to a boolean TRUE or not.                                */
+/* Parameters: The string to test.                                            */
+/* Return: A boolean indicator of the string's truth.                         */
+BOOL string_is_true( bstring ps_test_in ) {
+   if(
+      0 == strcmp( ps_test_in->data, "true" ) ||
+      0 == strcmp( ps_test_in->data, "TRUE" ) ||
+      0 == strcmp( ps_test_in->data, "1" )
+   ) {
+      return TRUE;
+   } else {
+      return FALSE;
+   }
+}
