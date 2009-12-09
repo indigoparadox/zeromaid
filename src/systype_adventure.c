@@ -56,7 +56,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    /* TODO: Check the scratch file for the game we're supposed to load. */
 
    /* Draw the initial playing field and fade the screen in. */
-   tilemap_draw( ps_map, &s_viewport );
+   tilemap_draw( ps_map, &s_viewport, TRUE );
    //graphics_do_update();
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
@@ -138,8 +138,17 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          NULL, TILEMAP_DIR_NULL, as_mobile_list, i_mobile_count, ps_map
       );
 
+      /* All tiles with mobiles on them are dirty. */
+      for( i = 0 ; i < i_mobile_count ; i++ ) {
+         tilemap_get_tile(
+            as_mobile_list[i].pixel_x / ps_map->tileset->pixel_size,
+            as_mobile_list[i].pixel_y / ps_map->tileset->pixel_size,
+            ps_map
+         )->dirty = TRUE;
+      }
+
       /* Loop through and draw all on-screen items. */
-      tilemap_draw( ps_map, &s_viewport ); /* Map. */
+      tilemap_draw( ps_map, &s_viewport, FALSE ); /* Map. */
       for( i = 0 ; i < i_mobile_count ; i++ ) {
          mobile_execute_ai( &as_mobile_list[i], MOBILE_AI_ADV_NORMAL );
          mobile_draw( &as_mobile_list[i], &s_viewport ); /* NPCs */
@@ -217,18 +226,46 @@ BOOL systype_adventure_mobile_walk(
          switch( tas_walking_ops[i].direction ) {
             case TILEMAP_DIR_NORTH:
                tas_walking_ops[i].mobile->pixel_y -= tas_walking_ops[i].speed;
+               tilemap_get_tile(
+                  (tas_walking_ops[i].mobile->pixel_x /
+                     ps_map_in->tileset->pixel_size),
+                  (tas_walking_ops[i].mobile->pixel_y /
+                     ps_map_in->tileset->pixel_size) - 1,
+                  ps_map_in
+               )->dirty = TRUE;
                break;
 
             case TILEMAP_DIR_SOUTH:
                tas_walking_ops[i].mobile->pixel_y += tas_walking_ops[i].speed;
+               tilemap_get_tile(
+                  (tas_walking_ops[i].mobile->pixel_x /
+                     ps_map_in->tileset->pixel_size),
+                  (tas_walking_ops[i].mobile->pixel_y /
+                     ps_map_in->tileset->pixel_size) + 1,
+                  ps_map_in
+               )->dirty = TRUE;
                break;
 
             case TILEMAP_DIR_EAST:
                tas_walking_ops[i].mobile->pixel_x += tas_walking_ops[i].speed;
+               tilemap_get_tile(
+                  (tas_walking_ops[i].mobile->pixel_x /
+                     ps_map_in->tileset->pixel_size) + 1,
+                  (tas_walking_ops[i].mobile->pixel_y /
+                     ps_map_in->tileset->pixel_size),
+                  ps_map_in
+               )->dirty = TRUE;
                break;
 
             case TILEMAP_DIR_WEST:
                tas_walking_ops[i].mobile->pixel_x -= tas_walking_ops[i].speed;
+               tilemap_get_tile(
+                  (tas_walking_ops[i].mobile->pixel_x /
+                     ps_map_in->tileset->pixel_size) - 1,
+                  (tas_walking_ops[i].mobile->pixel_y /
+                     ps_map_in->tileset->pixel_size),
+                  ps_map_in
+               )->dirty = TRUE;
                break;
          }
 

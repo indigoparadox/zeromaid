@@ -183,14 +183,21 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
 
 /* Purpose: Draw the part of the given tile map indicated by its viewport to  *
  *          the screen.                                                       */
-/* Parameters: The tile map to draw, the current viewport.                    */
-void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
+/* Parameters: The tile map to draw, the current viewport, and a boolean      *
+ *             indicating whether or not to "force" drawing (that is, ignore  *
+ *             animation or dirtiness and just redraw everything.             */
+void tilemap_draw(
+   TILEMAP_TILEMAP* ps_map_in,
+   GFX_RECTANGLE* ps_viewport_in,
+   BOOL b_force_in
+) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0,     /* which to draw.              */
-      i = 0; /* Loop iterator. */
+      x, y; /* Loop iterators. */
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
+   GFX_TILEDATA* ps_tiledata = NULL; /* Data on the tile being drawn. */
 
    /* What animation frame are we on? */
    ti_frame_draws++;
@@ -220,25 +227,40 @@ void tilemap_draw( TILEMAP_TILEMAP* ps_map_in, GFX_RECTANGLE* ps_viewport_in ) {
    /* TODO: Mathematically figure out the tile indexes on-screen and don't    *
     * iterate.                                                                */
    /* TODO: Only redraw the dirty and animated tiles. */
-   for( i = 0 ; i < ps_map_in->tiles_count ; i++ ) {
-      if(
-         tilemap_get_tile_x( i, ps_map_in ) < (i_tile_start_x + i_tile_width) &&
-         tilemap_get_tile_y( i, ps_map_in ) < (i_tile_start_y + i_tile_height) &&
-         tilemap_get_tile_x( i, ps_map_in ) >= i_tile_start_x &&
-         tilemap_get_tile_y( i, ps_map_in ) >= i_tile_start_y
+   for(
+      y = i_tile_start_y;
+      y < i_tile_start_y + i_tile_height;
+      y++
+   ) {
+      for(
+         x = i_tile_start_x;
+         x < i_tile_start_x + i_tile_width;
+         x++
       ) {
+         ps_tiledata = graphics_get_tiledata(
+            ps_map_in->tiles[(y * ps_map_in->tile_w) + x].gid,
+            ps_map_in->tileset
+         );
+         if(
+            !b_force_in &&
+            (!ps_tiledata->animated &&
+            !ps_map_in->tiles[(y * ps_map_in->tile_w) + x].dirty)
+         ) {
+            /* This tile hasn't changed, so don't bother redrawing it. */
+            continue;
+         }
+
          /* Figure out the offset of the tile onscreen. */
-         s_screen_rect.x = (tilemap_get_tile_x( i, ps_map_in ) - i_tile_start_x) *
-            ps_map_in->tileset->pixel_size;
-         s_screen_rect.y = (tilemap_get_tile_y( i, ps_map_in ) - i_tile_start_y) *
-            ps_map_in->tileset->pixel_size;
+         s_screen_rect.x = (x * ps_map_in->tileset->pixel_size) - i_tile_start_x;
+         s_screen_rect.y = (y * ps_map_in->tileset->pixel_size) - i_tile_start_y;
 
          /* Figure out where on the tilesheet the tile is. Bear in mind that  *
           * GIDs are 1-indexed.                                               */
          /* TODO: Add offset for night time. */
          s_tile_rect.x = ti_anim_frame * ps_map_in->tileset->pixel_size;
          s_tile_rect.y =
-            (ps_map_in->tiles[i].gid - 1) * ps_map_in->tileset->pixel_size;
+            (ps_map_in->tiles[(y * ps_map_in->tile_w) + x].gid - 1) *
+            ps_map_in->tileset->pixel_size;
 
          /* Draw the tile. */
          graphics_draw_blit_tile(
