@@ -81,17 +81,16 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 /* Purpose: Poll user input devices.                                          */
 void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    static BOOL tab_poll_last[EVENT_ID_MAX] = { FALSE };
-   int i; /* Loop iterator. */
+   int i_key_test, /* A translation placeholder for pressed keys. */
+      i; /* Loop iterator. */
 
    /* Platform-specific method of setting up. */
    #ifdef USEWII
-   /* Input on the Wii is handled through WPAD since SDL is a bit buggy. */
-   PAD_ScanPads();
-   // TODO
+   u16 i_buttons_down;
+   BOOL as_keys[EVENT_ID_MAX];
    #elif defined USESDL
+   Uint8* as_keys = NULL;
    static SDL_Event* tps_event_temp = NULL;
-   Uint8* pi_keys = NULL;
-   int i_key_test;
 
    /* Create the event object if it doesn't exist yet. */
    if( NULL == tps_event_temp ) {
@@ -101,7 +100,17 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       DBG_ERR( "Unable to allocate event object." );
       return;
    }
+   #else
+   #error "No event polling mechanism defined for this platform!"
+   #endif /* USEWII, USESDL */
 
+
+
+   /* Perform the polling and event assignment. */
+   #ifdef USEWII
+   WPAD_ScanPads();
+   i_buttons_down = WPAD_ButtonsHeld( 0 );
+   #elif defined USESDL
    SDL_PollEvent( tps_event_temp );
 
    if( SDL_QUIT == tps_event_temp->type ) {
@@ -110,16 +119,33 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       ps_event_out->state[EVENT_ID_ESC] = TRUE;
       return;
    }
+
+   /* It wasn't a quit event, so poll the keys. */
+   as_keys = SDL_GetKeyState( NULL );
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USEWII, USESDL */
 
-   /* Perform the polling and event assignment. */
-   #ifdef USEWII
-   // TODO
-   #elif defined USESDL
-   pi_keys = SDL_GetKeyState( NULL );
    for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
+      #ifdef USEWII
+      switch( i ) {
+         case EVENT_ID_UP:
+            if( i_buttons_down & WPAD_BUTTON_RIGHT ) {
+               i_key_test = EVENT_ID_UP;
+            }
+            break;
+
+         case EVENT_ID_ESC:
+            if( i_buttons_down & WPAD_BUTTON_HOME ) {
+               i_key_test = EVENT_ID_ESC;
+            }
+            break;
+
+         default:
+            i_key_test = 0;
+            break;
+      }
+      #elif defined USESDL
       switch( i ) {
          case EVENT_ID_UP:
             i_key_test = SDLK_UP;
@@ -145,20 +171,22 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          default:
             continue;
       }
+      #endif /* USEWII, USESDL */
+
       if(
          /* Repeat is off and the key is down and it wasn't down before. */
          (!b_repeat_in &&
-         pi_keys[i_key_test] &&
+         as_keys[i_key_test] &&
          !tab_poll_last[i]) ||
 
          /* Repeat is on and the key is down. */
          (b_repeat_in &&
-         pi_keys[i_key_test])
+         as_keys[i_key_test])
       ) {
          tab_poll_last[i] = TRUE;
          ps_event_out->state[i] = TRUE;
 
-      } else if( !pi_keys[i_key_test] ) {
+      } else if( !as_keys[i_key_test] ) {
          /* The key isn't down. */
          tab_poll_last[i] = FALSE;
          ps_event_out->state[i] = FALSE;
@@ -167,7 +195,4 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          ps_event_out->state[i] = FALSE;
       }
    }
-   #else
-   #error "No event polling mechanism defined for this platform!"
-   #endif /* USESDL */
 }
