@@ -80,18 +80,8 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 
 /* Purpose: Poll user input devices.                                          */
 void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
-   static EVENT_EVENT* tps_event_last = NULL;
-   static int ti_delay_countdown = 0;
+   static BOOL tab_poll_last[EVENT_ID_MAX] = { FALSE };
    int i; /* Loop iterator. */
-
-   /* Wait for the poll delay to expire. */
-   if( ti_delay_countdown < EVENT_KEY_POLL_DELAY ) {
-      ti_delay_countdown++;
-      memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
-      return;
-   } else {
-      ti_delay_countdown = 0;
-   }
 
    /* Platform-specific method of setting up. */
    #ifdef USEWII
@@ -124,22 +114,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    #error "No event polling mechanism defined for this platform!"
    #endif /* USESDL */
 
-   /* Create an image of what the event state looked like last cycle if we're *
-    * supposed to avoid repeats.                                              */
-   if( !b_repeat_in ) {
-      if( NULL == tps_event_last ) {
-         /* It might not've been created yet... */
-         tps_event_last = calloc( 1, sizeof( EVENT_EVENT ) );
-      }
-      if( NULL == tps_event_last ) {
-         DBG_ERR( "Unable to allocate repeat guard." );
-         return;
-      }
-
-      /* Perform the copy. */
-      memcpy( tps_event_last, ps_event_out, sizeof( EVENT_EVENT ) );
-   }
-
    /* Perform the polling and event assignment. */
    #ifdef USEWII
    // TODO
@@ -171,12 +145,24 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          default:
             continue;
       }
-      if( pi_keys[i_key_test] ) {
-         if( !tps_event_last->state[i] ) {
-            ps_event_out->state[i] = TRUE;
-         } else {
-            ps_event_out->state[i] = FALSE;
-         }
+      if(
+         /* Repeat is off and the key is down and it wasn't down before. */
+         (!b_repeat_in &&
+         pi_keys[i_key_test] &&
+         !tab_poll_last[i]) ||
+
+         /* Repeat is on and the key is down. */
+         (b_repeat_in &&
+         pi_keys[i_key_test])
+      ) {
+         tab_poll_last[i] = TRUE;
+         ps_event_out->state[i] = TRUE;
+
+      } else if( !pi_keys[i_key_test] ) {
+         /* The key isn't down. */
+         tab_poll_last[i] = FALSE;
+         ps_event_out->state[i] = FALSE;
+
       } else {
          ps_event_out->state[i] = FALSE;
       }
