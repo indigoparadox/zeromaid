@@ -78,77 +78,103 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
    }
 }
 
-/* Purpose: Poll user input devices, but reject repeat results.               */
-int event_do_poll_once( void ) {
-   static int i_last_result = EVENT_ID_NULL;
-   int i_result = EVENT_ID_NULL;
-
-   /* Poll and compare it to the last result. */
-   i_result = event_do_poll();
-   if( i_result != i_last_result ) {
-      i_last_result = i_result;
-      return i_result;
-   }
-
-   /* No new result detected. */
-   return EVENT_ID_NULL;
-}
-
 /* Purpose: Poll user input devices.                                          */
-int event_do_poll( void ) {
+void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    #ifdef USEWII
    /* Input on the Wii is handled through WPAD since SDL is a bit buggy. */
    PAD_ScanPads();
 
    #elif defined USESDL
-   static SDL_Event* ps_event_temp = NULL;
+   static SDL_Event tps_event_temp;
+   static EVENT_EVENT* tps_event_last = NULL;
+   BOOL b_key_state;
+   int i; /* Loop iterator. */
 
    /* Create the event object if it doesn't exist yet. */
-   if( NULL == ps_event_temp ) {
-      ps_event_temp = malloc( sizeof( SDL_Event ) );
+   /* if( NULL == tps_event_temp ) {
+      tps_event_temp = calloc( 1, sizeof( SDL_Event ) );
    }
-   if( NULL == ps_event_temp ) {
+   if( NULL == tps_event_temp ) {
       DBG_ERR( "Unable to allocate event object." );
-      return SDL_QUIT; /* Safe option. */
+      return;
+   } */
+
+   memset( &tps_event_temp, 0, sizeof( SDL_Event ) );
+
+   /* Create an image of what the event state looked like last cycle if we're *
+    * supposed to avoid repeats.                                              */
+   if( !b_repeat_in ) {
+      if( NULL == tps_event_last ) {
+         /* It might not've been created yet... */
+         tps_event_last = calloc( 1, sizeof( EVENT_EVENT ) );
+      }
+      if( NULL == tps_event_last ) {
+         DBG_ERR( "Unable to allocate repeat guard." );
+         return;
+      }
+
+      /* Perform the copy. */
+      memcpy( tps_event_last, ps_event_out, sizeof( EVENT_EVENT ) );
    }
-   memset( ps_event_temp, 0, sizeof( SDL_Event ) );
 
    /* Perform the polling and event assignment. */
-   SDL_PollEvent( ps_event_temp );
-   if( SDL_QUIT == ps_event_temp->type ) {
-      return EVENT_ID_QUIT;
+   SDL_PollEvent( &tps_event_temp );
+   if( SDL_QUIT == tps_event_temp.type ) {
+      ps_event_out->state[EVENT_ID_ESC] = TRUE;
+   } else if(
+      SDL_KEYDOWN == tps_event_temp.type ||
+      SDL_KEYUP == tps_event_temp.type
+   ) {
+      /* Was the key pressed or released? */
+      if( SDL_KEYDOWN == tps_event_temp.type ) {
+         b_key_state = TRUE;
+      } else if( SDL_KEYDOWN == tps_event_temp.type ) {
+         b_key_state = FALSE;
+      }
 
-   } else if( SDL_KEYDOWN == ps_event_temp->type ) {
-      /* A key was pressed, so be more specific. */
-      switch( ps_event_temp->key.keysym.sym ) {
+      /* Update the key state in the event table. */
+      switch( tps_event_temp.key.keysym.sym ) {
          case SDLK_UP:
-            return EVENT_ID_UP;
+            ps_event_out->state[EVENT_ID_UP] = b_key_state;
+            break;
 
          case SDLK_DOWN:
-            return EVENT_ID_DOWN;
+            ps_event_out->state[EVENT_ID_DOWN] = b_key_state;
+            break;
 
          case SDLK_RIGHT:
-            return EVENT_ID_RIGHT;
+            ps_event_out->state[EVENT_ID_RIGHT] = b_key_state;
+            break;
 
          case SDLK_LEFT:
-            return EVENT_ID_LEFT;
+            ps_event_out->state[EVENT_ID_LEFT] = b_key_state;
+            break;
 
          case SDLK_z:
-            return EVENT_ID_FIRE;
+            ps_event_out->state[EVENT_ID_FIRE] = b_key_state;
+            break;
 
          case SDLK_x:
-            return EVENT_ID_JUMP;
+            ps_event_out->state[EVENT_ID_JUMP] = b_key_state;
+            break;
 
          case SDLK_ESCAPE:
-            return EVENT_ID_ESC;
+            ps_event_out->state[EVENT_ID_ESC] = b_key_state;
+            break;
 
          default:
             /* It was a key we don't know about... */
-            return EVENT_ID_NULL;
+            break;
       }
-   } else {
-      /* Nothing happened... */
-      return EVENT_ID_NULL;
+   }
+
+   /* If repeat is off then clear previous states. */
+   if( !b_repeat_in ) {
+      for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
+         if( ps_event_out->state[i] ) {
+            ps_event_out->state[i] ^= tps_event_last->state[i];
+         }
+      }
    }
    #else
    #error "No event polling mechanism defined for this platform!"

@@ -50,6 +50,8 @@
 #define EVENT_ID_JUMP 7
 #define EVENT_ID_ESC 8
 
+#define EVENT_ID_MAX 9 /* This should always be last. */
+
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */
 #define EVENT_TIMER_TICKS time( NULL )
@@ -64,7 +66,7 @@ typedef struct {
 } EVENT_TIMER;
 
 typedef struct {
-   int type;
+   BOOL state[EVENT_ID_MAX];
 } EVENT_EVENT;
 
 /* = Function Prototypes = */
@@ -75,7 +77,6 @@ void event_timer_start( EVENT_TIMER* );
 void event_timer_start( EVENT_TIMER* );
 void event_timer_pause( EVENT_TIMER* );
 void event_timer_unpause( EVENT_TIMER* );
-int event_do_poll_once( void );
-int event_do_poll( void );
+void event_do_poll( EVENT_EVENT*, BOOL );
 
 #endif /* EVENT_H */
