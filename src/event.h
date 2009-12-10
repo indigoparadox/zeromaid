@@ -49,8 +49,9 @@
 #define EVENT_ID_FIRE 6
 #define EVENT_ID_JUMP 7
 #define EVENT_ID_ESC 8
+#define EVENT_ID_MAX 9
 
-#define EVENT_ID_MAX 9 /* This should always be last. */
+#define EVENT_KEY_POLL_DELAY 3
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */

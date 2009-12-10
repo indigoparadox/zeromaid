@@ -80,26 +80,49 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 
 /* Purpose: Poll user input devices.                                          */
 void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
+   static EVENT_EVENT* tps_event_last = NULL;
+   static int ti_delay_countdown = 0;
+   int i; /* Loop iterator. */
+
+   /* Wait for the poll delay to expire. */
+   if( ti_delay_countdown < EVENT_KEY_POLL_DELAY ) {
+      ti_delay_countdown++;
+      memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
+      return;
+   } else {
+      ti_delay_countdown = 0;
+   }
+
+   /* Platform-specific method of setting up. */
    #ifdef USEWII
    /* Input on the Wii is handled through WPAD since SDL is a bit buggy. */
    PAD_ScanPads();
-
+   // TODO
    #elif defined USESDL
-   static SDL_Event tps_event_temp;
-   static EVENT_EVENT* tps_event_last = NULL;
-   BOOL b_key_state;
-   int i; /* Loop iterator. */
+   static SDL_Event* tps_event_temp = NULL;
+   Uint8* pi_keys = NULL;
+   int i_key_test;
 
    /* Create the event object if it doesn't exist yet. */
-   /* if( NULL == tps_event_temp ) {
+   if( NULL == tps_event_temp ) {
       tps_event_temp = calloc( 1, sizeof( SDL_Event ) );
    }
    if( NULL == tps_event_temp ) {
       DBG_ERR( "Unable to allocate event object." );
       return;
-   } */
+   }
 
-   memset( &tps_event_temp, 0, sizeof( SDL_Event ) );
+   SDL_PollEvent( tps_event_temp );
+
+   if( SDL_QUIT == tps_event_temp->type ) {
+      /* A quit event takes precedence over all others. */
+      memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
+      ps_event_out->state[EVENT_ID_ESC] = TRUE;
+      return;
+   }
+   #else
+   #error "No event polling mechanism defined for this platform!"
+   #endif /* USESDL */
 
    /* Create an image of what the event state looked like last cycle if we're *
     * supposed to avoid repeats.                                              */
@@ -118,62 +141,44 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    }
 
    /* Perform the polling and event assignment. */
-   SDL_PollEvent( &tps_event_temp );
-   if( SDL_QUIT == tps_event_temp.type ) {
-      ps_event_out->state[EVENT_ID_ESC] = TRUE;
-   } else if(
-      SDL_KEYDOWN == tps_event_temp.type ||
-      SDL_KEYUP == tps_event_temp.type
-   ) {
-      /* Was the key pressed or released? */
-      if( SDL_KEYDOWN == tps_event_temp.type ) {
-         b_key_state = TRUE;
-      } else if( SDL_KEYDOWN == tps_event_temp.type ) {
-         b_key_state = FALSE;
-      }
-
-      /* Update the key state in the event table. */
-      switch( tps_event_temp.key.keysym.sym ) {
-         case SDLK_UP:
-            ps_event_out->state[EVENT_ID_UP] = b_key_state;
+   #ifdef USEWII
+   // TODO
+   #elif defined USESDL
+   pi_keys = SDL_GetKeyState( NULL );
+   for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
+      switch( i ) {
+         case EVENT_ID_UP:
+            i_key_test = SDLK_UP;
             break;
-
-         case SDLK_DOWN:
-            ps_event_out->state[EVENT_ID_DOWN] = b_key_state;
+         case EVENT_ID_DOWN:
+            i_key_test = SDLK_DOWN;
             break;
-
-         case SDLK_RIGHT:
-            ps_event_out->state[EVENT_ID_RIGHT] = b_key_state;
+         case EVENT_ID_RIGHT:
+            i_key_test = SDLK_RIGHT;
             break;
-
-         case SDLK_LEFT:
-            ps_event_out->state[EVENT_ID_LEFT] = b_key_state;
+         case EVENT_ID_LEFT:
+            i_key_test = SDLK_LEFT;
             break;
-
-         case SDLK_z:
-            ps_event_out->state[EVENT_ID_FIRE] = b_key_state;
+         case EVENT_ID_FIRE:
+            i_key_test = SDLK_z;
             break;
-
-         case SDLK_x:
-            ps_event_out->state[EVENT_ID_JUMP] = b_key_state;
+         case EVENT_ID_JUMP:
+            i_key_test = SDLK_x;
             break;
-
-         case SDLK_ESCAPE:
-            ps_event_out->state[EVENT_ID_ESC] = b_key_state;
+         case EVENT_ID_ESC:
+            i_key_test = SDLK_ESCAPE;
             break;
-
          default:
-            /* It was a key we don't know about... */
-            break;
+            continue;
       }
-   }
-
-   /* If repeat is off then clear previous states. */
-   if( !b_repeat_in ) {
-      for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
-         if( ps_event_out->state[i] ) {
-            ps_event_out->state[i] ^= tps_event_last->state[i];
+      if( pi_keys[i_key_test] ) {
+         if( !tps_event_last->state[i] ) {
+            ps_event_out->state[i] = TRUE;
+         } else {
+            ps_event_out->state[i] = FALSE;
          }
+      } else {
+         ps_event_out->state[i] = FALSE;
       }
    }
    #else
