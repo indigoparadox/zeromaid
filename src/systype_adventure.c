@@ -42,7 +42,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    #ifndef USESDL
    EVENT_TIMER* ps_fps = event_timer_create();
    #endif /* USESDL */
-   EVENT_EVENT ps_events;
+   EVENT_EVENT s_event;
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
@@ -71,70 +71,63 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       #endif /* USESDL */
 
       /* Listen for events. */
-      #if 0
-      switch( event_do_poll( &ps_events ) ) {
-         case EVENT_ID_UP:
-            //s_viewport.y -= 32;
-            if( !as_mobile_list[0].moving ) {
-               as_mobile_list[0].current_animation = MOBILE_ANI_WALK_NORTH;
-               systype_adventure_mobile_walk(
-                  &as_mobile_list[0],
-                  TILEMAP_DIR_NORTH,
-                  as_mobile_list,
-                  i_mobile_count,
-                  ps_map
-               );
-            }
-            break;
-
-         case EVENT_ID_DOWN:
-            //s_viewport.y += 32;
-            if( !as_mobile_list[0].moving ) {
-               as_mobile_list[0].current_animation = MOBILE_ANI_WALK_SOUTH;
-               systype_adventure_mobile_walk(
-                  &as_mobile_list[0],
-                  TILEMAP_DIR_SOUTH,
-                  as_mobile_list,
-                  i_mobile_count,
-                  ps_map
-               );
-            }
-            break;
-
-         case EVENT_ID_RIGHT:
-            //s_viewport.x += 32;
-            if( !as_mobile_list[0].moving ) {
-               as_mobile_list[0].current_animation = MOBILE_ANI_WALK_EAST;
-               systype_adventure_mobile_walk(
-                  &as_mobile_list[0],
-                  TILEMAP_DIR_EAST,
-                  as_mobile_list,
-                  i_mobile_count,
-                  ps_map
-               );
-            }
-            break;
-
-         case EVENT_ID_LEFT:
-            //s_viewport.x -= 32;
-            if( !as_mobile_list[0].moving ) {
-               as_mobile_list[0].current_animation = MOBILE_ANI_WALK_WEST;
-               systype_adventure_mobile_walk(
-                  &as_mobile_list[0],
-                  TILEMAP_DIR_WEST,
-                  as_mobile_list,
-                  i_mobile_count,
-                  ps_map
-               );
-            }
-            break;
-
-         case EVENT_ID_ESC:
-         case EVENT_ID_QUIT:
-            gps_cache->game_type = SYSTEM_TYPE_TITLE;
-            goto sal_cleanup;
+      event_do_poll( &s_event, TRUE );
+      if( s_event.state[EVENT_ID_UP] ) {
+         //s_viewport.y -= 32;
+         if( !as_mobile_list[0].moving ) {
+            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_NORTH;
+            systype_adventure_mobile_walk(
+               &as_mobile_list[0],
+               TILEMAP_DIR_NORTH,
+               as_mobile_list,
+               i_mobile_count,
+               ps_map
+            );
+         }
       }
-      #endif
+      if( s_event.state[EVENT_ID_DOWN] ) {
+         //s_viewport.y += 32;
+         if( !as_mobile_list[0].moving ) {
+            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_SOUTH;
+            systype_adventure_mobile_walk(
+               &as_mobile_list[0],
+               TILEMAP_DIR_SOUTH,
+               as_mobile_list,
+               i_mobile_count,
+               ps_map
+            );
+         }
+      }
+      if( s_event.state[EVENT_ID_RIGHT] ) {
+         //s_viewport.x += 32;
+         if( !as_mobile_list[0].moving ) {
+            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_EAST;
+            systype_adventure_mobile_walk(
+               &as_mobile_list[0],
+               TILEMAP_DIR_EAST,
+               as_mobile_list,
+               i_mobile_count,
+               ps_map
+            );
+         }
+      }
+      if( s_event.state[EVENT_ID_LEFT] ) {
+         //s_viewport.x -= 32;
+         if( !as_mobile_list[0].moving ) {
+            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_WEST;
+            systype_adventure_mobile_walk(
+               &as_mobile_list[0],
+               TILEMAP_DIR_WEST,
+               as_mobile_list,
+               i_mobile_count,
+               ps_map
+            );
+         }
+      }
+      if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
+         gps_cache->game_type = SYSTEM_TYPE_TITLE;
+         goto sal_cleanup;
+      }
 
       /* Move mobiles who are walking. */
       systype_adventure_mobile_walk(
