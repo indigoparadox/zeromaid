@@ -42,6 +42,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    #ifndef USESDL
    EVENT_TIMER* ps_fps = event_timer_create();
    #endif /* USESDL */
+   EVENT_EVENT ps_events;
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
@@ -70,7 +71,8 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       #endif /* USESDL */
 
       /* Listen for events. */
-      switch( event_do_poll() ) {
+      #if 0
+      switch( event_do_poll( &ps_events ) ) {
          case EVENT_ID_UP:
             //s_viewport.y -= 32;
             if( !as_mobile_list[0].moving ) {
@@ -132,6 +134,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
             gps_cache->game_type = SYSTEM_TYPE_TITLE;
             goto sal_cleanup;
       }
+      #endif
 
       /* Move mobiles who are walking. */
       systype_adventure_mobile_walk(

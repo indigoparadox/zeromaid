@@ -42,6 +42,9 @@ int systype_title_loop( void ) {
    #else
    EVENT_TIMER* ps_fps = event_timer_create();
    #endif /* USESDL */
+   EVENT_EVENT s_event;
+
+   memset( &s_event, 0, sizeof( EVENT_EVENT ) );
 
    /* Show the title screen until the user selects something. */
    DBG_INFO( "Running title screen loop..." );
@@ -71,59 +74,51 @@ int systype_title_loop( void ) {
       }
 
       /* Listen for events. */
-      int i_event = event_do_poll_once();
-      switch( i_event ) {
-         case EVENT_ID_ESC:
-         case EVENT_ID_QUIT:
-            /* Quitting is universal. */
-            DBG_INFO( "Quitting..." );
-            goto slt_cleanup;
+      event_do_poll( &s_event, FALSE );
+      if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
+         DBG_INFO( "Quitting..." );
+         goto slt_cleanup;
+      }
+      if( s_event.state[EVENT_ID_DOWN] ) {
+         if( (SYSTYPE_TITLE_MENU_LEN - 1) > i_menu_selected ) {
+            i_menu_selected++;
+         } else {
+            i_menu_selected = 0;
+         }
+      }
+      if( s_event.state[EVENT_ID_UP] ) {
+         /* Previous menu item. */
+         if( 0 < i_menu_selected ) {
+            i_menu_selected--;
+         } else {
+            i_menu_selected = SYSTYPE_TITLE_MENU_LEN - 1;
+         }
+      }
+      if( s_event.state[EVENT_ID_FIRE] ) {
+         /* Generally move things along. */
+         if( !ps_title_iter->show_menu ) {
+            /* The menu is hidden, so move to the next screen. */
+            ps_title_iter->delay = 1;
+         } else {
+            /* Select a menu item. */
+            if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
+               /* Menu: SP Start */
 
-         case EVENT_ID_DOWN:
-            /* Next menu item. */
-            if( (SYSTYPE_TITLE_MENU_LEN - 1) > i_menu_selected ) {
-               i_menu_selected++;
-            } else {
-               i_menu_selected = 0;
+               /* TODO: Set the cache to a new single-player game          *
+                * according to story data files.                           */
+               gps_cache->game_type = SYSTEM_TYPE_ADVENTURE;
+               i_act_return = RETURN_ACTION_LOADCACHE;
+
+               goto slt_cleanup;
+
+            } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
+               /* Menu: Load */
+
+            } else if( SYSTYPE_TITLE_MENU_INDEX_QUIT == i_menu_selected ) {
+               /* Menu: Quit */
+               goto slt_cleanup;
             }
-            break;
-
-         case EVENT_ID_UP:
-            /* Previous menu item. */
-            if( 0 < i_menu_selected ) {
-               i_menu_selected--;
-            } else {
-               i_menu_selected = SYSTYPE_TITLE_MENU_LEN - 1;
-            }
-            break;
-
-         case EVENT_ID_FIRE:
-            /* Generally move things along. */
-            if( !ps_title_iter->show_menu ) {
-               /* The menu is hidden, so move to the next screen. */
-               ps_title_iter->delay = 1;
-            } else {
-               /* Select a menu item. */
-               if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
-                  /* Menu: SP Start */
-
-                  /* TODO: Set the cache to a new single-player game          *
-                   * according to story data files.                           */
-                  gps_cache->game_type = SYSTEM_TYPE_ADVENTURE;
-                  i_act_return = RETURN_ACTION_LOADCACHE;
-
-                  goto slt_cleanup;
-
-               } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
-                  /* Menu: Load */
-
-               } else if( SYSTYPE_TITLE_MENU_INDEX_QUIT == i_menu_selected ) {
-                  /* Menu: Quit */
-                  goto slt_cleanup;
-               }
-            }
-
-            break;
+         }
       }
 
       /* Loop through and draw all on-screen items. */

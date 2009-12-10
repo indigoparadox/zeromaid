@@ -67,6 +67,7 @@ int main( int argc, char* argv[] ) {
    /* Platform-dependent miscellaneous initialization. */
    #ifdef USESDL
    TTF_Init();
+   SDL_EnableKeyRepeat( 0, 0 );
    #endif /* USESDL */
 
    /* Set up the display. */
