@@ -32,8 +32,12 @@
 #endif /* USESDL */
 
 #ifdef USEWII
-/* This creates a conflict between libogc and SDL. */
-/* #include <ogcsys.h> */
+typedef struct _lwpnode {
+	struct _lwpnode *next;
+	struct _lwpnode *prev;
+} lwp_node;
+
+#include <wiiuse/wpad.h>
 #endif /* USEWII */
 
 #include "defines.h"
@@ -41,6 +45,7 @@
 /* = Definitions = */
 
 #define EVENT_ID_NULL 0
+
 #define EVENT_ID_QUIT 1
 #define EVENT_ID_UP 2
 #define EVENT_ID_DOWN 3
@@ -49,6 +54,7 @@
 #define EVENT_ID_FIRE 6
 #define EVENT_ID_JUMP 7
 #define EVENT_ID_ESC 8
+
 #define EVENT_ID_MAX 9
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *

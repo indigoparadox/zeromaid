@@ -23,6 +23,10 @@
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
 
+#ifdef USEWII
+#include <gctypes.h>
+#endif /* USEWII */
+
 /* = Definitions = */
 
 /* Platform-specific stuff. */
@@ -39,11 +43,11 @@
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
 
-#ifndef __GCTYPES_H__
-typedef int BOOL;
+#ifndef USEWII
+typedef unsigned int BOOL;
 #define FALSE 0
 #define TRUE 1
-#endif /* BOOL */
+#endif /* USEWII */
 
 /* The directory from which to fetch data files. */
 #ifdef USEWII
