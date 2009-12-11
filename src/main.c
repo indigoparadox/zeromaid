@@ -50,7 +50,12 @@ extern CACHE_CACHE* gps_cache;
 int main( int argc, char* argv[] ) {
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0; /* The program error level returned to the shell. */
-   bstring ps_system_path = cstr2bstr( PATH_SHARE PATH_FILE_SYSTEM );
+   bstring ps_system_path;
+   bstring ps_title;
+
+   /* Initialize what we need to use functions to initialize. */
+   ps_title = bformat( "%s", SYSTEM_TITLE );
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
 
    /* Setup the random number generator. */
    srand( time( NULL ) );
@@ -73,14 +78,12 @@ int main( int argc, char* argv[] ) {
 
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
-   bstring ps_title = bfromcstr( SYSTEM_TITLE );
    graphics_create_screen(
       GFX_SCREENWIDTH,
       GFX_SCREENHEIGHT,
       GFX_SCREENDEPTH,
       ps_title
    );
-   bdestroy( ps_title );
 
    /* Verify the integrity of the system data file. */
    if( !file_exists( ps_system_path ) ) {
@@ -91,13 +94,12 @@ int main( int argc, char* argv[] ) {
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
-   gps_cache = malloc( sizeof( CACHE_CACHE ) );
+   gps_cache = calloc( 1, sizeof( CACHE_CACHE ) );
    if( NULL == gps_cache ) {
       DBG_ERR( "There was a problem allocating the system cache." );
       i_error_level = ERROR_LEVEL_MALLOC;
       goto main_cleanup;
    }
-   memset( gps_cache, 0, sizeof( CACHE_CACHE ) );
 
    /* Start the loop that loads the other gameplay loops. */
    i_last_return = systype_title_loop();
@@ -120,6 +122,9 @@ int main( int argc, char* argv[] ) {
    }
 
 main_cleanup:
+
+   bdestroy( ps_system_path );
+   bdestroy( ps_title );
 
    #ifdef OUTTOFILE
    fclose( gps_debug );

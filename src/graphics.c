@@ -306,6 +306,14 @@ void graphics_draw_text(
    int i_size_in,
    GFX_COLOR* ps_color_in
 ) {
+   #ifdef USESDL
+   GFX_SURFACE* ps_type_render_out = NULL;
+   TTF_Font* ps_font = NULL;
+   SDL_Color ps_color_sdl;
+   SDL_Rect ps_destreg;
+   static bstring ps_last_font = NULL;
+   #endif /* USESDL */
+
    if( NULL == ps_string_in ) {
       DBG_ERR( "Attempted to blit NULL string!" );
       return;
@@ -320,12 +328,6 @@ void graphics_draw_text(
    }
 
    #ifdef USESDL
-   GFX_SURFACE* ps_type_render_out = NULL;
-   TTF_Font* ps_font = NULL;
-   SDL_Color ps_color_sdl;
-   SDL_Rect ps_destreg;
-   static bstring ps_last_font = NULL;
-
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
 
@@ -402,6 +404,7 @@ void graphics_draw_blit_sprite(
 void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
+   Uint32 i_color_temp;
 
    /* Define a rectangle encompassing the screen. */
    SDL_Rect s_screenrect;
@@ -411,7 +414,7 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    s_screenrect.h = ps_screen->h;
 
    /* Define a color in a format te fill function will understand. */
-   Uint32 i_color_temp = SDL_MapRGB(
+   i_color_temp = SDL_MapRGB(
       ps_screen->format,
       ps_color_in->r,
       ps_color_in->g,
