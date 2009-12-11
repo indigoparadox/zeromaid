@@ -54,19 +54,15 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    as_mobile_list =
       systype_adventure_load_mobiles( &i_mobile_count, ps_map );
 
-   /* TODO: Check the scratch file for the game we're supposed to load. */
-
    /* Draw the initial playing map and fade the screen in. */
    tilemap_draw( ps_map, &s_viewport, TRUE );
-   //graphics_do_update();
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
 
    while( 1 ) {
-      #ifdef USESDL
-      /* SDL uses its own sleep function. */
-      #else
-      /* Run the title screen menu input wait loop. */
+      #ifndef USESDL
+      /* SDL uses its own sleep function. But if we're not using SDL, run the *
+       * title screen menu input wait loop.                                   */
       event_timer_start( ps_fps );
       #endif /* USESDL */
 
@@ -168,8 +164,6 @@ sal_cleanup:
    /* Fade out the playing map screen. */
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
 
-   /* TODO: Perform the between-level autosave. */
-
    /* Clean up! */
    #ifdef USESDL
    #else
@@ -218,10 +212,13 @@ BOOL systype_adventure_mobile_walk(
       /* If this function was called with a NULL direction then go through    *
        * the table of already walking mobiles and advance them.               */
       for( i = 0 ; i < ti_walking_ops_count ; i++ ) {
-         /* TODO: Mark the tile being moved off of and the tile being moved onto as dirty. */
          switch( tas_walking_ops[i].direction ) {
             case TILEMAP_DIR_NORTH:
+               /* Move the mobile by the iterated movement's speed. */
                tas_walking_ops[i].mobile->pixel_y -= tas_walking_ops[i].speed;
+
+               /* Mark the tile being moved off of and the tile being moved   *
+                * onto as dirty.                                              */
                tilemap_get_tile(
                   (tas_walking_ops[i].mobile->pixel_x /
                      ps_map_in->tileset->pixel_size),
