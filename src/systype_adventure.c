@@ -30,19 +30,27 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    int i_act_return = RETURN_ACTION_TITLE,
       i = 0, /* Loop iterator. */
       i_mobile_count = 0;
-   bstring ps_map_path =
-      bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_map_name_in->data );
-   TILEMAP_TILEMAP* ps_map =
-      tilemap_create_map( ps_map_name_in, ps_map_path );
-   bdestroy( ps_map_path );
-   GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
-   GFX_COLOR* ps_color_bg = graphics_create_color( 255, 0, 0 );
+   bstring ps_map_path;
+   TILEMAP_TILEMAP* ps_map;
+   GFX_COLOR* ps_color_fade;
+   GFX_COLOR* ps_color_bg;
    GFX_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list;
-   #ifndef USESDL
-   EVENT_TIMER* ps_fps = event_timer_create();
-   #endif /* USESDL */
    EVENT_EVENT s_event;
+   #ifndef USESDL
+   EVENT_TIMER* ps_fps;
+   #endif /* USESDL */
+
+   /* Initialize what we need to use functions to initialize. */
+   ps_map_path =
+      bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_map_name_in->data );
+   ps_map = tilemap_create_map( ps_map_name_in, ps_map_path );
+   bdestroy( ps_map_path );
+   ps_color_fade = graphics_create_color( 0, 0, 0 );
+   ps_color_bg = graphics_create_color( 255, 0, 0 );
+   #ifndef USESDL
+   ps_fps = event_timer_create();
+   #endif /* USESDL */
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
