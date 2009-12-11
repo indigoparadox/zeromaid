@@ -33,6 +33,7 @@
 #include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
+#include "systype_visnov.h"
 
 #ifdef USEWII
 #include "zeromaid_wii_data.h"
@@ -106,9 +107,9 @@ int main( int argc, char* argv[] ) {
          case RETURN_ACTION_LOADCACHE:
             /* Execute the next instruction based on the system cache. */
             if( SYSTEM_TYPE_ADVENTURE == gps_cache->game_type ) {
-               i_last_return = systype_adventure_loop( cstr2bstr( "field" ) );
+               i_last_return = systype_adventure_loop( gps_cache->map_name );
             } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
-               /* TODO: Visual Novel */
+               i_last_return = systype_visnov_loop( gps_cache->map_name );
             }
             break;
 

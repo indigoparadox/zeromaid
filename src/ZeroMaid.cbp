@@ -166,7 +166,6 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSEWII" />
 					<Add option="-DUSEMUSIC" />
-					<Add option="-DOUTTOFILE" />
 					<Add option="-Dmain=SDL_main" />
 					<Add directory="C:\lib\devkitPro\sdlwii\include" />
 					<Add directory="C:\lib\devkitPro\libdolfs\include" />
@@ -289,7 +288,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DTIXML_USE_STL" />
 			<Add option="-DEZXML_NOMMAP" />
 		</Compiler>
 		<Unit filename="bstring\bstrlib.c">
@@ -341,6 +339,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_title.h" />
+		<Unit filename="systype_visnov.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_visnov.h" />
 		<Unit filename="tilemap.c">
 			<Option compilerVar="CC" />
 		</Unit>
