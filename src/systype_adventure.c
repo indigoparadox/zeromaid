@@ -50,13 +50,13 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    s_viewport.w = GFX_SCREENWIDTH;
    s_viewport.h = GFX_SCREENHEIGHT;
 
-   /* Load the mobiles for this field. */
+   /* Load the mobiles for this map. */
    as_mobile_list =
       systype_adventure_load_mobiles( &i_mobile_count, ps_map );
 
    /* TODO: Check the scratch file for the game we're supposed to load. */
 
-   /* Draw the initial playing field and fade the screen in. */
+   /* Draw the initial playing map and fade the screen in. */
    tilemap_draw( ps_map, &s_viewport, TRUE );
    //graphics_do_update();
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
@@ -165,7 +165,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
 
 sal_cleanup:
 
-   /* Fade out the playing field screen. */
+   /* Fade out the playing map screen. */
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
 
    /* TODO: Perform the between-level autosave. */

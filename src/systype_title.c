@@ -103,12 +103,10 @@ int systype_title_loop( void ) {
             /* Select a menu item. */
             if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
                /* Menu: SP Start */
-
-               /* TODO: Set the cache to a new single-player game          *
-                * according to story data files.                           */
-               gps_cache->game_type = SYSTEM_TYPE_ADVENTURE;
+               /* Set the cache to a new single-player game according to data *
+                * files and set the engine to load the new game.              */
+               systype_title_load_start( gps_cache );
                i_act_return = RETURN_ACTION_LOADCACHE;
-
                goto slt_cleanup;
 
             } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
@@ -380,8 +378,73 @@ stlt_cleanup:
    return ps_titlescreen_head;
 }
 
-/* Purpose: Display the root menu.                                         */
-/* Parameters: The currently selected index.                               */
+/* Purpose: Get the starting game and load it into the given cache object.    */
+/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
+BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
+   BOOL b_success = TRUE;
+   ezxml_t ps_xml_system = NULL, ps_xml_story = NULL, ps_xml_smap = NULL;
+   bstring ps_system_path = bformat( "%ssystem.xml", PATH_SHARE );
+   CACHE_CACHE s_cache_temp;
+
+   /* ps_cache_in->game_type = SYSTEM_TYPE_ADVENTURE;
+   bdestroy( ps_cache_in->map_name );
+   ps_cache_in->map_name = bformat( "field" ); */
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR_STR( "Unable to load mobile list", ps_system_path->data );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+   ps_xml_system = ezxml_parse_file( ps_system_path->data );
+
+   /* Load the single-player story data. */
+   ps_xml_story = ezxml_child( ps_xml_system, "story" );
+   if( NULL == ps_xml_story ) {
+      DBG_ERR_STR( "Invalid system data format", "Missing <story> element." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+   ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
+   if( NULL == ps_xml_smap ) {
+      DBG_ERR_STR(
+         "Invalid system data format",
+         "Missing <startmap> element."
+      );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting map. */
+   if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "visnov" ) ) {
+      s_cache_temp.game_type = SYSTEM_TYPE_VISNOV;
+      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+   } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "adventure" ) ) {
+      s_cache_temp.game_type = SYSTEM_TYPE_ADVENTURE;
+      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+   } else {
+      DBG_ERR( "Invalid game type." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting field name. */
+   s_cache_temp.map_name = bformat( "%s", ezxml_attr( ps_xml_smap, "name" ) );
+
+   /* If everything checks out then copy the temp cache onto the given cache. */
+   // TODO: Validation per game type.
+   memcpy( ps_cache_in, &s_cache_temp, sizeof( CACHE_CACHE ) );
+
+stls_cleanup:
+
+   bdestroy( ps_system_path );
+   ezxml_free( ps_xml_system );
+
+   return b_success;
+}
+
+/* Purpose: Display the root menu.                                            */
+/* Parameters: The currently selected index.                                  */
 void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],

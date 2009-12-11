@@ -14,26 +14,21 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef CACHE_H
-#define CACHE_H
+#include "systype_visnov.h"
 
-/* = Includes = */
+DBG_ENABLE
 
-#include "defines.h"
-#include "mobile.h"
+/* = Global Variables = */
 
-/* = Type and Struct Definitions = */
+extern CACHE_CACHE* gps_cache;
 
-typedef struct {
-   int game_type,
-      player_team_count; /* Number of members in the player's party. */
-   bstring map_name; /* Name of the map currently loaded. */
-   MOBILE_MOBILE* player_team; /* Dynamic array of mobiles in player's party. */
-} CACHE_CACHE;
+/* = Functions = */
 
-/* = Function Prototypes = */
+/* Purpose: Visual novel loop.                                                */
+/* Parameters: The name of the scene to play.                                 */
+/* Return: The code for the next action to take.                              */
+int systype_visnov_loop( bstring ps_scene_name_in ) {
+   int i_act_return = 0;
 
-short int cache_save( bstring );
-short int cache_load( bstring );
-
-#endif /* CACHE_H */
+   return i_act_return;
+}
