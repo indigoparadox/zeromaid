@@ -17,6 +17,7 @@
 #include "systype_title.h"
 
 DBG_ENABLE
+GFX_DRAW_LOOP_ENABLE
 
 /* = Global Variables = */
 
@@ -38,10 +39,6 @@ int systype_title_loop( void ) {
          bformat( SYSTYPE_TITLE_MENU_LABEL_LOAD ),
          bformat( SYSTYPE_TITLE_MENU_LABEL_QUIT )
       };
-   #ifdef USESDL
-   #else
-   EVENT_TIMER* ps_fps = event_timer_create();
-   #endif /* USESDL */
    EVENT_EVENT s_event;
 
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
@@ -53,12 +50,7 @@ int systype_title_loop( void ) {
       graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
    }
    while( 1 ) {
-      #ifdef USESDL
-      /* SDL uses its own sleep function. */
-      #else
-      /* Run the title screen menu input wait loop. */
-      event_timer_start( ps_fps );
-      #endif /* USESDL */
+      GFX_DRAW_LOOP_START
 
       /* Load the next title screen or reduce the delay on this one. */
       if( NULL != ps_title_iter && 1 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
@@ -151,12 +143,7 @@ int systype_title_loop( void ) {
 
       graphics_do_update();
 
-      /* If possible, try to delay without busy-spinning. */
-      #ifdef USESDL
-      SDL_Delay( 1000 / GFX_FPS );
-      #else
-      while( GFX_FPS > ps_fps->i_ticks_start );
-      #endif /* USESDL */
+      GFX_DRAW_LOOP_END
    }
 
 slt_cleanup:
