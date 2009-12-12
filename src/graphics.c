@@ -89,7 +89,7 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
  *         data file.                                                         */
 GFX_SPRITESHEET* graphics_create_spritesheet( bstring ps_path_in ) {
    GFX_SPRITESHEET* ps_spritesheet_out =
-      calloc( sizeof( GFX_SPRITESHEET ), 1 );
+      (GFX_SPRITESHEET*)calloc( sizeof( GFX_SPRITESHEET ), 1 );
 
    /* Create the spritesheet structure. */
    if( NULL == ps_spritesheet_out ) {
@@ -146,7 +146,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    /* If the surface loaded all right, then construct the tileset. */
    if( NULL != ps_surface ) {
       /* Create the tileset struct. */
-      ps_tileset_out = calloc( 1, sizeof( GFX_TILESET ) );
+      ps_tileset_out = (GFX_TILESET*)calloc( 1, sizeof( GFX_TILESET ) );
       if( NULL == ps_tileset_out ) {
          DBG_ERR( "There was a problem allocating tileset memory." );
          graphics_free_image( ps_surface );
@@ -258,7 +258,10 @@ GFX_COLOR* graphics_create_color(
    GFX_COLOR* ps_color_out = NULL;
 
    #ifdef USESDL
-   ps_color_out = malloc( sizeof( GFX_COLOR ) );
+   ps_color_out = calloc( 1, sizeof( GFX_COLOR ) );
+   if( NULL == ps_color_out ) {
+      DBG_ERR( "Unable to allocate color." );
+   }
    ps_color_out->r = i_red_in;
    ps_color_out->g = i_green_in;
    ps_color_out->b = i_blue_in;

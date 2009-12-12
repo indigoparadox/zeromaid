@@ -46,6 +46,12 @@ GFX_DRAW_LOOP_DECLARE
 
 extern CACHE_CACHE* gps_cache;
 
+#ifdef USEDIRECTX
+LPDIRECTINPUT gs_lpdi;
+LPDIRECTINPUTDEVICE gs_keyboard;
+unsigned char gac_keystate[256];
+#endif /* USEDIRECTX */
+
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
@@ -69,6 +75,40 @@ int main( int argc, char* argv[] ) {
    dolfsInit( &zeromaid_wii_data );
    WPAD_Init();
    #endif /* USEWII */
+
+   /* Initialize DirectX input stuff. */
+   #ifdef USEDIRECTX
+   if( FAILED( DirectInput8Create(
+      GetModuleHandle( NULL ),
+      DIRECTINPUT_VERSION,
+      IID_IDirectInput8,
+      (void**)&lpdi,
+      NULL
+   ) ) ) {
+      // error code
+   }
+
+   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
+      /* error code */
+   }
+
+   if( FAILED( m_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
+      /* error code */
+   }
+
+   if( FAILED(
+      gs_keyboard->SetCooperativeLevel(
+         hWND,
+         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
+      )
+   ) ) {
+      /* error code */
+   }
+
+   if( FAILED( gs_keyboard->Acquire() ) ) {
+      /* error code */
+   }
+   #endif /* USEDIRECTX */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
@@ -98,7 +138,7 @@ int main( int argc, char* argv[] ) {
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
-   gps_cache = calloc( 1, sizeof( CACHE_CACHE ) );
+   gps_cache = (CACHE_CACHE*)calloc( 1, sizeof( CACHE_CACHE ) );
    if( NULL == gps_cache ) {
       DBG_ERR( "There was a problem allocating the system cache." );
       i_error_level = ERROR_LEVEL_MALLOC;
@@ -139,6 +179,16 @@ main_cleanup:
    #ifdef USESDL
    TTF_Quit();
    #endif /* USESDL */
+
+   #ifdef USEDIRECTX
+   if( gs_keyboard ) {
+      gs_keyboard->Release();
+   }
+
+   if( gs_lpdi ) {
+      lpdi->Release();
+   }
+   #endif /* USEDIRECTX */
 
    return i_error_level;
 }

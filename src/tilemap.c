@@ -24,12 +24,13 @@ DBG_ENABLE
 /* Parameters: The filename to load.                                          */
 /* Return: The loaded tile map.                                               */
 TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
-   TILEMAP_TILEMAP* ps_map_out = calloc( 1, sizeof( TILEMAP_TILEMAP ) );
+   TILEMAP_TILEMAP* ps_map_out = NULL;
    ezxml_t ps_xml_map = NULL, ps_xml_layer = NULL, ps_xml_props = NULL,
       ps_xml_prop_iter = NULL, ps_xml_tiledata = NULL;
    bstring ps_tiledata_path = NULL, ps_tiledata_filename = NULL;
 
    /* Verify memory allocation. */
+   ps_map_out = (TILEMAP_TILEMAP*)calloc( 1, sizeof( TILEMAP_TILEMAP ) );
    if( NULL == ps_map_out ) {
       DBG_ERR( "Unable to allocate map." );
    }

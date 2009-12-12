@@ -64,6 +64,8 @@ typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
 #elif defined USEDIRECTX
 typedef IDirectDrawSurface7 GFX_SURFACE;
+typedef struct { int x, y, w, h; } GFX_RECTANGLE;
+typedef int GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL */

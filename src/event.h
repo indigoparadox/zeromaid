@@ -40,6 +40,10 @@ typedef struct _lwpnode {
 #include <wiiuse/wpad.h>
 #endif /* USEWII */
 
+#ifdef USEDIRECTX
+#include <dinput.h>
+#endif /* USEDIRECTX */
+
 #include "defines.h"
 
 /* = Definitions = */
@@ -64,10 +68,10 @@ typedef struct _lwpnode {
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int i_ticks_start;
-   int i_ticks_paused;
-   int i_bol_started;
-   int i_bol_paused;
+   time_t i_ticks_start;
+   time_t i_ticks_paused;
+   time_t i_bol_started;
+   time_t i_bol_paused;
 } EVENT_TIMER;
 
 typedef struct {

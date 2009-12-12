@@ -51,7 +51,7 @@ typedef struct {
 } MOBILE_PORTRAIT;
 
 typedef struct {
-
+   int opcode;
 } MOBILE_AI_LIST;
 typedef int MOBILE_AI_LIST_COUNTER;
 
