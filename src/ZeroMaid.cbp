@@ -275,14 +275,15 @@
 				<Option type="0" />
 				<Option compiler="microsoft_visual_c_2008" />
 				<Compiler>
-					<Add option="/Wall" />
 					<Add option="/Zi /D_DEBUG" />
 					<Add option="/DVISUALSTUDIO" />
 					<Add option="/DUSEDIRECTX" />
 					<Add option="/DUSEMUSIC" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
 				</Compiler>
 				<Linker>
 					<Add option="/DEBUG" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
 				</Linker>
 			</Target>
 		</Build>

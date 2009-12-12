@@ -43,10 +43,13 @@
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
 
+/* Some platforms don't need BOOL defined. */
 #ifndef USEWII
+#ifndef USEDIRECTX
 typedef unsigned int BOOL;
 #define FALSE 0
 #define TRUE 1
+#endif /* USEDIRECTX */
 #endif /* USEWII */
 
 /* The directory from which to fetch data files. */
@@ -131,6 +134,11 @@ typedef unsigned int BOOL;
 #define DBG_ERR_STR( msg, string ) \
    fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
    fflush( DEBUG_HANDLE_ERR );
+
+/* Print an error message involving a number. */
+#define DBG_ERR_NUM( msg, number ) \
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
+   fflush( DEBUG_HANDLE_INFO );
 
 #ifdef USESDL
 /* Convert a standard color to SDL color. */
