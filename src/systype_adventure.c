@@ -17,6 +17,7 @@
 #include "systype_adventure.h"
 
 DBG_ENABLE
+GFX_DRAW_LOOP_ENABLE
 
 /* = Global Variables = */
 
@@ -38,9 +39,6 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    GFX_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
-   #ifndef USESDL
-   EVENT_TIMER* ps_fps;
-   #endif /* USESDL */
 
    /* Initialize what we need to use functions to initialize. */
    ps_map_path =
@@ -49,9 +47,6 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    bdestroy( ps_map_path );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
    ps_color_bg = graphics_create_color( 255, 0, 0 );
-   #ifndef USESDL
-   ps_fps = event_timer_create();
-   #endif /* USESDL */
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
@@ -74,11 +69,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    gps_player->pixel_x += ps_map->tileset->pixel_size;
 
    while( 1 ) {
-      #ifndef USESDL
-      /* SDL uses its own sleep function. But if we're not using SDL, run the *
-       * title screen menu input wait loop.                                   */
-      event_timer_start( ps_fps );
-      #endif /* USESDL */
+      GFX_DRAW_LOOP_START
 
       /* Listen for events. */
       event_do_poll( &s_event, TRUE );
@@ -183,12 +174,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          &s_viewport, as_mobile_list, i_mobile_count, ps_map, FALSE
       );
 
-      /* If possible, try to delay without busy-spinning. */
-      #ifdef USESDL
-      SDL_Delay( 1000 / GFX_FPS );
-      #else
-      while( GFX_FPS > ps_fps->i_ticks_start );
-      #endif /* USESDL */
+      GFX_DRAW_LOOP_END
    }
 
 sal_cleanup:
@@ -197,10 +183,6 @@ sal_cleanup:
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
 
    /* Clean up! */
-   #ifdef USESDL
-   #else
-   event_timer_free( ps_fps );
-   #endif /* USESDL */
    free( ps_color_fade );
    free( ps_color_bg );
    tilemap_free( ps_map );
@@ -393,12 +375,18 @@ void systype_adventure_viewport_scroll(
 
    /* Move the viewport. */
    while( ps_viewport_in->x != i_x_dest || ps_viewport_in->y != i_y_dest ) {
-      ps_viewport_in->x += (tilemap_dir_get_add_x( i_dir_in ) * 32);
-      ps_viewport_in->y += (tilemap_dir_get_add_y( i_dir_in ) * 32);
+      GFX_DRAW_LOOP_START
+
+      ps_viewport_in->x +=
+         (tilemap_dir_get_add_x( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
+      ps_viewport_in->y +=
+         (tilemap_dir_get_add_y( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
 
       systype_adventure_viewport_draw(
          ps_viewport_in, as_mobiles_in, i_mobiles_count_in, ps_map_in, TRUE
       );
+
+      GFX_DRAW_LOOP_END
    }
 
 }

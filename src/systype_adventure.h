@@ -28,6 +28,10 @@
 
 /* = Definitions = */
 
+/* The viewport width/height both have to be divisible by this or scrolling   *
+ * won't work and weird bugs will happen.                                     */
+#define SYSTYPE_ADVENTURE_SCROLL_SPEED 160
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
