@@ -21,6 +21,7 @@ DBG_ENABLE
 /* = Global Variables = */
 
 extern CACHE_CACHE* gps_cache;
+static MOBILE_MOBILE* gps_player;
 
 /* = Functions = */
 
@@ -29,13 +30,13 @@ extern CACHE_CACHE* gps_cache;
 int systype_adventure_loop( bstring ps_map_name_in ) {
    int i_act_return = RETURN_ACTION_TITLE,
       i = 0, /* Loop iterator. */
-      i_mobile_count = 0;
+      i_mobile_count = 0; /* Counter for the NPC array below. */
    bstring ps_map_path;
    TILEMAP_TILEMAP* ps_map;
    GFX_COLOR* ps_color_fade;
    GFX_COLOR* ps_color_bg;
    GFX_RECTANGLE s_viewport;
-   MOBILE_MOBILE* as_mobile_list;
+   MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
    #ifndef USESDL
    EVENT_TIMER* ps_fps;
@@ -67,6 +68,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
 
+   /* DEBUG */
+   gps_player = malloc( sizeof( MOBILE_MOBILE ) );
+   memcpy( gps_player, &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
+   gps_player->pixel_x += ps_map->tileset->pixel_size;
+
    while( 1 ) {
       #ifndef USESDL
       /* SDL uses its own sleep function. But if we're not using SDL, run the *
@@ -78,10 +84,10 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       event_do_poll( &s_event, TRUE );
       if( s_event.state[EVENT_ID_UP] ) {
          //s_viewport.y -= 32;
-         if( !as_mobile_list[0].moving ) {
-            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_NORTH;
+         if( !gps_player->moving ) {
+            gps_player->current_animation = MOBILE_ANI_WALK_NORTH;
             systype_adventure_mobile_walk(
-               &as_mobile_list[0],
+               gps_player,
                TILEMAP_DIR_NORTH,
                as_mobile_list,
                i_mobile_count,
@@ -91,10 +97,10 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_DOWN] ) {
          //s_viewport.y += 32;
-         if( !as_mobile_list[0].moving ) {
-            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_SOUTH;
+         if( !gps_player->moving ) {
+            gps_player->current_animation = MOBILE_ANI_WALK_SOUTH;
             systype_adventure_mobile_walk(
-               &as_mobile_list[0],
+               gps_player,
                TILEMAP_DIR_SOUTH,
                as_mobile_list,
                i_mobile_count,
@@ -104,10 +110,10 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_RIGHT] ) {
          //s_viewport.x += 32;
-         if( !as_mobile_list[0].moving ) {
-            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_EAST;
+         if( !gps_player->moving ) {
+            gps_player->current_animation = MOBILE_ANI_WALK_EAST;
             systype_adventure_mobile_walk(
-               &as_mobile_list[0],
+               gps_player,
                TILEMAP_DIR_EAST,
                as_mobile_list,
                i_mobile_count,
@@ -117,10 +123,10 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_LEFT] ) {
          //s_viewport.x -= 32;
-         if( !as_mobile_list[0].moving ) {
-            as_mobile_list[0].current_animation = MOBILE_ANI_WALK_WEST;
+         if( !gps_player->moving ) {
+            gps_player->current_animation = MOBILE_ANI_WALK_WEST;
             systype_adventure_mobile_walk(
-               &as_mobile_list[0],
+               gps_player,
                TILEMAP_DIR_WEST,
                as_mobile_list,
                i_mobile_count,
@@ -138,6 +144,26 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          NULL, TILEMAP_DIR_NULL, as_mobile_list, i_mobile_count, ps_map
       );
 
+      /* If the player is out of the viewport then scroll the viewport to     *
+       * accomodate.                                                          */
+      if( gps_player->pixel_y < s_viewport.y ) { /* North */
+         systype_adventure_viewport_scroll(
+            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_NORTH
+         );
+      } else if( gps_player->pixel_y >= s_viewport.y + s_viewport.h ) { /* South */
+         systype_adventure_viewport_scroll(
+            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_SOUTH
+         );
+      } else if( gps_player->pixel_x >= s_viewport.x + s_viewport.w ) { /* East */
+         systype_adventure_viewport_scroll(
+            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_EAST
+         );
+      } else if( gps_player->pixel_x < s_viewport.x ) { /* West */
+         systype_adventure_viewport_scroll(
+            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_WEST
+         );
+      }
+
       /* All tiles with mobiles on them are dirty. */
       for( i = 0 ; i < i_mobile_count ; i++ ) {
          tilemap_get_tile(
@@ -146,18 +172,16 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
             ps_map
          )->dirty = TRUE;
       }
+      tilemap_get_tile(
+         gps_player->pixel_x / ps_map->tileset->pixel_size,
+         gps_player->pixel_y / ps_map->tileset->pixel_size,
+         ps_map
+      )->dirty = TRUE;
 
-      /* Loop through and draw all on-screen items. */
-      tilemap_draw( ps_map, &s_viewport, FALSE ); /* Map. */
-      for( i = 0 ; i < i_mobile_count ; i++ ) {
-         mobile_execute_ai( &as_mobile_list[i], MOBILE_AI_ADV_NORMAL );
-         mobile_draw( &as_mobile_list[i], &s_viewport ); /* NPCs */
-      }
-      for( i = 0 ; i < gps_cache->player_team_count ; i++ ) {
-         mobile_draw( &gps_cache->player_team[i], &s_viewport ); /* PCs */
-      }
-
-      graphics_do_update();
+      /* Draw the viewport. */
+      systype_adventure_viewport_draw(
+         &s_viewport, as_mobile_list, i_mobile_count, ps_map, FALSE
+      );
 
       /* If possible, try to delay without busy-spinning. */
       #ifdef USESDL
@@ -205,9 +229,15 @@ BOOL systype_adventure_mobile_walk(
    static SYSTYPE_ADVENTURE_WALK* tas_walking_ops = NULL; /* Walking mobiles. */
    static int ti_walking_ops_count = 0;
    int i, j, /* Loop iterators. */
-      i_speed = 4; /* The speed at which a new walk will start. */
+      i_speed = 4, /* The speed at which a new walk will start. */
+      i_tile_px_sz = 0; /* Pixel size of the given map's tiles. */
    TILEMAP_TILE* ps_tile_dest = NULL; /* The tile to walk onto. */
    GFX_TILEDATA* ps_tiledata_dest = NULL;
+
+   /* Set the tile pixel size if we can. */
+   if( NULL != ps_map_in ) {
+      i_tile_px_sz = ps_map_in->tileset->pixel_size;
+   }
 
    /* If the special "cleaning" direction was given, then clean up the static *
     * move lists.                                                             */
@@ -216,59 +246,44 @@ BOOL systype_adventure_mobile_walk(
       return FALSE;
    }
 
+   /* We're not allowed to go off the edge of the map. */
+   if(
+      (TILEMAP_DIR_NORTH == i_dir_in && ps_mob_in->pixel_y <= 0) ||
+
+      (TILEMAP_DIR_SOUTH == i_dir_in &&
+      ps_mob_in->pixel_y >= (ps_map_in->tile_h * i_tile_px_sz) - i_tile_px_sz) ||
+
+      (TILEMAP_DIR_EAST == i_dir_in &&
+      ps_mob_in->pixel_x >= (ps_map_in->tile_w * i_tile_px_sz) - i_tile_px_sz) ||
+
+      (TILEMAP_DIR_WEST == i_dir_in && ps_mob_in->pixel_x <= 0)
+   ) {
+      return FALSE;
+   }
+
    if( NULL == ps_mob_in && TILEMAP_DIR_NULL == i_dir_in ) {
       /* If this function was called with a NULL direction then go through    *
        * the table of already walking mobiles and advance them.               */
       for( i = 0 ; i < ti_walking_ops_count ; i++ ) {
-         switch( tas_walking_ops[i].direction ) {
-            case TILEMAP_DIR_NORTH:
-               /* Move the mobile by the iterated movement's speed. */
-               tas_walking_ops[i].mobile->pixel_y -= tas_walking_ops[i].speed;
+         /* Move the mobile by the iterated movement's speed. */
 
-               /* Mark the tile being moved off of and the tile being moved   *
-                * onto as dirty.                                              */
-               tilemap_get_tile(
-                  (tas_walking_ops[i].mobile->pixel_x /
-                     ps_map_in->tileset->pixel_size),
-                  (tas_walking_ops[i].mobile->pixel_y /
-                     ps_map_in->tileset->pixel_size) - 1,
-                  ps_map_in
-               )->dirty = TRUE;
-               break;
+         tas_walking_ops[i].mobile->pixel_x +=
+            (tilemap_dir_get_add_x( tas_walking_ops[i].direction ) *
+            tas_walking_ops[i].speed);
+         tas_walking_ops[i].mobile->pixel_y +=
+            (tilemap_dir_get_add_y( tas_walking_ops[i].direction ) *
+            tas_walking_ops[i].speed);
 
-            case TILEMAP_DIR_SOUTH:
-               tas_walking_ops[i].mobile->pixel_y += tas_walking_ops[i].speed;
-               tilemap_get_tile(
-                  (tas_walking_ops[i].mobile->pixel_x /
-                     ps_map_in->tileset->pixel_size),
-                  (tas_walking_ops[i].mobile->pixel_y /
-                     ps_map_in->tileset->pixel_size) + 1,
-                  ps_map_in
-               )->dirty = TRUE;
-               break;
-
-            case TILEMAP_DIR_EAST:
-               tas_walking_ops[i].mobile->pixel_x += tas_walking_ops[i].speed;
-               tilemap_get_tile(
-                  (tas_walking_ops[i].mobile->pixel_x /
-                     ps_map_in->tileset->pixel_size) + 1,
-                  (tas_walking_ops[i].mobile->pixel_y /
-                     ps_map_in->tileset->pixel_size),
-                  ps_map_in
-               )->dirty = TRUE;
-               break;
-
-            case TILEMAP_DIR_WEST:
-               tas_walking_ops[i].mobile->pixel_x -= tas_walking_ops[i].speed;
-               tilemap_get_tile(
-                  (tas_walking_ops[i].mobile->pixel_x /
-                     ps_map_in->tileset->pixel_size) - 1,
-                  (tas_walking_ops[i].mobile->pixel_y /
-                     ps_map_in->tileset->pixel_size),
-                  ps_map_in
-               )->dirty = TRUE;
-               break;
-         }
+         /* Mark the tile being moved onto as dirty. */
+         tilemap_get_tile(
+            (tas_walking_ops[i].mobile->pixel_x /
+               ps_map_in->tileset->pixel_size) +
+                  tilemap_dir_get_add_x( tas_walking_ops[i].direction ),
+            (tas_walking_ops[i].mobile->pixel_y /
+               ps_map_in->tileset->pixel_size) +
+                  tilemap_dir_get_add_y( tas_walking_ops[i].direction ),
+            ps_map_in
+         )->dirty = TRUE;
 
          /* If the mobile has reached a tile boundary then stop walking. */
          if(
@@ -331,39 +346,13 @@ BOOL systype_adventure_mobile_walk(
    }
 
    /* Figure out the next tile on the map we'll end up on. */
-   switch( i_dir_in ) {
-      case TILEMAP_DIR_NORTH:
-         ps_tile_dest = tilemap_get_tile(
-            (ps_mob_in->pixel_x / ps_mob_in->pixel_size),
-            (ps_mob_in->pixel_y / ps_mob_in->pixel_size) - 1,
-            ps_map_in
-         );
-         break;
-
-      case TILEMAP_DIR_SOUTH:
-         ps_tile_dest = tilemap_get_tile(
-            (ps_mob_in->pixel_x / ps_mob_in->pixel_size),
-            (ps_mob_in->pixel_y / ps_mob_in->pixel_size) + 1,
-            ps_map_in
-         );
-         break;
-
-      case TILEMAP_DIR_EAST:
-         ps_tile_dest = tilemap_get_tile(
-            (ps_mob_in->pixel_x / ps_mob_in->pixel_size) + 1,
-            (ps_mob_in->pixel_y / ps_mob_in->pixel_size),
-            ps_map_in
-         );
-         break;
-
-      case TILEMAP_DIR_WEST:
-         ps_tile_dest = tilemap_get_tile(
-            (ps_mob_in->pixel_x / ps_mob_in->pixel_size) - 1,
-            (ps_mob_in->pixel_y / ps_mob_in->pixel_size),
-            ps_map_in
-         );
-         break;
-   }
+   ps_tile_dest = tilemap_get_tile(
+      (ps_mob_in->pixel_x / ps_mob_in->pixel_size) +
+         tilemap_dir_get_add_x( i_dir_in ),
+      (ps_mob_in->pixel_y / ps_mob_in->pixel_size) +
+         tilemap_dir_get_add_y( i_dir_in ),
+      ps_map_in
+   );
 
    /* Check the map for collisions and terrain slowing. */
    ps_tiledata_dest =
@@ -387,6 +376,57 @@ BOOL systype_adventure_mobile_walk(
    ps_mob_in->moving = TRUE;
 
    return TRUE;
+}
+
+void systype_adventure_viewport_scroll(
+   GFX_RECTANGLE* ps_viewport_in,
+   MOBILE_MOBILE as_mobiles_in[],
+   int i_mobiles_count_in,
+   TILEMAP_TILEMAP* ps_map_in,
+   TILEMAP_DIR i_dir_in
+) {
+   /* Figure out the desired X and Y of the viewport. */
+   int i_x_dest = ps_viewport_in->x +
+         (ps_viewport_in->w * tilemap_dir_get_add_x( i_dir_in )),
+      i_y_dest = ps_viewport_in->y +
+         (ps_viewport_in->h * tilemap_dir_get_add_y( i_dir_in ));
+
+   /* Move the viewport. */
+   while( ps_viewport_in->x != i_x_dest || ps_viewport_in->y != i_y_dest ) {
+      ps_viewport_in->x += (tilemap_dir_get_add_x( i_dir_in ) * 32);
+      ps_viewport_in->y += (tilemap_dir_get_add_y( i_dir_in ) * 32);
+
+      systype_adventure_viewport_draw(
+         ps_viewport_in, as_mobiles_in, i_mobiles_count_in, ps_map_in, TRUE
+      );
+   }
+
+}
+
+/* Purpose: Draw the current viewport.                                        */
+void systype_adventure_viewport_draw(
+   GFX_RECTANGLE* ps_viewport_in,
+   MOBILE_MOBILE as_mobiles_in[],
+   int i_mobiles_count_in,
+   TILEMAP_TILEMAP* ps_map_in,
+   BOOL b_force_redraw_in
+) {
+   int i; /* Loop iterator. */
+
+   /* Loop through and draw all on-screen items. */
+   tilemap_draw( ps_map_in, ps_viewport_in, b_force_redraw_in ); /* Map. */
+   for( i = 0 ; i < i_mobiles_count_in ; i++ ) {
+      mobile_execute_ai( &as_mobiles_in[i], MOBILE_AI_ADV_NORMAL );
+      mobile_draw( &as_mobiles_in[i], ps_viewport_in ); /* NPCs */
+   }
+   #if 0
+   for( i = 0 ; i < gps_cache->player_team_count ; i++ ) {
+      mobile_draw( &gps_cache->player_team[i], &s_viewport ); /* PCs */
+   }
+   #endif
+   mobile_draw( gps_player, ps_viewport_in );
+
+   graphics_do_update();
 }
 
 /* Purpose: Load the mobiles for this map into the given dynamic array.       */

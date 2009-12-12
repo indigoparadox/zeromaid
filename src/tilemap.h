@@ -60,6 +60,8 @@ typedef struct {
 TILEMAP_TILEMAP* tilemap_create_map( bstring, bstring );
 int tilemap_get_tile_x( int, TILEMAP_TILEMAP* );
 int tilemap_get_tile_y( int, TILEMAP_TILEMAP* );
+int tilemap_dir_get_add_x( TILEMAP_DIR );
+int tilemap_dir_get_add_y( TILEMAP_DIR );
 TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
 void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
 void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE*, BOOL );
