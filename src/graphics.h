@@ -89,6 +89,30 @@ typedef struct {
    GFX_SURFACE* image;
 } GFX_SPRITESHEET;
 
+/* = Macros = */
+
+/* If possible, try to delay without busy-spinning. */
+
+#ifdef USESDL
+
+#define GFX_DRAW_LOOP_DECLARE
+#define GFX_DRAW_LOOP_INIT
+#define GFX_DRAW_LOOP_ENABLE
+#define GFX_DRAW_LOOP_START
+#define GFX_DRAW_LOOP_END SDL_Delay( 1000 / GFX_FPS );
+#define GFX_DRAW_LOOP_FREE
+
+#else
+
+#define GFX_DRAW_LOOP_DECLARE EVENT_TIMER* gps_fps;
+#define GFX_DRAW_LOOP_INIT gps_fps = event_timer_create();
+#define GFX_DRAW_LOOP_ENABLE extern EVENT_TIMER* gps_fps;
+#define GFX_DRAW_LOOP_START event_timer_start( gps_fps );
+#define GFX_DRAW_LOOP_END while( GFX_FPS > gps_fps->i_ticks_start );
+#define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
+
+#endif /* USESDL */
+
 /* = Function Prototypes = */
 
 GFX_SURFACE* graphics_create_screen( int, int, int, bstring );

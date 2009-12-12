@@ -40,6 +40,7 @@
 #endif /* USEWII */
 
 DBG_MAIN
+GFX_DRAW_LOOP_DECLARE
 
 /* = Global Variables = */
 
@@ -59,6 +60,9 @@ int main( int argc, char* argv[] ) {
 
    /* Setup the random number generator. */
    srand( time( NULL ) );
+
+   /* Setup the loop timer. */
+   GFX_DRAW_LOOP_INIT
 
    /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
@@ -122,6 +126,8 @@ int main( int argc, char* argv[] ) {
    }
 
 main_cleanup:
+
+   GFX_DRAW_LOOP_FREE
 
    bdestroy( ps_system_path );
    bdestroy( ps_title );
