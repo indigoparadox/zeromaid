@@ -130,6 +130,40 @@ TILEMAP_TILE* tilemap_get_tile(
    return &ps_map_in->tiles[(i_y_in * ps_map_in->tile_w) + i_x_in];
 }
 
+/* Purpose: Get the amount to add to the X coordinate to go in the specified  *
+ *          direction.                                                        */
+/* Parameters: The direction to go in.                                        */
+/* Return: The amount to add to an X coordinate.                              */
+int tilemap_dir_get_add_x( TILEMAP_DIR i_dir_in ) {
+   switch( i_dir_in ) {
+      case TILEMAP_DIR_EAST:
+         return 1;
+
+      case TILEMAP_DIR_WEST:
+         return -1;
+
+      default:
+         return 0;
+   }
+}
+
+/* Purpose: Get the amount to add to the Y coordinate to go in the specified  *
+ *          direction.                                                        */
+/* Parameters: The direction to go in.                                        */
+/* Return: The amount to add to an Y coordinate.                              */
+int tilemap_dir_get_add_y( TILEMAP_DIR i_dir_in ) {
+   switch( i_dir_in ) {
+      case TILEMAP_DIR_NORTH:
+         return -1;
+
+      case TILEMAP_DIR_SOUTH:
+         return 1;
+
+      default:
+         return 0;
+   }
+}
+
 /* Purpose: Load the specified layer into the given map struct.               */
 /* Parameters: The map struct into which to load, the XML struct describing   *
  *             the layer.                                                     */
