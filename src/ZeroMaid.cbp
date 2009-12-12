@@ -275,6 +275,7 @@
 				<Option type="0" />
 				<Option compiler="microsoft_visual_c_2008" />
 				<Compiler>
+					<Add option="/TP" />
 					<Add option="/Zi /D_DEBUG" />
 					<Add option="/DVISUALSTUDIO" />
 					<Add option="/DUSEDIRECTX" />
