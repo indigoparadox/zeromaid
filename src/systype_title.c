@@ -383,7 +383,7 @@ stlt_cleanup:
 BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    BOOL b_success = TRUE;
    ezxml_t ps_xml_system = NULL, ps_xml_story = NULL, ps_xml_smap = NULL;
-   bstring ps_system_path = bformat( "%ssystem.xml", PATH_SHARE );
+   bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
    CACHE_CACHE s_cache_temp;
 
    /* ps_cache_in->game_type = SYSTEM_TYPE_ADVENTURE;
