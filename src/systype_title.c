@@ -16,6 +16,8 @@
 
 #include "systype_title.h"
 
+DBG_ENABLE
+
 /* = Global Variables = */
 
 extern CACHE_CACHE* gps_cache;
@@ -40,6 +42,9 @@ int systype_title_loop( void ) {
    #else
    EVENT_TIMER* ps_fps = event_timer_create();
    #endif /* USESDL */
+   EVENT_EVENT s_event;
+
+   memset( &s_event, 0, sizeof( EVENT_EVENT ) );
 
    /* Show the title screen until the user selects something. */
    DBG_INFO( "Running title screen loop..." );
@@ -69,59 +74,49 @@ int systype_title_loop( void ) {
       }
 
       /* Listen for events. */
-      int i_event = event_do_poll_once();
-      switch( i_event ) {
-         case EVENT_ID_ESC:
-         case EVENT_ID_QUIT:
-            /* Quitting is universal. */
-            DBG_INFO( "Quitting..." );
-            goto slt_cleanup;
+      event_do_poll( &s_event, FALSE );
+      if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
+         DBG_INFO( "Quitting..." );
+         goto slt_cleanup;
+      }
+      if( s_event.state[EVENT_ID_DOWN] ) {
+         if( (SYSTYPE_TITLE_MENU_LEN - 1) > i_menu_selected ) {
+            i_menu_selected++;
+         } else {
+            i_menu_selected = 0;
+         }
+      }
+      if( s_event.state[EVENT_ID_UP] ) {
+         /* Previous menu item. */
+         if( 0 < i_menu_selected ) {
+            i_menu_selected--;
+         } else {
+            i_menu_selected = SYSTYPE_TITLE_MENU_LEN - 1;
+         }
+      }
+      if( s_event.state[EVENT_ID_FIRE] ) {
+         /* Generally move things along. */
+         if( !ps_title_iter->show_menu ) {
+            /* The menu is hidden, so move to the next screen. */
+            ps_title_iter->delay = 1;
+         } else {
+            /* Select a menu item. */
+            if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
+               /* Menu: SP Start */
+               /* Set the cache to a new single-player game according to data *
+                * files and set the engine to load the new game.              */
+               systype_title_load_start( gps_cache );
+               i_act_return = RETURN_ACTION_LOADCACHE;
+               goto slt_cleanup;
 
-         case EVENT_ID_DOWN:
-            /* Next menu item. */
-            if( (SYSTYPE_TITLE_MENU_LEN - 1) > i_menu_selected ) {
-               i_menu_selected++;
-            } else {
-               i_menu_selected = 0;
+            } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
+               /* Menu: Load */
+
+            } else if( SYSTYPE_TITLE_MENU_INDEX_QUIT == i_menu_selected ) {
+               /* Menu: Quit */
+               goto slt_cleanup;
             }
-            break;
-
-         case EVENT_ID_UP:
-            /* Previous menu item. */
-            if( 0 < i_menu_selected ) {
-               i_menu_selected--;
-            } else {
-               i_menu_selected = SYSTYPE_TITLE_MENU_LEN - 1;
-            }
-            break;
-
-         case EVENT_ID_FIRE:
-            /* Generally move things along. */
-            if( !ps_title_iter->show_menu ) {
-               /* The menu is hidden, so move to the next screen. */
-               ps_title_iter->delay = 1;
-            } else {
-               /* Select a menu item. */
-               if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
-                  /* Menu: SP Start */
-
-                  /* TODO: Set the cache to a new single-player game          *
-                   * according to story data files.                           */
-                  gps_cache->game_type = SYSTEM_TYPE_ADVENTURE;
-                  i_act_return = RETURN_ACTION_LOADCACHE;
-
-                  goto slt_cleanup;
-
-               } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
-                  /* Menu: Load */
-
-               } else if( SYSTYPE_TITLE_MENU_INDEX_QUIT == i_menu_selected ) {
-                  /* Menu: Quit */
-                  goto slt_cleanup;
-               }
-            }
-
-            break;
+         }
       }
 
       /* Loop through and draw all on-screen items. */
@@ -143,15 +138,15 @@ int systype_title_loop( void ) {
             /* Go to the next one! */
             ps_text_iter = ps_text_iter->next;
          }
-      }
-      if( ps_title_iter->show_menu ) {
-         systype_title_show_menu(
-            i_menu_selected,
-            as_menu_text,
-            ps_title_iter->menu_font,
-            ps_title_iter->fg_color,
-            ps_title_iter->fg_highlight
-         );
+         if( ps_title_iter->show_menu ) {
+            systype_title_show_menu(
+               i_menu_selected,
+               as_menu_text,
+               ps_title_iter->menu_font,
+               ps_title_iter->fg_color,
+               ps_title_iter->fg_highlight
+            );
+         }
       }
 
       graphics_do_update();
@@ -202,6 +197,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
    bstring ps_string_attrib = NULL;
+   const char* pc_ezxml_attr;
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
@@ -237,19 +233,22 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* Load attribute data into the new title screen. */
       /* ATTRIB: BGIMAGE */
       ps_string_attrib = bformat(
-         PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_IMAGE,
+         PATH_SHARE "%s." FILE_EXTENSION_IMAGE,
          ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
       );
       ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_attrib );
       bdestroy( ps_string_attrib );
 
       /* ATTRIB: DELAY */
-      ps_titlescreen_iter->delay = atoi( ezxml_attr( ps_xml_titlescreen_iter, "delay" ) );
-      if( 0 != ps_titlescreen_iter->delay ) {
-         DBG_INFO_STR(
-            "Title screen: Set delay",
-            ezxml_attr( ps_xml_titlescreen_iter, "delay" )
-         );
+      pc_ezxml_attr = ezxml_attr( ps_xml_titlescreen_iter, "delay" );
+      if( NULL != pc_ezxml_attr ) {
+         ps_titlescreen_iter->delay = atoi( pc_ezxml_attr );
+         if( 0 != ps_titlescreen_iter->delay ) {
+            DBG_INFO_STR(
+               "Title screen: Set delay",
+               ezxml_attr( ps_xml_titlescreen_iter, "delay" )
+            );
+         }
       }
 
       /* ATTRIB: TRANSITION */
@@ -269,7 +268,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* ATTRIB: MENUFONT */
       if( NULL != ezxml_attr( ps_xml_titlescreen_iter, "menufont" ) ) {
          ps_titlescreen_iter->menu_font = bformat(
-            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
          DBG_INFO_STR(
@@ -311,10 +310,19 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          memset( ps_text_iter, 0, sizeof( SYSTYPE_TITLE_TEXT ) );
 
          /* Load the text node attributes. */
-         /* ATTRIB: LOCATION /SIZE */
-         ps_text_iter->x = atoi( ezxml_attr( ps_xml_text_iter, "x" ) );
-         ps_text_iter->y = atoi( ezxml_attr( ps_xml_text_iter, "y" ) );
-         ps_text_iter->size = atoi( ezxml_attr( ps_xml_text_iter, "size" ) );
+         /* ATTRIB: LOCATION/SIZE */
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "x" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->x = atoi( pc_ezxml_attr );
+         }
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "y" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->y = atoi( pc_ezxml_attr );
+         }
+         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "size" );
+         if( NULL != pc_ezxml_attr ) {
+            ps_text_iter->size = atoi( pc_ezxml_attr );
+         }
 
          /* ATTRIB: FG COLOR */
          ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );
@@ -325,7 +333,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
          /* ATTRIB: FONT NAME */
          ps_text_iter->font_name = bformat(
-            PATH_SHARE PATH_SCRDATA "/%s." FILE_EXTENSION_FONT,
+            PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_text_iter, "font" )
          );
 
@@ -370,8 +378,73 @@ stlt_cleanup:
    return ps_titlescreen_head;
 }
 
-/* Purpose: Display the root menu.                                         */
-/* Parameters: The currently selected index.                               */
+/* Purpose: Get the starting game and load it into the given cache object.    */
+/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
+BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
+   BOOL b_success = TRUE;
+   ezxml_t ps_xml_system = NULL, ps_xml_story = NULL, ps_xml_smap = NULL;
+   bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   CACHE_CACHE s_cache_temp;
+
+   /* ps_cache_in->game_type = SYSTEM_TYPE_ADVENTURE;
+   bdestroy( ps_cache_in->map_name );
+   ps_cache_in->map_name = bformat( "field" ); */
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR_STR( "Unable to load mobile list", ps_system_path->data );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+   ps_xml_system = ezxml_parse_file( ps_system_path->data );
+
+   /* Load the single-player story data. */
+   ps_xml_story = ezxml_child( ps_xml_system, "story" );
+   if( NULL == ps_xml_story ) {
+      DBG_ERR_STR( "Invalid system data format", "Missing <story> element." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+   ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
+   if( NULL == ps_xml_smap ) {
+      DBG_ERR_STR(
+         "Invalid system data format",
+         "Missing <startmap> element."
+      );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting map. */
+   if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "visnov" ) ) {
+      s_cache_temp.game_type = SYSTEM_TYPE_VISNOV;
+      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+   } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "adventure" ) ) {
+      s_cache_temp.game_type = SYSTEM_TYPE_ADVENTURE;
+      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+   } else {
+      DBG_ERR( "Invalid game type." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting field name. */
+   s_cache_temp.map_name = bformat( "%s", ezxml_attr( ps_xml_smap, "name" ) );
+
+   /* If everything checks out then copy the temp cache onto the given cache. */
+   // TODO: Validation per game type.
+   memcpy( ps_cache_in, &s_cache_temp, sizeof( CACHE_CACHE ) );
+
+stls_cleanup:
+
+   bdestroy( ps_system_path );
+   ezxml_free( ps_xml_system );
+
+   return b_success;
+}
+
+/* Purpose: Display the root menu.                                            */
+/* Parameters: The currently selected index.                                  */
 void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],

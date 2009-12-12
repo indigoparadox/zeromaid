@@ -62,6 +62,7 @@ typedef struct _SYSTYPE_TITLE_TITLESCREEN {
 
 int systype_title_loop( void );
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
+BOOL systype_title_load_start( CACHE_CACHE* );
 void systype_title_show_menu( int, bstring[], bstring, GFX_COLOR*, GFX_COLOR* );
 
 #endif /* SYSLOOP_TITLE_H */

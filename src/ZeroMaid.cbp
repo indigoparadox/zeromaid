@@ -138,7 +138,7 @@
 				<Option working_dir="..\share" />
 				<Option object_output="..\obj\Debug-DOS-i386-Allegro" />
 				<Option type="1" />
-				<Option compiler="djgpp_compiler" />
+				<Option compiler="djgpp_msdos_compiler" />
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
@@ -151,6 +151,59 @@
 					<Add library="alleg" />
 				</Linker>
 			</Target>
+			<Target title="Debug-Wii-PPC-DKPWin">
+				<Option platforms="Windows;" />
+				<Option output="..\bin\Debug-Wii-PPC-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="..\share" />
+				<Option object_output="..\obj\Debug-Wii-PPC-DKPWin" />
+				<Option type="1" />
+				<Option compiler="devkitpro_wii_ppc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DNOGUFIX" />
+					<Add option="-DUSESDL" />
+					<Add option="-DUSEDEBUG" />
+					<Add option="-DUSEWII" />
+					<Add option="-DUSEMUSIC" />
+					<Add option="-Dmain=SDL_main" />
+					<Add directory="C:\lib\devkitPro\sdlwii\include" />
+					<Add directory="C:\lib\devkitPro\libdolfs\include" />
+				</Compiler>
+				<Linker>
+					<Add option="-mrvl" />
+					<Add library="dolfs" />
+					<Add library="db" />
+					<Add library="SDL_net" />
+					<Add library="SDL_ttf" />
+					<Add library="SDL_gfx" />
+					<Add library="SDL_mixer" />
+					<Add library="SDL_image" />
+					<Add library="SDL" />
+					<Add library="smpeg" />
+					<Add library="jpeg" />
+					<Add library="png" />
+					<Add library="freetype" />
+					<Add library="z" />
+					<Add library="fat" />
+					<Add library="wiiuse" />
+					<Add library="bte" />
+					<Add library="ogc" />
+					<Add library="m" />
+					<Add library="wiikeyboard" />
+					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+					<Add directory="C:\lib\devkitPro\sdlwii\lib" />
+					<Add directory="C:\lib\devkitPro\grrlib\lib" />
+					<Add directory="C:\lib\devkitPro\libdolfs\lib\wii" />
+				</Linker>
+				<ExtraCommands>
+					<Add before="$(dfspack) ../share zeromaid_wii_data" />
+					<Mode after="always" />
+				</ExtraCommands>
+				<Environment>
+					<Variable name="dfspack" value="C:\lib\devkitPro\libdolfs\bin\dfspack.exe" />
+				</Environment>
+			</Target>
 			<Target title="Release-Wii-PPC-DKPWin">
 				<Option platforms="Windows;" />
 				<Option output="..\bin\Release-Wii-PPC-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
@@ -162,26 +215,59 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DNOGUFIX" />
-					<Add option="-DOUTTOFILE" />
-					<Add option="-DUSEWII" />
+					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
-					<Add directory="C:\lib\devkitPro\grrlib\include" />
+					<Add option="-Dmain=SDL_main" />
+					<Add directory="C:\lib\devkitPro\sdl\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="-mrvl" />
-					<Add library="grrlib" />
-					<Add library="pngu" />
-					<Add library="png" />
+					<Add library="SDL_net" />
+					<Add library="SDL_ttf" />
+					<Add library="SDL_gfx" />
+					<Add library="SDL_mixer" />
+					<Add library="SDL_image" />
+					<Add library="SDL" />
+					<Add library="smpeg" />
 					<Add library="jpeg" />
+					<Add library="png" />
+					<Add library="freetype" />
 					<Add library="z" />
 					<Add library="fat" />
 					<Add library="wiiuse" />
 					<Add library="bte" />
 					<Add library="ogc" />
 					<Add library="m" />
+					<Add library="wiikeyboard" />
 					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+					<Add directory="C:\lib\devkitPro\sdl\lib" />
 					<Add directory="C:\lib\devkitPro\grrlib\lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug-NDS-ARM-DKPWin">
+				<Option platforms="Windows;" />
+				<Option output="..\bin\Debug-NDS-ARM-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="..\share" />
+				<Option object_output="..\obj\Debug-NDS-ARM-DKPWin" />
+				<Option type="1" />
+				<Option compiler="devkitpro_nds_arm" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DNOGUFIX" />
+					<Add option="-DUSESDL" />
+					<Add option="-DUSEDEBUG" />
+					<Add option="-DUSENDS" />
+					<Add option="-DUSEMUSIC" />
+					<Add option="-Dmain=SDL_main" />
+					<Add directory="C:\lib\devkitPro\sdlnds\include" />
+				</Compiler>
+				<Linker>
+					<Add library="nds9" />
+					<Add library="SDL_ttf" />
+					<Add library="SDL" />
+					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-DirectX">
@@ -202,10 +288,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DTIXML_USE_STL" />
 			<Add option="-DEZXML_NOMMAP" />
-			<Add directory="..\..\Common\include" />
-			<Add directory="C:\Program Files\Development\lib\boost_1_34_1" />
 		</Compiler>
 		<Unit filename="bstring\bstrlib.c">
 			<Option compilerVar="CC" />
@@ -248,10 +331,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_adventure.h" />
+		<Unit filename="systype_platform.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_platform.h" />
 		<Unit filename="systype_title.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_title.h" />
+		<Unit filename="systype_visnov.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="systype_visnov.h" />
 		<Unit filename="tilemap.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -16,6 +16,8 @@
 
 #include "event.h"
 
+DBG_ENABLE
+
 /* Purpose: Create a new timer.                                               */
 /* Parameters: The timer to operate on.                                       */
 EVENT_TIMER* event_timer_create( void ) {
@@ -76,83 +78,121 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
    }
 }
 
-/* Purpose: Poll user input devices, but reject repeat results.               */
-int event_do_poll_once( void ) {
-   static int i_last_result = EVENT_ID_NULL;
-   int i_result = EVENT_ID_NULL;
-
-   /* Poll and compare it to the last result. */
-   i_result = event_do_poll();
-   if( i_result != i_last_result ) {
-      i_last_result = i_result;
-      return i_result;
-   }
-
-   /* No new result detected. */
-   return EVENT_ID_NULL;
-}
-
 /* Purpose: Poll user input devices.                                          */
-int event_do_poll( void ) {
-   #ifdef USESDL
-   static SDL_Event* ps_event_temp = NULL;
+void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
+   static BOOL tab_poll_last[EVENT_ID_MAX] = { FALSE };
+   int i_key_test, /* A translation placeholder for pressed keys. */
+      i; /* Loop iterator. */
+
+   /* Platform-specific method of setting up. */
+   #ifdef USEWII
+   u16 i_buttons_down;
+   BOOL as_keys[EVENT_ID_MAX];
+   #elif defined USESDL
+   Uint8* as_keys = NULL;
+   static SDL_Event* tps_event_temp = NULL;
 
    /* Create the event object if it doesn't exist yet. */
-   if( NULL == ps_event_temp ) {
-      ps_event_temp = malloc( sizeof( SDL_Event ) );
+   if( NULL == tps_event_temp ) {
+      tps_event_temp = calloc( 1, sizeof( SDL_Event ) );
    }
-   if( NULL == ps_event_temp ) {
+   if( NULL == tps_event_temp ) {
       DBG_ERR( "Unable to allocate event object." );
-      return SDL_QUIT; /* Safe option. */
-   }
-   memset( ps_event_temp, 0, sizeof( SDL_Event ) );
-
-   /* Perform the polling and event assignment. */
-   SDL_PollEvent( ps_event_temp );
-   if( SDL_QUIT == ps_event_temp->type ) {
-      return EVENT_ID_QUIT;
-   } else if( SDL_KEYDOWN == ps_event_temp->type ) {
-      /* A key was pressed, so be more specific. */
-      switch( ps_event_temp->key.keysym.sym ) {
-         case SDLK_UP:
-            return EVENT_ID_UP;
-
-         case SDLK_DOWN:
-            return EVENT_ID_DOWN;
-
-         case SDLK_RIGHT:
-            return EVENT_ID_RIGHT;
-
-         case SDLK_LEFT:
-            return EVENT_ID_LEFT;
-
-         case SDLK_z:
-            return EVENT_ID_FIRE;
-
-         case SDLK_x:
-            return EVENT_ID_JUMP;
-
-         case SDLK_ESCAPE:
-            return EVENT_ID_ESC;
-
-         default:
-            /* It was a key we don't know about... */
-            return EVENT_ID_NULL;
-      }
-   } else {
-      /* Nothing happened... */
-      return EVENT_ID_NULL;
-   }
-   #elif defined USEWII
-   WPAD_ScanPads();
-   if( WPAD_ButtonsDown(0) & WPAD_BUTTON_HOME ) {
-      return EVENT_ID_QUIT;
-   } else if( WPAD_ButtonsDown(0) & WPAD_BUTTON_UP ) {
-      return EVENT_ID_UP;
-   } else {
-      return EVENT_ID_NULL;
+      return;
    }
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USESDL, USEWII */
+   #endif /* USEWII, USESDL */
+
+
+
+   /* Perform the polling and event assignment. */
+   #ifdef USEWII
+   WPAD_ScanPads();
+   i_buttons_down = WPAD_ButtonsHeld( 0 );
+   #elif defined USESDL
+   SDL_PollEvent( tps_event_temp );
+
+   if( SDL_QUIT == tps_event_temp->type ) {
+      /* A quit event takes precedence over all others. */
+      memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
+      ps_event_out->state[EVENT_ID_ESC] = TRUE;
+      return;
+   }
+
+   /* It wasn't a quit event, so poll the keys. */
+   as_keys = SDL_GetKeyState( NULL );
+   #else
+   #error "No event polling mechanism defined for this platform!"
+   #endif /* USEWII, USESDL */
+
+   for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
+      #ifdef USEWII
+      switch( i ) {
+         case EVENT_ID_UP:
+            if( i_buttons_down & WPAD_BUTTON_RIGHT ) {
+               i_key_test = EVENT_ID_UP;
+            }
+            break;
+
+         case EVENT_ID_ESC:
+            if( i_buttons_down & WPAD_BUTTON_HOME ) {
+               i_key_test = EVENT_ID_ESC;
+            }
+            break;
+
+         default:
+            i_key_test = 0;
+            break;
+      }
+      #elif defined USESDL
+      switch( i ) {
+         case EVENT_ID_UP:
+            i_key_test = SDLK_UP;
+            break;
+         case EVENT_ID_DOWN:
+            i_key_test = SDLK_DOWN;
+            break;
+         case EVENT_ID_RIGHT:
+            i_key_test = SDLK_RIGHT;
+            break;
+         case EVENT_ID_LEFT:
+            i_key_test = SDLK_LEFT;
+            break;
+         case EVENT_ID_FIRE:
+            i_key_test = SDLK_z;
+            break;
+         case EVENT_ID_JUMP:
+            i_key_test = SDLK_x;
+            break;
+         case EVENT_ID_ESC:
+            i_key_test = SDLK_ESCAPE;
+            break;
+         default:
+            continue;
+      }
+      #endif /* USEWII, USESDL */
+
+      if(
+         /* Repeat is off and the key is down and it wasn't down before. */
+         (!b_repeat_in &&
+         as_keys[i_key_test] &&
+         !tab_poll_last[i]) ||
+
+         /* Repeat is on and the key is down. */
+         (b_repeat_in &&
+         as_keys[i_key_test])
+      ) {
+         tab_poll_last[i] = TRUE;
+         ps_event_out->state[i] = TRUE;
+
+      } else if( !as_keys[i_key_test] ) {
+         /* The key isn't down. */
+         tab_poll_last[i] = FALSE;
+         ps_event_out->state[i] = FALSE;
+
+      } else {
+         ps_event_out->state[i] = FALSE;
+      }
+   }
 }

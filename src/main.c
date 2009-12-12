@@ -18,31 +18,28 @@
 
 #include <stdlib.h>
 
-/* #ifdef __APPLE__
-   #include <SDL/SDL.h>
-   #include <SDL/SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL_mixer/SDL_mixer.h>
-   #endif // USEMUSIC
+#ifdef USESDL
+#ifdef __APPLE__
+#include <SDL/SDL.h>
 #elif defined __unix__
-   #include <SDL/SDL.h>
-   #include <SDL/SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL/SDL_mixer.h>
-   #endif // USEMUSIC
+#include <SDL/SDL.h>
 #else
-   #include <SDL.h>
-   #include <SDL_ttf.h>
-   #ifdef USEMUSIC
-      #include <SDL_mixer.h>
-   #endif // USEMUSIC
-#endif */
+#include <SDL.h>
+#endif /* __APPLE__, __unix__ */
+#endif /* USESDL */
 
 #include "defines.h"
 #include "cache.h"
 #include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
+#include "systype_visnov.h"
+
+#ifdef USEWII
+#include "zeromaid_wii_data.h"
+#endif /* USEWII */
+
+DBG_MAIN
 
 /* = Global Variables = */
 
@@ -51,9 +48,23 @@ extern CACHE_CACHE* gps_cache;
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
-   // short unsigned int i_bol_running = TRUE;
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0; /* The program error level returned to the shell. */
+   bstring ps_system_path;
+   bstring ps_title;
+
+   /* Initialize what we need to use functions to initialize. */
+   ps_title = bformat( "%s", SYSTEM_TITLE );
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+
+   /* Setup the random number generator. */
+   srand( time( NULL ) );
+
+   /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
+   #ifdef USEWII
+   dolfsInit( &zeromaid_wii_data );
+   WPAD_Init();
+   #endif /* USEWII */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
@@ -62,30 +73,33 @@ int main( int argc, char* argv[] ) {
    /* Platform-dependent miscellaneous initialization. */
    #ifdef USESDL
    TTF_Init();
-   #elif defined USEWII
-   WPAD_Init();
-   #endif /* USESDL, USEWII */
+   SDL_EnableKeyRepeat( 0, 0 );
+   #endif /* USESDL */
 
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
-   bstring ps_title = bfromcstr( SYSTEM_TITLE );
    graphics_create_screen(
       GFX_SCREENWIDTH,
       GFX_SCREENHEIGHT,
       GFX_SCREENDEPTH,
       ps_title
    );
-   bdestroy( ps_title );
+
+   /* Verify the integrity of the system data file. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR( "Unable to find system.xml." );
+      i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
-   gps_cache = malloc( sizeof( CACHE_CACHE ) );
+   gps_cache = calloc( 1, sizeof( CACHE_CACHE ) );
    if( NULL == gps_cache ) {
       DBG_ERR( "There was a problem allocating the system cache." );
       i_error_level = ERROR_LEVEL_MALLOC;
       goto main_cleanup;
    }
-   memset( gps_cache, 0, sizeof( CACHE_CACHE ) );
 
    /* Start the loop that loads the other gameplay loops. */
    i_last_return = systype_title_loop();
@@ -95,9 +109,9 @@ int main( int argc, char* argv[] ) {
          case RETURN_ACTION_LOADCACHE:
             /* Execute the next instruction based on the system cache. */
             if( SYSTEM_TYPE_ADVENTURE == gps_cache->game_type ) {
-               i_last_return = systype_adventure_loop();
+               i_last_return = systype_adventure_loop( gps_cache->map_name );
             } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
-               /* TODO: Visual Novel */
+               i_last_return = systype_visnov_loop( gps_cache->map_name );
             }
             break;
 
@@ -109,17 +123,18 @@ int main( int argc, char* argv[] ) {
 
 main_cleanup:
 
+   bdestroy( ps_system_path );
+   bdestroy( ps_title );
+
    #ifdef OUTTOFILE
    fclose( gps_debug );
    #endif /* OUTTOFILE */
 
    #ifdef USESDL
    TTF_Quit();
-   #elif defined USEWII
-   GRRLIB_Exit();
-   #endif /* USESDL, USEWII */
+   #endif /* USESDL */
 
-   return 0;
+   return i_error_level;
 }
 
 #ifdef USEALLEGRO

@@ -23,59 +23,71 @@
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
 
+#ifdef USEWII
+#include <gctypes.h>
+#endif /* USEWII */
+
 /* = Definitions = */
 
 /* Platform-specific stuff. */
-#ifdef USEWII
-#define FILE_EXTENSION_IMAGE "png"
-#else
 #define FILE_EXTENSION_IMAGE "bmp"
-#endif /* USEWII */
 #define FILE_EXTENSION_FONT "ttf"
+#define FILE_EXTENSION_AI "aib"
 
 #define SYSTEM_TITLE "ZeroMaid"
 
+/* System loop types. */
 #define SYSTEM_TYPE_TITLE 0
 #define SYSTEM_TYPE_ADVENTURE 1
 #define SYSTEM_TYPE_TACTICS 2
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
 
+#ifndef USEWII
+typedef unsigned int BOOL;
 #define FALSE 0
 #define TRUE 1
+#endif /* USEWII */
 
-#define PATH_SHARE "."
-#define PATH_MAPDATA "/mapdata"
-#define PATH_SCRDATA "/scrdata"
+/* The directory from which to fetch data files. */
+#ifdef USEWII
+#define PATH_SHARE "zeromaid_wii_data:/"
+#else
+#define PATH_SHARE "./"
+#endif /* USEWII */
+
 #define PATH_FILE_SYSTEM "system.xml"
 
 #define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
 #define RETURN_ACTION_TITLE 1 /* Display the title screen. */
 #define RETURN_ACTION_LOADCACHE 2 /* Load the next instruction/data from the  *
                                    * cache.                                   */
-
 #define TEAM_MAX_SIZE 10
 
 #define SYSTYPE_TITLE 1
 
-#define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory! */
+#define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
+#define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
+
+#define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */
 
 #ifdef OUTTOFILE
-
+#ifdef USEWII
+#define DEBUG_OUT_PATH "sd:/zeromaid_out.txt"
+#else
 #define DEBUG_OUT_PATH "./dbg_out.txt"
+#endif /* USEWII */
 #define DEBUG_HANDLE_INFO gps_debug
 #define DEBUG_HANDLE_ERR gps_debug
-
+#define DBG_MAIN FILE* gps_debug;
+#define DBG_ENABLE extern FILE* gps_debug;
 #else
-
 #define DEBUG_HANDLE_INFO stdout
 #define DEBUG_HANDLE_ERR stderr
-
 /* If output is to the console, we don't need to enable. */
+#define DBG_MAIN
 #define DBG_ENABLE
-
 #define DBG_CLOSE
-
 #endif /* OUTTOFILE */
 
 /* = Macros = */

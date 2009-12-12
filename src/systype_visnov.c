@@ -14,38 +14,21 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef SYSTYPE_ADVENTURE_H
-#define SYSTYPE_ADVENTURE_H
+#include "systype_visnov.h"
 
-/* = Includes = */
+DBG_ENABLE
 
-#include "defines.h"
-#include "graphics.h"
-#include "event.h"
-#include "tilemap.h"
-#include "mobile.h"
-#include "cache.h"
+/* = Global Variables = */
 
-/* = Definitions = */
+extern CACHE_CACHE* gps_cache;
 
-/* = Type and Struct Definitions = */
+/* = Functions = */
 
-typedef struct {
-   MOBILE_MOBILE* mobile;
-   int speed; /* The number of pixels to move per cycle. */
-   TILEMAP_DIR direction; /* The direction being walked in. */
-} SYSTYPE_ADVENTURE_WALK;
+/* Purpose: Visual novel loop.                                                */
+/* Parameters: The name of the scene to play.                                 */
+/* Return: The code for the next action to take.                              */
+int systype_visnov_loop( bstring ps_scene_name_in ) {
+   int i_act_return = 0;
 
-/* = Function Prototypes = */
-
-int systype_adventure_loop( bstring );
-BOOL systype_adventure_mobile_walk(
-   MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*
-);
-void systype_adventure_viewport_scroll(
-   GFX_RECTANGLE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, TILEMAP_DIR );
-void systype_adventure_viewport_draw(
-   GFX_RECTANGLE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, BOOL );
-MOBILE_MOBILE* systype_adventure_load_mobiles( int*, TILEMAP_TILEMAP* );
-
-#endif /* SYSTYPE_ADVENTURE_H */
+   return i_act_return;
+}
