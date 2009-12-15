@@ -300,6 +300,12 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache.h" />
+		<Unit filename="ddutil.cpp">
+			<Option target="Debug-Windows-i686-DirectX" />
+		</Unit>
+		<Unit filename="ddutil.h">
+			<Option target="Debug-Windows-i686-DirectX" />
+		</Unit>
 		<Unit filename="defines.h" />
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />

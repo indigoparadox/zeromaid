@@ -20,37 +20,79 @@
 
 DBG_ENABLE
 
+/* = Global Variables = */
+
+#ifdef USEDIRECTX
+LPDIRECTDRAW7 gps_dx_ddraw = NULL;
+LPDIRECTDRAWSURFACE7 gps_surface_primary = NULL;
+LPDIRECTDRAWSURFACE7 gps_surface_back = NULL;
+DDSURFACEDESC2 gs_surface_desc;
+#endif /* USEDIRECTX */
+
 /* = Functions = */
 
-/* Purpose: Create a surface that, when drawn to, draws to the screen.        */
+/* Purpose: Prepare the surface that, when drawn to, draws to the screen. The *
+ *          surface can then be accessed through a global mechanism later.    */
 /* Parameters: Screen width, screen height, screen color depth, screen window *
  *             title.                                                         */
-/* Return: A pointer to the screen surface.                                   */
-GFX_SURFACE* graphics_create_screen(
+/* Return: A boolean indicating success or failure.                           */
+BOOL graphics_create_screen(
    int i_width_in, int i_height_in, int i_depth_in, bstring ps_title_in
 ) {
-   GFX_SURFACE* ps_screen = NULL;
+   BOOL b_success = TRUE;
 
    #ifdef USESDL
-   ps_screen = SDL_SetVideoMode(
+   if( NULL == SDL_SetVideoMode(
       i_width_in, i_height_in, i_depth_in, SDL_HWSURFACE | SDL_DOUBLEBUF
-   );
-
-   if( NULL == ps_screen ) {
+   ) ) {
       DBG_ERR_STR( "Unable to setup screen", SDL_GetError() );
-      return NULL;
+      b_success = FALSE;
+      goto gcs_cleanup;
+   } else {
+      /* The screen was opened. */
+      SDL_WM_SetCaption( ps_title_in->data, ps_title_in->data );
+   }
+   #elif defined USEDIRECTX
+
+
+   if( FAILED(
+      DirectDrawCreateEx( NULL, (void**)gps_dx_ddraw, IID_IDirectDraw7, NULL )
+   ) ) {
+      DBG_ERR( "Unable to setup screen." );
+      b_success = FALSE;
+      goto gcs_cleanup;
    }
 
-   #ifdef __arm__
-   SDL_WM_ToggleFullScreen( ps_screen );
-   #endif /* __arm__ */
+   /* Attach the primary surface. */
+   gs_surface_desc.dwFlags = DDSD_CAPS|DDSD_BACKBUFFERCOUNT;
+   gs_surface_desc.dwBackBufferCount = 1;
+   gs_surface_desc.ddsCaps.dwCaps =
+      DDSCAPS_PRIMARYSURFACE|DDSCAPS_COMPLEX|DDSCAPS_FLIP;
 
-   SDL_WM_SetCaption( ps_title_in->data, ps_title_in->data );
+   if( gps_dx_ddraw->CreateSurface(
+      &gs_surface_desc, &gps_surface_primary, NULL
+   ) != DD_OK ) {
+      DBG_ERR( "Failed to create DirectDraw primary surface." );
+      b_success = FALSE;
+      goto gcs_cleanup;
+   }
+
+   gs_surface_desc.ddsCaps.dwCaps = DDSCAPS_BACKBUFFER;
+
+   if( gps_surface_primary->GetAttachedSurface(
+      &gs_surface_desc.ddsCaps, &gps_surface_back
+   ) != DD_OK ) {
+      DBG_ERR( "Failed to create DirectDraw backbuffer surface." );
+      b_success = FALSE;
+      goto gcs_cleanup;
+   }
    #else
    #error "No screen-getting mechanism defined for this platform!"
    #endif /* USESDL */
 
-   return ps_screen;
+gcs_cleanup:
+
+   return b_success;
 }
 
 /* Purpose: Create a surface with the specified image loaded onto it.         */
@@ -61,11 +103,13 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
 
    #ifdef USESDL
    Uint32 i_color_key = 0;
-   GFX_SURFACE* ps_temp = SDL_LoadBMP( ps_path_in->data );
+   GFX_SURFACE* ps_temp = NULL; /* Image before transparency. */
+
+   /* Load the temporary image. */
+   ps_temp = SDL_LoadBMP( ps_path_in->data );
 
    if( NULL != ps_temp ) {
       ps_image = SDL_DisplayFormat( ps_temp );
-      SDL_FreeSurface( ps_temp );
 
       /* Setup transparency. */
       i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
@@ -74,12 +118,21 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       DBG_INFO_STR( "Successfully loaded image", ps_path_in->data );
    } else {
       DBG_ERR_STR( "Failed to load image", ps_path_in->data );
+      goto gci_cleanup;
    }
+   #elif defined USEDIRECTX
+   ps_image = DDLoadBitmap( gps_dx_ddraw, (LPCSTR)ps_path_in->data, 0, 0 );
    #else
    #error "No image loading mechanism defined for this platform!"
    #endif /* USESDL */
 
-    return ps_image;
+gci_cleanup:
+
+   #ifdef USESDL
+   SDL_FreeSurface( ps_temp );
+   #endif /* USESDL */
+
+   return ps_image;
 }
 
 /* Purpose: Create a spritesheet that can be used to populate a mobile or     *
@@ -134,7 +187,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       DBG_ERR_STR( "Unable to load tile data", ps_path_in->data );
       return NULL;
    }
-   ps_xml_tileset = ezxml_parse_file( ps_path_in->data );
+   ps_xml_tileset = ezxml_parse_file( (const char*)ps_path_in->data );
 
    /* Load the image file. */
    ps_xml_image = ezxml_child( ps_xml_tileset, "image" );
@@ -159,7 +212,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
          /* Get the GID of the next tile. */
          ps_gid_string = bformat( "%s", ezxml_attr( ps_xml_tile, "id" ) );
          if( NULL != ps_gid_string ) {
-            i_gid = atoi( ps_gid_string->data );
+            i_gid = atoi( (const char*)ps_gid_string->data );
             bdestroy( ps_gid_string );
          } else {
             /* A tile with no GID is useless. */
@@ -170,7 +223,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
          /* Ensure the tile list is big enough to reach this GID. */
          if( ps_tileset_out->tile_list_count <= i_gid ) {
             ps_tileset_out->tile_list_count = i_gid + 1;
-            ps_tile_new_malloc = realloc(
+            ps_tile_new_malloc = (GFX_TILEDATA*)realloc(
                ps_tileset_out->tile_list,
                ps_tileset_out->tile_list_count * sizeof( GFX_TILEDATA )
             );
@@ -204,7 +257,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
                0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hindrance" )
             ) {
                ps_tileset_out->tile_list[i_gid].hindrance =
-                  atoi( ps_prop_string->data );
+                  atoi( (const char*)ps_prop_string->data );
 
             } else if(
                NULL != ps_prop_string &&
@@ -259,6 +312,14 @@ GFX_COLOR* graphics_create_color(
 
    #ifdef USESDL
    ps_color_out = calloc( 1, sizeof( GFX_COLOR ) );
+   if( NULL == ps_color_out ) {
+      DBG_ERR( "Unable to allocate color." );
+   }
+   ps_color_out->r = i_red_in;
+   ps_color_out->g = i_green_in;
+   ps_color_out->b = i_blue_in;
+   #elif defined USEDIRECTX
+   ps_color_out = (GFX_COLOR*)calloc( 1, sizeof( GFX_COLOR ) );
    if( NULL == ps_color_out ) {
       DBG_ERR( "Unable to allocate color." );
    }
@@ -360,6 +421,8 @@ void graphics_draw_text(
    /* Clean up. */
    TTF_CloseFont( ps_font );
    SDL_FreeSurface( ps_type_render_out );
+   #elif defined USEDIRECTX
+   // TODO
    #else
    #error "No text rendering mechanism defined for this platform!"
    #endif /* USESDL */
@@ -373,14 +436,22 @@ void graphics_draw_blit_tile(
    GFX_RECTANGLE* ps_srcreg_in,
    GFX_RECTANGLE* ps_destreg_in
 ) {
-   #ifdef USESDL
    if( NULL == ps_src_in ) {
       DBG_ERR( "Attempted to blit from NULL source!" );
       return;
    }
 
+   #ifdef USESDL
    /* No problems, blit! */
    SDL_BlitSurface( ps_src_in, ps_srcreg_in, SDL_GetVideoSurface(), ps_destreg_in );
+   #elif defined USEDIRECTX
+   RECT s_dest = {
+      ps_destreg_in->x,
+      ps_destreg_in->y,
+      ps_destreg_in->x + ps_src_in->width,
+      ps_destreg_in->y + ps_src_in->height
+   };
+   gps_surface_back->Blt( &s_dest, ps_src_in, NULL, DDBLT_WAIT, NULL );
    #else
    #error "No tile blitting mechanism defined for this platform!"
    #endif /* USESDL */
@@ -425,6 +496,18 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    );
 
    SDL_FillRect( ps_screen, &s_screenrect, i_color_temp );
+   #elif defined USEDIRECTX
+   DDBLTFX s_fx;
+   memset( &s_fx, 0, sizeof( DDBLTFX ) );
+   s_fx.dwSize = sizeof( DDBLTFX );
+   s_fx.dwFillColor(
+      ps_color_in->r,
+      ps_color_in->g,
+      ps_color_in->b
+   );
+
+   gps_surface_back->
+      Blt( NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT, &s_fx );
    #else
    #error "No blanking mechanism defined for this platform!"
    #endif /* USESDL */
