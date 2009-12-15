@@ -64,7 +64,11 @@ typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
 #elif defined USEDIRECTX
-typedef IDirectDrawSurface7 GFX_SURFACE;
+typedef struct {
+   LPDIRECTDRAWSURFACE7 surface;
+   int w,
+      h;
+} GFX_SURFACE;
 typedef struct { int x, y, w, h; } GFX_RECTANGLE;
 typedef struct { int r, g, b; } GFX_COLOR;
 #else
@@ -115,6 +119,11 @@ typedef struct {
 #define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
 
 #endif /* USESDL */
+
+#ifdef USEDIRECTX
+#define PACK_16_BIT( r, g, b ) \
+   (((r & 248) << 8) + ((g & 252) << 3) + (b >> 3))
+#endif /* USEDIRECTX */
 
 /* = Function Prototypes = */
 

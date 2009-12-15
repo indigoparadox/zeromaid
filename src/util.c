@@ -22,7 +22,7 @@
 /* Parameters: The path of the file to test.                                  */
 /* Return: TRUE if the file exists and can be read, otherwise FALSE.          */
 int file_exists( bstring ps_path_in ) {
-   FILE* ps_file_test = fopen( ps_path_in->data, "r" );
+   FILE* ps_file_test = fopen( (const char*)ps_path_in->data, "r" );
    if( NULL != ps_file_test ) {
       fclose( ps_file_test );
       return TRUE;
@@ -37,9 +37,9 @@ int file_exists( bstring ps_path_in ) {
 /* Return: A boolean indicator of the string's truth.                         */
 BOOL string_is_true( bstring ps_test_in ) {
    if(
-      0 == strcmp( ps_test_in->data, "true" ) ||
-      0 == strcmp( ps_test_in->data, "TRUE" ) ||
-      0 == strcmp( ps_test_in->data, "1" )
+      0 == strcmp( (const char*)ps_test_in->data, "true" ) ||
+      0 == strcmp( (const char*)ps_test_in->data, "TRUE" ) ||
+      0 == strcmp( (const char*)ps_test_in->data, "1" )
    ) {
       return TRUE;
    } else {
@@ -56,7 +56,9 @@ int string_in_array(
    int i; /* Loop iterator. */
 
    for( i = i_start_in ; i < i_count_in ; i++ ) {
-      if( 0 == strcmp( ps_needle_in->data, ps_haystack_in[i]->data ) ) {
+      if( 0 == strcmp(
+         (const char*)ps_needle_in->data, (const char*)ps_haystack_in[i]->data )
+      ) {
          return i;
       }
    }

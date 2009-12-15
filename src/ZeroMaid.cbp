@@ -20,6 +20,7 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#sdl)\include" />
 				</Compiler>
 				<Linker>
@@ -49,6 +50,7 @@
 					<Add option="-O2" />
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#sdl)\include" />
 				</Compiler>
 				<Linker>
@@ -100,6 +102,7 @@
 					<Add option="-O2" />
 					<Add option="-DUSEALLEGRO" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#allegro)\include" />
 				</Compiler>
 				<Linker>
@@ -167,6 +170,7 @@
 					<Add option="-DUSEWII" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="C:\lib\devkitPro\sdlwii\include" />
 					<Add directory="C:\lib\devkitPro\libdolfs\include" />
 				</Compiler>
@@ -218,6 +222,7 @@
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="C:\lib\devkitPro\sdl\include" />
 				</Compiler>
 				<Linker>
@@ -261,6 +266,7 @@
 					<Add option="-DUSENDS" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="C:\lib\devkitPro\sdlnds\include" />
 				</Compiler>
 				<Linker>
@@ -276,21 +282,27 @@
 				<Option compiler="microsoft_visual_c_2008" />
 				<Compiler>
 					<Add option="/TP" />
+					<Add option="/W1" />
 					<Add option="/Zi /D_DEBUG" />
 					<Add option="/DVISUALSTUDIO" />
 					<Add option="/DUSEDIRECTX" />
 					<Add option="/DUSEMUSIC" />
+					<Add option="/DEZXML_NOMMAP" />
 					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
 				</Compiler>
 				<Linker>
 					<Add option="/DEBUG" />
+					<Add library="dinput8.lib" />
+					<Add library="ddraw.lib" />
+					<Add library="dxguid.lib" />
+					<Add library="User32.lib" />
+					<Add library="Gdi32.lib" />
 					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DEZXML_NOMMAP" />
 		</Compiler>
 		<Unit filename="bstring\bstrlib.c">
 			<Option compilerVar="CC" />

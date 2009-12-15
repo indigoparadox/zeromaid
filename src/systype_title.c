@@ -162,10 +162,7 @@ slt_cleanup:
       free( ps_title_iter->fg_highlight );
       free( ps_title_iter );
    }
-   #ifdef USESDL
-   #else
-   event_timer_free( ps_fps );
-   #endif /* USESDL */
+   GFX_DRAW_LOOP_FREE
    free( ps_color_fade );
    bdestroy( ps_font_name );
    for( i = 0 ; SYSTYPE_TITLE_MENU_LEN > i ; i++ ) {
@@ -203,10 +200,12 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    while( NULL != ps_xml_titlescreen_iter ) {
       /* Create a new title screen structure to fill. */
       if( NULL == ps_titlescreen_iter ) {
-         ps_titlescreen_iter = malloc( sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
+         ps_titlescreen_iter = (SYSTYPE_TITLE_TITLESCREEN*)malloc(
+            sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
          ps_titlescreen_head = ps_titlescreen_iter;
       } else {
-         ps_titlescreen_iter->next = malloc( sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
+         ps_titlescreen_iter->next = (SYSTYPE_TITLE_TITLESCREEN*)malloc(
+            sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
          ps_titlescreen_iter = ps_titlescreen_iter->next;
       }
       if( NULL == ps_titlescreen_iter ) {
@@ -283,11 +282,13 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       while( NULL != ps_xml_text_iter ) {
          if( NULL == ps_titlescreen_iter->text_node ) {
             /* Create the first text node. */
-            ps_titlescreen_iter->text_node = malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+            ps_titlescreen_iter->text_node =
+               (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
             ps_text_iter = ps_titlescreen_iter->text_node;
          } else {
             /* Append a new text node. */
-            ps_text_iter->next = malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+            ps_text_iter->next =
+               (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
             ps_text_iter = ps_text_iter->next;
          }
          if( NULL == ps_text_iter ) {
@@ -383,7 +384,7 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
       b_success = FALSE;
       goto stls_cleanup;
    }
-   ps_xml_system = ezxml_parse_file( ps_system_path->data );
+   ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
 
    /* Load the single-player story data. */
    ps_xml_story = ezxml_child( ps_xml_system, "story" );

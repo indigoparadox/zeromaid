@@ -59,6 +59,9 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path;
    bstring ps_title;
+   #ifdef USEDIRECTX
+   HWND s_window;
+   #endif /* USEDIRECTX */
 
    /* Initialize what we need to use functions to initialize. */
    ps_title = bformat( "%s", SYSTEM_TITLE );
@@ -78,11 +81,12 @@ int main( int argc, char* argv[] ) {
 
    /* Initialize DirectX input stuff. */
    #ifdef USEDIRECTX
+   s_window = GetActiveWindow();
    if( FAILED( DirectInput8Create(
       GetModuleHandle( NULL ),
       DIRECTINPUT_VERSION,
       IID_IDirectInput8,
-      (void**)&lpdi,
+      (void**)&gs_lpdi,
       NULL
    ) ) ) {
       // error code
@@ -90,12 +94,12 @@ int main( int argc, char* argv[] ) {
    if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
       /* error code */
    }
-   if( FAILED( m_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
+   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
       /* error code */
    }
    if( FAILED(
       gs_keyboard->SetCooperativeLevel(
-         hWND,
+         s_window,
          DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
       )
    ) ) {
@@ -182,7 +186,7 @@ main_cleanup:
    }
 
    if( gs_lpdi ) {
-      lpdi->Release();
+      gs_lpdi->Release();
    }
    #endif /* USEDIRECTX */
 
