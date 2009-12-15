@@ -376,7 +376,7 @@ void graphics_draw_text(
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
    static bstring ps_last_font = NULL;
-   int i_font_index;
+   int i; /* Loop iterator. */
 
    static TTF_Font** tas_font_list = NULL; /* List of loaded fonts. */
    static bstring* tas_font_list_names = NULL; /* Parallel, loaded fnt names. */
@@ -402,9 +402,19 @@ void graphics_draw_text(
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
 
    /* See if we've already loaded the font. */
-   i_font_index = string_in_array(
-      ps_font_name_in, 0, tas_font_list_names, ti_font_list_count );
-   if( 0 > i_font_index ) {
+   for( i = 0 ; i < ti_font_list_count ; i++ ) {
+      if(
+         0 == strcmp( ps_font_name_in->data, tas_font_list_names[i]->data ) &&
+         i_size_in == tai_font_list_sizes[i]
+      ) {
+         /* The requested font/size was found, so use it. */
+         ps_font = tas_font_list[i];
+         break;
+      }
+   }
+
+   /* If the font was not found, then load it into the list. */
+   if( NULL == ps_font ) {
       /* Resize and append to the fonts array. */
       ti_font_list_count++;
       tas_font_list = realloc(
@@ -431,8 +441,6 @@ void graphics_draw_text(
 
       /* Finally, select the font. */
       ps_font = tas_font_list[ti_font_list_count - 1];
-   } else {
-      ps_font = tas_font_list[i_font_index];
    }
 
    /* Open the font and render the text. */
