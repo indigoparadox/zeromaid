@@ -46,3 +46,21 @@ BOOL string_is_true( bstring ps_test_in ) {
       return FALSE;
    }
 }
+
+int string_in_array(
+   bstring ps_needle_in,
+   int i_start_in,
+   bstring* ps_haystack_in,
+   int i_count_in
+) {
+   int i; /* Loop iterator. */
+
+   for( i = i_start_in ; i < i_count_in ; i++ ) {
+      if( 0 == strcmp( ps_needle_in->data, ps_haystack_in[i]->data ) ) {
+         return i;
+      }
+   }
+
+   /* Item wasn't found. */
+   return -1;
+}

@@ -28,5 +28,6 @@
 
 int file_exists( bstring );
 BOOL string_is_true( bstring );
+int string_in_array( bstring, int, bstring*, int );
 
 #endif /* UTIL_H */

@@ -376,6 +376,12 @@ void graphics_draw_text(
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
    static bstring ps_last_font = NULL;
+   int i_font_index;
+
+   static TTF_Font** tas_font_list = NULL; /* List of loaded fonts. */
+   static bstring* tas_font_list_names = NULL; /* Parallel, loaded fnt names. */
+   static int* tai_font_list_sizes = NULL;
+   static int ti_font_list_count = 0; /* Number of loaded fonts. */
    #endif /* USESDL */
 
    if( NULL == ps_string_in ) {
@@ -395,8 +401,41 @@ void graphics_draw_text(
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
 
+   /* See if we've already loaded the font. */
+   i_font_index = string_in_array(
+      ps_font_name_in, 0, tas_font_list_names, ti_font_list_count );
+   if( 0 > i_font_index ) {
+      /* Resize and append to the fonts array. */
+      ti_font_list_count++;
+      tas_font_list = realloc(
+         tas_font_list,
+         ti_font_list_count * sizeof( TTF_Font* )
+      );
+      tas_font_list[ti_font_list_count - 1] =
+         TTF_OpenFont( ps_font_name_in->data, i_size_in );
+
+      /* Resize and append to the names array. */
+      tas_font_list_names = realloc(
+         tas_font_list_names,
+         ti_font_list_count * sizeof( bstring )
+      );
+      tas_font_list_names[ti_font_list_count - 1] =
+         bformat( "%s", ps_font_name_in->data );
+
+      /* Resize and append to the sizes array. */
+      tai_font_list_sizes = realloc(
+         tai_font_list_sizes,
+         ti_font_list_count * sizeof( int )
+      );
+      tai_font_list_sizes[ti_font_list_count - 1] = i_size_in;
+
+      /* Finally, select the font. */
+      ps_font = tas_font_list[ti_font_list_count - 1];
+   } else {
+      ps_font = tas_font_list[i_font_index];
+   }
+
    /* Open the font and render the text. */
-   ps_font = TTF_OpenFont( ps_font_name_in->data, i_size_in );
    if( NULL == ps_font ) {
       /* Only log the error once. */
       if( 0 != bstrcmp( ps_last_font, ps_font_name_in ) ) {
@@ -419,7 +458,6 @@ void graphics_draw_text(
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
 
    /* Clean up. */
-   TTF_CloseFont( ps_font );
    SDL_FreeSurface( ps_type_render_out );
    #elif defined USEDIRECTX
    // TODO
