@@ -87,15 +87,12 @@ int main( int argc, char* argv[] ) {
    ) ) ) {
       // error code
    }
-
    if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
       /* error code */
    }
-
    if( FAILED( m_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
       /* error code */
    }
-
    if( FAILED(
       gs_keyboard->SetCooperativeLevel(
          hWND,
@@ -104,7 +101,6 @@ int main( int argc, char* argv[] ) {
    ) ) {
       /* error code */
    }
-
    if( FAILED( gs_keyboard->Acquire() ) ) {
       /* error code */
    }

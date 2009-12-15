@@ -33,6 +33,7 @@
 #elif defined USEDIRECTX
 #include <windows.h>
 #include <ddraw.h>
+#include "ddutil.h"
 #endif /* USESDL, USEDIRECTX */
 
 #include "defines.h"
@@ -65,7 +66,7 @@ typedef SDL_Color GFX_COLOR;
 #elif defined USEDIRECTX
 typedef IDirectDrawSurface7 GFX_SURFACE;
 typedef struct { int x, y, w, h; } GFX_RECTANGLE;
-typedef int GFX_COLOR;
+typedef struct { int r, g, b; } GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL */
@@ -117,7 +118,7 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-GFX_SURFACE* graphics_create_screen( int, int, int, bstring );
+BOOL graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_SPRITESHEET* graphics_create_spritesheet( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
