@@ -64,7 +64,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
-   gps_player = malloc( sizeof( MOBILE_MOBILE ) );
+   gps_player = (MOBILE_MOBILE*)malloc( sizeof( MOBILE_MOBILE ) );
    memcpy( gps_player, &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
    gps_player->pixel_x += ps_map->tileset->pixel_size;
 
@@ -286,7 +286,7 @@ BOOL systype_adventure_mobile_walk(
                );
             }
             ti_walking_ops_count--;
-            tas_walking_ops = realloc(
+            tas_walking_ops = (SYSTYPE_ADVENTURE_WALK*)realloc(
                tas_walking_ops,
                ti_walking_ops_count * sizeof( SYSTYPE_ADVENTURE_WALK )
             );
@@ -347,7 +347,7 @@ BOOL systype_adventure_mobile_walk(
    /* The specified mobile is neither walking already nor otherwise moving,   *
     * so start walking and add the mobile to the list of walking mobiles.     */
    ti_walking_ops_count++;
-   tas_walking_ops = realloc(
+   tas_walking_ops = (SYSTYPE_ADVENTURE_WALK*)realloc(
       tas_walking_ops,
       ti_walking_ops_count * sizeof( SYSTYPE_ADVENTURE_WALK )
    );
@@ -437,13 +437,13 @@ MOBILE_MOBILE* systype_adventure_load_mobiles(
       DBG_ERR_STR( "Unable to load mobile list", ps_mob_xml_path->data );
       return NULL;
    }
-   ps_xml_mobiles = ezxml_parse_file( ps_mob_xml_path->data );
+   ps_xml_mobiles = ezxml_parse_file( (const char*)ps_mob_xml_path->data );
 
    ps_xml_mob_iter = ezxml_child( ps_xml_mobiles, "mobile" );
    while( NULL != ps_xml_mob_iter ) {
       /* A tile was found in the XML, so prepare the array for it. */
       *i_count_out += 1;
-      ps_mobs_out = realloc(
+      ps_mobs_out = (MOBILE_MOBILE*)realloc(
          ps_mobs_out,
          *i_count_out * sizeof( MOBILE_MOBILE )
       );

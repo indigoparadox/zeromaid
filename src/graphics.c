@@ -121,7 +121,43 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       goto gci_cleanup;
    }
    #elif defined USEDIRECTX
-   ps_image = DDLoadBitmap( gps_dx_ddraw, (LPCSTR)ps_path_in->data, 0, 0 );
+   FILE* ps_file_bmp = NULL; /* Pointer to read extra bitmap info. */
+   long i_offset,
+      i_width,
+      i_height;
+	short i_type;
+
+   /* Verify that the given path leads to a bitmap. */
+   ps_file_bmp = fopen( (const char*)ps_path_in->data, "rb" );
+	if( NULL == ps_file_bmp ) {
+      DBG_ERR_STR( "Failed to load image", ps_path_in->data );
+      goto gci_cleanup;
+	}
+	fread( &i_type, sizeof( short ), 1, ps_file_bmp );
+	if( 0x4D42 != i_type ) {
+      DBG_ERR_STR( "Invalid bitmap specified", ps_path_in->data );
+      goto gci_cleanup;
+	}
+
+	/* Get the bitmap height/width. */
+	fseek( ps_file_bmp, 10, SEEK_SET );
+	fread( &i_offset, sizeof( long ), 1, ps_file_bmp );
+	fseek( ps_file_bmp, 4, SEEK_CUR );
+	fread( &i_width, sizeof( long ), 1, ps_file_bmp );
+	fread( &i_height, sizeof( long ), 1, ps_file_bmp );
+	fseek( ps_file_bmp, 2, SEEK_CUR );
+	fclose( ps_file_bmp );
+
+   /* Build and fill the surface struct. */
+   ps_image = (GFX_SURFACE*)calloc( 1, sizeof( GFX_SURFACE ) );
+   if( NULL == ps_image ) {
+      DBG_ERR( "Unable to allocate surface." );
+      goto gci_cleanup;
+   }
+
+   ps_image->surface = DDLoadBitmap( gps_dx_ddraw, (LPCSTR)ps_path_in->data, 0, 0 );
+   ps_image->w = i_width;
+   ps_image->h = i_height;
    #else
    #error "No image loading mechanism defined for this platform!"
    #endif /* USESDL */
@@ -130,6 +166,8 @@ gci_cleanup:
 
    #ifdef USESDL
    SDL_FreeSurface( ps_temp );
+   #elif defined USEDIRECTX
+   fclose( ps_file_bmp );
    #endif /* USESDL */
 
    return ps_image;
@@ -494,10 +532,10 @@ void graphics_draw_blit_tile(
    RECT s_dest = {
       ps_destreg_in->x,
       ps_destreg_in->y,
-      ps_destreg_in->x + ps_src_in->width,
-      ps_destreg_in->y + ps_src_in->height
+      ps_destreg_in->x + ps_src_in->w,
+      ps_destreg_in->y + ps_src_in->h
    };
-   gps_surface_back->Blt( &s_dest, ps_src_in, NULL, DDBLT_WAIT, NULL );
+   gps_surface_back->Blt( &s_dest, ps_src_in->surface, NULL, DDBLT_WAIT, NULL );
    #else
    #error "No tile blitting mechanism defined for this platform!"
    #endif /* USESDL */
@@ -512,7 +550,8 @@ void graphics_draw_blit_sprite(
    GFX_RECTANGLE* ps_destreg_in
 ) {
    #ifdef USESDL
-
+   graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
+   #elif defined USEDIRECTX
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #else
    #error "No sprite blitting mechanism defined for this platform!"
@@ -546,7 +585,7 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
    DDBLTFX s_fx;
    memset( &s_fx, 0, sizeof( DDBLTFX ) );
    s_fx.dwSize = sizeof( DDBLTFX );
-   s_fx.dwFillColor(
+   s_fx.dwFillColor = PACK_16_BIT(
       ps_color_in->r,
       ps_color_in->g,
       ps_color_in->b
@@ -630,9 +669,11 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    /* Clean up. */
    SDL_FreeSurface( ps_surface_screen_copy );
    SDL_FreeSurface( ps_surface_fader );
+   #elif defined USEDIRECTX
+   // TODO
    #else
    #error "No in-fading mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX */
 }
 
 /* Purpose: Flip the screen surface buffer.                                   */
@@ -640,9 +681,11 @@ void graphics_do_update( void ) {
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    SDL_Flip( ps_screen );
+   #elif defined USEDIRECTX
+   gps_surface_primary->Flip( gps_surface_back, DDFLIP_WAIT );
    #else
    #error "No surface flipping mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX */
 }
 
 /* Purpose: Get the data for the tile with the given GID.                     */
@@ -657,9 +700,12 @@ GFX_TILEDATA* graphics_get_tiledata( int i_gid_in, GFX_TILESET* ps_tileset_in ) 
 void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
+   #elif defined USEDIRECTX
+   free( ps_surface_in->surface );
+   free( ps_surface_in );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX */
 }
 
 /* Purpose: Free the given spritesheet buffer.                                */
@@ -669,6 +715,8 @@ void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
    if( NULL != ps_spritesheet_in ) {
       SDL_FreeSurface( ps_spritesheet_in->image );
    }
+   #elif defined USEDIRECTX
+   graphics_free_image( ps_spritesheet_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
    #endif /* USESDL */
@@ -681,9 +729,11 @@ void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
 void graphics_free_tileset( GFX_TILESET* ps_tileset_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_tileset_in->image );
+   #elif defined USEDIRECTX
+   graphics_free_image( ps_tileset_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX */
 
    free( ps_tileset_in );
 }

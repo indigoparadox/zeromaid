@@ -43,7 +43,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
       DBG_ERR_STR( "Unable to load map", ps_path_in->data );
       return NULL;
    }
-   ps_xml_map = ezxml_parse_file( ps_path_in->data );
+   ps_xml_map = ezxml_parse_file( (const char*)ps_path_in->data );
 
    /* Load the tileset data if it exists, or just let cleanup run if it       *
     * doesn't.                                                                */
@@ -184,7 +184,7 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
    while( NULL != ps_xml_tile ) {
       /* A tile was found in the XML, so prepare the array for it. */
       ps_map_in->tiles_count++;
-      ps_map_in->tiles = realloc(
+      ps_map_in->tiles = (TILEMAP_TILE*)realloc(
          ps_map_in->tiles,
          ps_map_in->tiles_count * sizeof( TILEMAP_TILE )
       );

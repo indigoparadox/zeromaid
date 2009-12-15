@@ -36,7 +36,7 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
       DBG_ERR_STR( "Unable to load mobile", ps_path_in->data );
       return;
    }
-   ps_xml_mob = ezxml_parse_file( ps_path_in->data );
+   ps_xml_mob = ezxml_parse_file( (const char*)ps_path_in->data );
 
    /* Load the properties tree. */
    ps_xml_props = ezxml_child( ps_xml_mob, "properties" );

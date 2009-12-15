@@ -24,6 +24,10 @@
 #include "bstring\bstrlib.h"
 #include "defines.h"
 
+#ifdef USEDIRECTX
+#include <windows.h>
+#endif /* USEDIRECTX */
+
 /* = Function Prototypes = */
 
 int file_exists( bstring );
