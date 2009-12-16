@@ -410,6 +410,9 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "adventure" ) ) {
       s_cache_temp.game_type = SYSTEM_TYPE_ADVENTURE;
       DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+   } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "platform" ) ) {
+      s_cache_temp.game_type = SYSTEM_TYPE_PLATFORM;
+      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
    } else {
       DBG_ERR( "Invalid game type." );
       b_success = FALSE;

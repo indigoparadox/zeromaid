@@ -34,6 +34,7 @@
 #include "systype_title.h"
 #include "systype_adventure.h"
 #include "systype_visnov.h"
+#include "systype_platform.h"
 
 #ifdef USEWII
 #include "zeromaid_wii_data.h"
@@ -156,6 +157,8 @@ int main( int argc, char* argv[] ) {
                i_last_return = systype_adventure_loop( gps_cache->map_name );
             } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
                i_last_return = systype_visnov_loop( gps_cache->map_name );
+            } else if( SYSTEM_TYPE_PLATFORM == gps_cache->game_type ) {
+               i_last_return = systype_platform_loop( gps_cache->map_name );
             }
             break;
 

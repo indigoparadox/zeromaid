@@ -42,6 +42,7 @@
 #define SYSTEM_TYPE_TACTICS 2
 #define SYSTEM_TYPE_FISHING 3
 #define SYSTEM_TYPE_VISNOV 4
+#define SYSTEM_TYPE_PLATFORM 5
 
 /* Some platforms don't need BOOL defined. */
 #ifndef USEWII

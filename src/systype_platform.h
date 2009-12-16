@@ -24,5 +24,9 @@
 
 /* = Definitions = */
 
-#define PLATFORM_JUMP_INIT 32
-#define PLATFORM_JUMP_DECEL 4
+#define SYSTYPE_PLATFORM_JUMP_INIT 32
+#define SYSTYPE_PLATFORM_JUMP_ACCEL 4
+
+/* = Function Prototypes = */
+
+int systype_platform_loop( bstring );

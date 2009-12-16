@@ -17,6 +17,7 @@
 #include "systype_platform.h"
 
 DBG_ENABLE
+GFX_DRAW_LOOP_ENABLE
 
 /* = Global Variables = */
 
@@ -24,15 +25,23 @@ extern CACHE_CACHE* gps_cache;
 
 /* = Functions = */
 
-void systype_platform_loop() {
+int systype_platform_loop( bstring ps_map_name_in ) {
    int i_jump_const = 0; /* The upward Y accelleration to apply. */
-
+   GFX_DRAW_LOOP_INIT
 
    while( 1 ) {
+      GFX_DRAW_LOOP_START
 
       /* Apply the jump velocity and then reduce it by jump decel. */
-      i_jump_const -= PLATFORM_JUMP_DECEL;
+      i_jump_const -= SYSTYPE_PLATFORM_JUMP_ACCEL;
+
+      GFX_DRAW_LOOP_END
    }
+
+
+stlp_cleanup:
+
+   return 0;
 }
 
 void systype_platform_jump() {
