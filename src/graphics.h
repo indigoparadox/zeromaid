@@ -30,11 +30,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #endif /* __APPLE__, __unix__ */
-#elif defined USEDIRECTX
-#include <windows.h>
-#include <ddraw.h>
-#include "ddutil.h"
-#endif /* USESDL, USEDIRECTX */
+#endif /* USESDL */
 
 #include "defines.h"
 #include "util.h"
@@ -63,14 +59,6 @@
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
-#elif defined USEDIRECTX
-typedef struct {
-   LPDIRECTDRAWSURFACE7 surface;
-   int w,
-      h;
-} GFX_SURFACE;
-typedef struct { int x, y, w, h; } GFX_RECTANGLE;
-typedef struct { int r, g, b; } GFX_COLOR;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL */
@@ -119,11 +107,6 @@ typedef struct {
 #define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
 
 #endif /* USESDL */
-
-#ifdef USEDIRECTX
-#define PACK_16_BIT( r, g, b ) \
-   (((r & 248) << 8) + ((g & 252) << 3) + (b >> 3))
-#endif /* USEDIRECTX */
 
 /* = Function Prototypes = */
 

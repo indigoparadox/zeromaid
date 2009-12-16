@@ -40,10 +40,6 @@ typedef struct _lwpnode {
 #include <wiiuse/wpad.h>
 #endif /* USEWII */
 
-#ifdef USEDIRECTX
-#include <dinput.h>
-#endif /* USEDIRECTX */
-
 #include "defines.h"
 
 /* = Definitions = */

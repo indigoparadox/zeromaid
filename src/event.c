@@ -20,11 +20,6 @@ DBG_ENABLE
 
 /* = Global Variables = */
 
-#ifdef USEDIRECTX
-extern LPDIRECTINPUTDEVICE gs_keyboard;
-extern unsigned char gac_keystate[256];
-#endif /* USEDIRECTX */
-
 /* = Functions = */
 
 /* Purpose: Create a new timer.                                               */
@@ -107,11 +102,9 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       DBG_ERR( "Unable to allocate event object." );
       return;
    }
-   #elif defined USEDIRECTX
-   BOOL as_keys[EVENT_ID_MAX];
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USEWII, USESDL, USEDIRECTX */
+   #endif /* USEWII, USESDL */
 
    /* Perform the polling and event assignment. */
    #ifdef USEWII
@@ -129,16 +122,9 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
 
    /* It wasn't a quit event, so poll the keys. */
    as_keys = SDL_GetKeyState( NULL );
-   #elif defined USEDIRECTX
-   // TODO
-   if( FAILED( gs_keyboard->GetDeviceState(
-      sizeof( unsigned char[256] ), (LPVOID)gac_keystate
-   ) ) ) {
-      /* error code */
-   }
    #else
    #error "No event polling mechanism defined for this platform!"
-   #endif /* USEWII, USESDL, USEDIRECTX */
+   #endif /* USEWII, USESDL */
 
    /* Translate each event to a neutral struct and test that struct. */
    for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
@@ -184,47 +170,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          default:
             continue;
       }
-      #elif defined USEDIRECTX
-      switch( i ) {
-         case EVENT_ID_UP:
-            i_key_test =
-               ( gac_keystate[DIK_UP] & 0x80 ? EVENT_ID_UP : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_DOWN:
-            i_key_test =
-               ( gac_keystate[DIK_DOWN] & 0x80 ? EVENT_ID_DOWN : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_RIGHT:
-            i_key_test =
-               ( gac_keystate[DIK_RIGHT] & 0x80 ? EVENT_ID_RIGHT : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_LEFT:
-            i_key_test =
-               ( gac_keystate[DIK_LEFT] & 0x80 ? EVENT_ID_LEFT : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_ESC:
-            i_key_test =
-               ( gac_keystate[DIK_ESCAPE] & 0x80 ? EVENT_ID_ESC : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_FIRE:
-            i_key_test =
-               ( gac_keystate[DIK_Z] & 0x80 ? EVENT_ID_FIRE : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_JUMP:
-            i_key_test =
-               ( gac_keystate[DIK_X] & 0x80 ? EVENT_ID_JUMP : EVENT_ID_NULL );
-            break;
-
-         default:
-            i_key_test = 0;
-      }
-      #endif /* USEWII, USESDL, USEDIRECTX */
+      #endif /* USEWII, USESDL */
 
       if(
          /* Repeat is off and the key is down and it wasn't down before. */

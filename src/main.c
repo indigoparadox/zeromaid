@@ -47,12 +47,6 @@ GFX_DRAW_LOOP_DECLARE
 
 extern CACHE_CACHE* gps_cache;
 
-#ifdef USEDIRECTX
-LPDIRECTINPUT gs_lpdi;
-LPDIRECTINPUTDEVICE gs_keyboard;
-unsigned char gac_keystate[256];
-#endif /* USEDIRECTX */
-
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
@@ -60,9 +54,6 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path;
    bstring ps_title;
-   #ifdef USEDIRECTX
-   HWND s_window;
-   #endif /* USEDIRECTX */
 
    /* Initialize what we need to use functions to initialize. */
    ps_title = bformat( "%s", SYSTEM_TITLE );
@@ -79,37 +70,6 @@ int main( int argc, char* argv[] ) {
    dolfsInit( &zeromaid_wii_data );
    WPAD_Init();
    #endif /* USEWII */
-
-   /* Initialize DirectX input stuff. */
-   #ifdef USEDIRECTX
-   s_window = GetActiveWindow();
-   if( FAILED( DirectInput8Create(
-      GetModuleHandle( NULL ),
-      DIRECTINPUT_VERSION,
-      IID_IDirectInput8,
-      (void**)&gs_lpdi,
-      NULL
-   ) ) ) {
-      // error code
-   }
-   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
-      /* error code */
-   }
-   if( FAILED(
-      gs_keyboard->SetCooperativeLevel(
-         s_window,
-         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
-      )
-   ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->Acquire() ) ) {
-      /* error code */
-   }
-   #endif /* USEDIRECTX */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
@@ -182,16 +142,6 @@ main_cleanup:
    #ifdef USESDL
    TTF_Quit();
    #endif /* USESDL */
-
-   #ifdef USEDIRECTX
-   if( gs_keyboard ) {
-      gs_keyboard->Release();
-   }
-
-   if( gs_lpdi ) {
-      gs_lpdi->Release();
-   }
-   #endif /* USEDIRECTX */
 
    return i_error_level;
 }
