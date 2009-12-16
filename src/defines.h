@@ -46,11 +46,9 @@
 
 /* Some platforms don't need BOOL defined. */
 #ifndef USEWII
-#ifndef USEDIRECTX
 typedef unsigned int BOOL;
 #define FALSE 0
 #define TRUE 1
-#endif /* USEDIRECTX */
 #endif /* USEWII */
 
 /* The directory from which to fetch data files. */

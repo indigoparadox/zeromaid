@@ -276,34 +276,6 @@
 					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
-			<Target title="Debug-Windows-i686-DirectX">
-				<Option output="ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
-				<Option compiler="microsoft_visual_c_2008" />
-				<Compiler>
-					<Add option="/TP" />
-					<Add option="/W1" />
-					<Add option="/Zi /D_DEBUG" />
-					<Add option="/DVISUALSTUDIO" />
-					<Add option="/DUSEDIRECTX" />
-					<Add option="/DUSEMUSIC" />
-					<Add option="/DEZXML_NOMMAP" />
-					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
-				</Compiler>
-				<Linker>
-					<Add option="/DEBUG" />
-					<Add library="dinput8.lib" />
-					<Add library="ddraw.lib" />
-					<Add library="dxguid.lib" />
-					<Add library="User32.lib" />
-					<Add library="Gdi32.lib" />
-					<Add library="kernel32.lib" />
-					<Add library="advapi32.lib" />
-					<Add library="comdlg32.lib" />
-					<Add library="shell32.lib" />
-					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
-				</Linker>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -317,10 +289,10 @@
 		</Unit>
 		<Unit filename="cache.h" />
 		<Unit filename="ddutil.cpp">
-			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="ddutil.h">
-			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="defines.h" />
 		<Unit filename="event.c">
@@ -349,7 +321,6 @@
 			<Option target="Release-Windows-i686-Allegro" />
 			<Option target="Debug-Linux-i686-SDL" />
 			<Option target="Release-Windows-i686-SDL" />
-			<Option target="Debug-Windows-i686-DirectX" />
 		</Unit>
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />
