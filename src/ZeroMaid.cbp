@@ -297,6 +297,10 @@
 					<Add library="dxguid.lib" />
 					<Add library="User32.lib" />
 					<Add library="Gdi32.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="shell32.lib" />
 					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
 				</Linker>
 			</Target>
