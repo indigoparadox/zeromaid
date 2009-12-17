@@ -37,6 +37,7 @@
 #define SYSTEM_TITLE "ZeroMaid"
 
 /* System loop types. */
+typedef int SYSTEM_TYPE;
 #define SYSTEM_TYPE_TITLE 0
 #define SYSTEM_TYPE_ADVENTURE 1
 #define SYSTEM_TYPE_TACTICS 2
@@ -52,6 +53,11 @@ typedef unsigned int BOOL;
 #define TRUE 1
 #endif /* USEDIRECTX */
 #endif /* USEWII */
+
+/* CONDs are used in mobiles and visual novel scenes right now. */
+typedef int COND_SCOPE;
+#define COND_SCOPE_LOCAL 0;
+#define COND_SCOPE_GLOBAL 0;
 
 /* The directory from which to fetch data files. */
 #ifdef USEWII
@@ -121,9 +127,24 @@ typedef unsigned int BOOL;
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
    fflush( DEBUG_HANDLE_INFO );
 
+/* Print an info message involving a pointer. */
+#define DBG_INFO_PTR( msg, ptr ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %p\n", FILE_SHORT, __LINE__, msg, ptr ); \
+   fflush( DEBUG_HANDLE_INFO );
+
+/* Print an info message involving a string and a pointer. */
+#define DBG_INFO_STR_PTR( msg, string, ptr ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %p\n", FILE_SHORT, __LINE__, msg, string, ptr ); \
+   fflush( DEBUG_HANDLE_INFO );
+
 /* Print an info message involving a number. */
 #define DBG_INFO_NUM( msg, number ) \
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
+   fflush( DEBUG_HANDLE_INFO );
+
+/* Print an info message involving two numbers. */
+#define DBG_INFO_NUM_NUM( msg, number1, number2 ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d, %d\n", FILE_SHORT, __LINE__, msg, number1, number2 ); \
    fflush( DEBUG_HANDLE_INFO );
 
 /* Print an error message. */

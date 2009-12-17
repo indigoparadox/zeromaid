@@ -334,13 +334,11 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          }
 
          /* Report. */
-         ps_string_attrib = bformat(
-            "Title screen: Successfully loaded text node at %d, %d.",
+         DBG_INFO_NUM_NUM(
+            "Loaded text node (x, y)",
             ps_text_iter->x,
             ps_text_iter->y
          );
-         DBG_INFO( ps_string_attrib->data );
-         bdestroy( ps_string_attrib );
 
          /* Go to the next one! */
          ps_xml_text_iter = ps_xml_text_iter->next;

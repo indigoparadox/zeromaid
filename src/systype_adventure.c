@@ -35,7 +35,6 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    bstring ps_map_path;
    TILEMAP_TILEMAP* ps_map;
    GFX_COLOR* ps_color_fade;
-   GFX_COLOR* ps_color_bg;
    GFX_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
@@ -46,7 +45,6 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    ps_map = tilemap_create_map( ps_map_name_in, ps_map_path );
    bdestroy( ps_map_path );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
-   ps_color_bg = graphics_create_color( 255, 0, 0 );
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
@@ -184,7 +182,6 @@ sal_cleanup:
 
    /* Clean up! */
    free( ps_color_fade );
-   free( ps_color_bg );
    tilemap_free( ps_map );
    for( i = 0 ; i < i_mobile_count ; i++ ) {
       mobile_free_arr( &as_mobile_list[i] );
