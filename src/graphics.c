@@ -115,7 +115,7 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
       SDL_SetColorKey( ps_image, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
 
-      DBG_INFO_STR( "Successfully loaded image", ps_path_in->data );
+      DBG_INFO_STR_PTR( "Loaded image", ps_path_in->data, ps_image );
    } else {
       DBG_ERR_STR( "Failed to load image", ps_path_in->data );
       goto gci_cleanup;
@@ -322,7 +322,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       ps_tileset_out->pixel_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
       DBG_INFO_NUM( "Found tile size", ps_tileset_out->pixel_size );
 
-      DBG_INFO_STR( "Successfully loaded tile data", ps_path_in->data );
+      DBG_INFO_STR_PTR( "Loaded tile data", ps_path_in->data, ps_tileset_out );
    } else {
       /* There was a problem somewhere. */
       DBG_ERR_STR( "Unable to load tile image", ps_image_path->data );
@@ -700,6 +700,7 @@ GFX_TILEDATA* graphics_get_tiledata( int i_gid_in, GFX_TILESET* ps_tileset_in ) 
 void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
+   DBG_INFO_PTR( "Freed image", ps_surface_in );
    #elif defined USEDIRECTX
    free( ps_surface_in->surface );
    free( ps_surface_in );

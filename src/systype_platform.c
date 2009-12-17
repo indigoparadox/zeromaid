@@ -39,7 +39,7 @@ int systype_platform_loop( bstring ps_map_name_in ) {
    }
 
 
-stlp_cleanup:
+stpl_cleanup:
 
    return 0;
 }
