@@ -28,6 +28,17 @@
 #include <windows.h>
 #endif /* USEDIRECTX */
 
+/* = Macros = */
+
+#define UTIL_ARRAY_ALLOC( type, array_ptr, array_count, cleanup ) \
+   (array_count)++; \
+   array_ptr = (type*)realloc( array_ptr, array_count * sizeof( type ) ); \
+   if( NULL == array_ptr ) { \
+      DBG_ERR( "Unable to allocate array: " #array_ptr ); \
+      goto cleanup; \
+   } \
+   memset( &array_ptr[array_count - 1], 0, sizeof( type ) );
+
 /* = Function Prototypes = */
 
 int file_exists( bstring );

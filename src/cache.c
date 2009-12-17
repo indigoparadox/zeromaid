@@ -26,7 +26,7 @@ CACHE_CACHE* gps_cache;
 /* Parameters: Path of the file to save to.                                   */
 /* Return: A boolean integer indicating save success.                         */
 short int cache_save( bstring ps_out_path_in ) {
- return FALSE;
+   return FALSE;
 }
 
 /* Purpose: Load the system cache from the specified save file.               */

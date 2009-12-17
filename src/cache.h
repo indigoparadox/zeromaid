@@ -25,7 +25,10 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int game_type,
+   bstring var_keys, /* Global variable keys. */
+      var_values; /* Parallel to var_keys, global variable values. */
+   int var_count, /* Global variable count. */
+      game_type,
       player_team_count; /* Number of members in the player's party. */
    bstring map_name; /* Name of the map currently loaded. */
    MOBILE_MOBILE* player_team; /* Dynamic array of mobiles in player's party. */
