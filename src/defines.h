@@ -56,8 +56,8 @@ typedef unsigned int BOOL;
 
 /* CONDs are used in mobiles and visual novel scenes right now. */
 typedef int COND_SCOPE;
-#define COND_SCOPE_LOCAL 0;
-#define COND_SCOPE_GLOBAL 0;
+#define COND_SCOPE_LOCAL 0
+#define COND_SCOPE_GLOBAL 0
 
 /* The directory from which to fetch data files. */
 #ifdef USEWII
@@ -137,13 +137,18 @@ typedef int COND_SCOPE;
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %p\n", FILE_SHORT, __LINE__, msg, string, ptr ); \
    fflush( DEBUG_HANDLE_INFO );
 
+/* Print an info message involving a string and a number. */
+#define DBG_INFO_STR_INT( msg, string, number ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %d\n", FILE_SHORT, __LINE__, msg, string, number ); \
+   fflush( DEBUG_HANDLE_INFO );
+
 /* Print an info message involving a number. */
 #define DBG_INFO_NUM( msg, number ) \
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
    fflush( DEBUG_HANDLE_INFO );
 
 /* Print an info message involving two numbers. */
-#define DBG_INFO_NUM_NUM( msg, number1, number2 ) \
+#define DBG_INFO_INT_INT( msg, number1, number2 ) \
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d, %d\n", FILE_SHORT, __LINE__, msg, number1, number2 ); \
    fflush( DEBUG_HANDLE_INFO );
 
@@ -158,7 +163,7 @@ typedef int COND_SCOPE;
    fflush( DEBUG_HANDLE_ERR );
 
 /* Print an error message involving a number. */
-#define DBG_ERR_NUM( msg, number ) \
+#define DBG_ERR_INT( msg, number ) \
    fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
    fflush( DEBUG_HANDLE_INFO );
 

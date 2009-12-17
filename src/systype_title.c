@@ -334,7 +334,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          }
 
          /* Report. */
-         DBG_INFO_NUM_NUM(
+         DBG_INFO_INT_INT(
             "Loaded text node (x, y)",
             ps_text_iter->x,
             ps_text_iter->y

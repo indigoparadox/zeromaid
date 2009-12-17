@@ -26,6 +26,7 @@
 #include "cache.h"
 #include "graphics.h"
 #include "event.h"
+#include "util.h"
 
 /* = Definitons = */
 
@@ -44,7 +45,7 @@ typedef int SYSTYPE_VISNOV_CMD;
 #define SYSTYPE_VISNOV_CMD_COND 4
 #define SYSTYPE_VISNOV_CMD_COND_DC 3
 #define SYSTYPE_VISNOV_CMD_TALK 5
-#define SYSTYPE_VISNOV_CMD_TALK_DC 2
+#define SYSTYPE_VISNOV_CMD_TALK_DC 3
 #define SYSTYPE_VISNOV_CMD_GOTO 6
 #define SYSTYPE_VISNOV_CMD_GOTO_DC 1
 #define SYSTYPE_VISNOV_CMD_PORTRAIT 7
@@ -69,12 +70,13 @@ typedef union {
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
       emotion,       /* DI 1 - PORTRAIT */
-      zoom,          /* DI 2 - PORTRAIT */
       x,             /* DI 3 - PORTRAIT */
       y,             /* DI 4 - PORTRAIT */
       delay,         /* DI 0 - PAUSE*/
       destx,         /* DI 1 - TELEPORT */
-      desty;         /* DI 2 - TELEPORT */
+      desty,         /* DI 2 - TELEPORT */
+      speed;         /* DI 2 - TALK */
+   float zoom;       /* DI 2 - PORTRAIT */
    SYSTEM_TYPE type; /* DI 3 - TELEPORT */
 } SYSTYPE_VISNOV_DATA;
 
@@ -89,11 +91,12 @@ typedef struct {
 /* == Actor Stuff == */
 
 typedef struct {
-   bstring emotion;
+   int id;
    GFX_SURFACE* image;
 } SYSTYPE_VISNOV_EMOTION;
 
 typedef struct {
+   bstring name;
    int serial,
       x, y, /* Current on-screen location. */
       emotion_current, /* Currently selected emotion. */
@@ -104,15 +107,51 @@ typedef struct {
 /* == Scene Stuff == */
 
 typedef struct {
+   BOOL dirty; /* Does the scene need to be redrawn? */
    GFX_SURFACE* bg; /* Current scene background. */
-   int actors_onscreen_count;
+   bstring var_keys, /* Local variable keys. */
+      var_values; /* Parallel to var_keys, local variable values. */
+   int var_count, /* Local variable count. */
+      actors_onscreen_count;
    SYSTYPE_VISNOV_ACTOR* actors_onscreen; /* Dupe ptrs to actors on-screen. */
 } SYSTYPE_VISNOV_SCENE;
+
+/* = Macros = */
+
+#define STVN_PARSE_CMD_ALLOC( type, dc ) \
+   ps_commands_out[*pi_count_out - 1].command = type; \
+   ps_commands_out[*pi_count_out - 1].data = calloc( \
+      dc, sizeof( SYSTYPE_VISNOV_DATA ) \
+   );
+
+#define STVN_PARSE_CMD_DAT_INT( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   ); \
+   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+      atoi( ps_command_attr->data );
+
+#define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   ); \
+   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+      atof( ps_command_attr->data );
+
+#define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   ); \
+   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+      bstrcpy( ps_command_attr );
 
 /* = Function Prototypes = */
 
 int systype_visnov_loop( bstring );
+SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
 void systype_visnov_exec_command(
-   SYSTYPE_VISNOV_COMMAND*, int*, SYSTYPE_VISNOV_SCENE* );
+   SYSTYPE_VISNOV_COMMAND*, int*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
+   int
+);
 void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* );
