@@ -26,13 +26,20 @@
 
 typedef struct {
    bstring var_keys, /* Global variable keys. */
-      var_values; /* Parallel to var_keys, global variable values. */
+      var_values, /* Parallel to var_keys, global variable values. */
+      * text_log; /* Log of previously spoken text. */
    int var_count, /* Global variable count. */
-      game_type,
-      player_team_count; /* Number of members in the player's party. */
+      text_log_count, /* Number of previously spoken text item. */
+      player_team_count, /* Number of members in the player's party. */
+      player_team_front; /* The team member currently playable. */
+   SYSTEM_TYPE game_type;
    bstring map_name; /* Name of the map currently loaded. */
    MOBILE_MOBILE* player_team; /* Dynamic array of mobiles in player's party. */
 } CACHE_CACHE;
+
+/* = Macros = */
+
+#define CACHE_ENABLE extern CACHE_CACHE* gps_cache;
 
 /* = Function Prototypes = */
 

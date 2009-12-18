@@ -42,10 +42,9 @@
 
 DBG_MAIN
 GFX_DRAW_LOOP_DECLARE
+CACHE_ENABLE
 
 /* = Global Variables = */
-
-extern CACHE_CACHE* gps_cache;
 
 #ifdef USEDIRECTX
 LPDIRECTINPUT gs_lpdi;

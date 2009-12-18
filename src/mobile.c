@@ -17,10 +17,7 @@
 #include "mobile.h"
 
 DBG_ENABLE
-
-/* = Global Variables = */
-
-extern CACHE_CACHE* gps_cache;
+CACHE_ENABLE
 
 /* = Functions = */
 

@@ -119,8 +119,8 @@ typedef struct {
 /* = Macros = */
 
 #define STVN_PARSE_CMD_ALLOC( type, dc ) \
-   ps_commands_out[*pi_count_out - 1].command = type; \
-   ps_commands_out[*pi_count_out - 1].data = calloc( \
+   s_command_tmp.command = type; \
+   s_command_tmp.data = calloc( \
       dc, sizeof( SYSTYPE_VISNOV_DATA ) \
    );
 
@@ -128,21 +128,21 @@ typedef struct {
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
-   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+   s_command_tmp.data[di].dtype = \
       atoi( ps_command_attr->data );
 
 #define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
-   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+   s_command_tmp.data[di].dtype = \
       atof( ps_command_attr->data );
 
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
-   ps_commands_out[*pi_count_out - 1].data[di].dtype = \
+   s_command_tmp.data[di].dtype = \
       bstrcpy( ps_command_attr );
 
 /* = Function Prototypes = */
@@ -151,8 +151,8 @@ int systype_visnov_loop( bstring );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
 void systype_visnov_exec_command(
-   SYSTYPE_VISNOV_COMMAND*, int*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
-   int
+   SYSTYPE_VISNOV_COMMAND*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
+   SYSTYPE_VISNOV_ACTOR*, int
 );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int
