@@ -14,32 +14,21 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#include "systype_platform.h"
+#include "defines.h"
+#include "cache.h"
 
-DBG_ENABLE
-GFX_DRAW_LOOP_ENABLE
+/* = Type and Struct Definitions = */
 
-/* = Functions = */
+typedef struct {
 
-int systype_platform_loop( CACHE_CACHE* ps_cache_in ) {
-   int i_jump_const = 0; /* The upward Y accelleration to apply. */
-   GFX_DRAW_LOOP_INIT
+} WINDOW_TEXT;
 
-   while( 1 ) {
-      GFX_DRAW_LOOP_START
+typedef struct {
 
-      /* Apply the jump velocity and then reduce it by jump decel. */
-      i_jump_const -= SYSTYPE_PLATFORM_JUMP_ACCEL;
+} WINDOW_MENU;
 
-      GFX_DRAW_LOOP_END
-   }
+/* = Function Prototypes = */
 
-
-stpl_cleanup:
-
-   return 0;
-}
-
-void systype_platform_jump() {
-
-}
+WINDOW_TEXT* window_create_text( bstring, CACHE_CACHE* );
+void window_draw_text( WINDOW_TEXT* );
+void window_draw_menu( WINDOW_MENU* );

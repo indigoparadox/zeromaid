@@ -14,32 +14,38 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#include "systype_platform.h"
+#include "window.h"
 
 DBG_ENABLE
-GFX_DRAW_LOOP_ENABLE
 
 /* = Functions = */
 
-int systype_platform_loop( CACHE_CACHE* ps_cache_in ) {
-   int i_jump_const = 0; /* The upward Y accelleration to apply. */
-   GFX_DRAW_LOOP_INIT
+WINDOW_TEXT* window_create_text(
+   bstring ps_text_in,
+   CACHE_CACHE* ps_cache_in
+) {
+   bstring ps_text_new = NULL;
 
-   while( 1 ) {
-      GFX_DRAW_LOOP_START
+   /* The string will be copied to the new array, but the string itself is    *
+    * actually just the bstring header, which should be cleared after calling *
+    * this function anyway. So we have to make a proper copy of the bstring   *
+    * before adding it to the array.                                          */
+   ps_text_new = bstrcpy( ps_text_in );
 
-      /* Apply the jump velocity and then reduce it by jump decel. */
-      i_jump_const -= SYSTYPE_PLATFORM_JUMP_ACCEL;
+   UTIL_ARRAY_ADD(
+      bstring, ps_cache_in->text_log, ps_cache_in->text_log_count, wct_cleanup,
+      ps_text_new
+   );
 
-      GFX_DRAW_LOOP_END
-   }
+wct_cleanup:
 
-
-stpl_cleanup:
-
-   return 0;
+   return;
 }
 
-void systype_platform_jump() {
+void window_draw_text( WINDOW_TEXT* ps_menu_in ) {
+
+}
+
+void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
 
 }

@@ -17,14 +17,13 @@
 #include "systype_visnov.h"
 
 DBG_ENABLE
-CACHE_ENABLE
 
 /* = Functions = */
 
 /* Purpose: Visual novel loop.                                                */
 /* Parameters: The name of the scene to play.                                 */
 /* Return: The code for the next action to take.                              */
-int systype_visnov_loop( bstring ps_scene_name_in ) {
+int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    SYSTYPE_VISNOV_ACTOR* as_actors = NULL;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
    int i_actors_count = 0,
@@ -42,7 +41,7 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
-      bformat( "%sscene_%s.xml", PATH_SHARE , ps_scene_name_in->data );
+      bformat( "%sscene_%s.xml", PATH_SHARE , ps_cache_in->map_name->data );
    if( !file_exists( ps_scene_path ) ) {
       DBG_ERR_STR( "Unable to load scene data", ps_scene_path->data );
       i_act_return = RETURN_ACTION_TITLE;
@@ -53,6 +52,7 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
    /* Initialize what we need to use functions to initialize. */
    memset( &s_scene, 0, sizeof( SYSTYPE_VISNOV_SCENE ) );
    memset( &s_rect_actor, 0, sizeof( GFX_RECTANGLE ) );
+   memset( &s_event, 0, sizeof( EVENT_EVENT ) );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
    as_commands = systype_visnov_load_commands(
       &i_commands_count,
@@ -67,20 +67,19 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
       GFX_DRAW_LOOP_START
 
       /* Listen for events. */
-      event_do_poll( &s_event, TRUE );
+      event_do_poll( &s_event, FALSE );
       if( s_event.state[EVENT_ID_FIRE] && b_wait_for_talk ) {
          b_wait_for_talk = FALSE;
-      }
 
-      /* Execute the next command unless we're waiting. */
-      if( !b_wait_for_talk && i_command_cursor < i_commands_count ) {
+      } else if( !b_wait_for_talk && i_command_cursor < i_commands_count ) {
+         /* Execute the next command unless we're waiting. */
          systype_visnov_exec_command(
-            &as_commands[i_command_cursor], &b_wait_for_talk, &i_command_cursor,
-            &s_scene, as_actors, i_actors_count
+            &as_commands[i_command_cursor], ps_cache_in, &b_wait_for_talk,
+            &i_command_cursor, &s_scene, as_actors, &i_actors_count
          );
       }
       if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
-         gps_cache->game_type = SYSTEM_TYPE_TITLE;
+         ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
          goto stvnl_cleanup;
       }
 
@@ -332,7 +331,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR( equals, 2 );
          STVN_PARSE_CMD_DAT_INT( scope, 3 ); /* TODO: Parse the scope. */
 
-      } else if( 0 == strcmp( pc_command_action, "label" ) ) {
+      } else if( 0 == strcmp( pc_command_action, "talk" ) ) {
          /* COMMAND: TALK */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TALK, SYSTYPE_VISNOV_CMD_TALK_DC );
@@ -340,7 +339,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR( talktext, 1 );
          STVN_PARSE_CMD_DAT_INT( speed, 2 );
 
-      } else if( 0 == strcmp( pc_command_action, "label" ) ) {
+      } else if( 0 == strcmp( pc_command_action, "goto" ) ) {
          /* COMMAND: GOTO */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_GOTO, SYSTYPE_VISNOV_CMD_GOTO_DC );
@@ -394,15 +393,17 @@ stvnlc_cleanup:
  *             the calling loop's command index cursor.                       */
 void systype_visnov_exec_command(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   CACHE_CACHE* ps_cache_in,
    BOOL* pb_wait_for_talk_in,
    int* pi_command_cursor_in,
    SYSTYPE_VISNOV_SCENE* ps_scene_in,
    SYSTYPE_VISNOV_ACTOR* as_actors_in,
-   int i_actors_count_in
+   int* pi_actors_count_in
 ) {
    GFX_COLOR* ps_color_fade = NULL;
    static int ti_countdown = -1;
    int i, z; /* Loop iterators. */
+   bstring ps_talk_text = NULL;
 
    switch( ps_command_in->command ) {
       case SYSTYPE_VISNOV_CMD_BACKGROUND:
@@ -438,6 +439,24 @@ void systype_visnov_exec_command(
          }
          break;
 
+      case SYSTYPE_VISNOV_CMD_TALK:
+         /* Make sure the loop pauses so the player can read. */
+         *pb_wait_for_talk_in = TRUE;
+
+         /* Format and prettify the text for the window. */
+         ps_talk_text = bformat(
+            "%s: %s",
+            systype_visnov_get_actor(
+               ps_command_in->data[0].serial,
+               as_actors_in,
+               *pi_actors_count_in
+            )->name->data,
+            ps_command_in->data[1].talktext->data
+         );
+         window_create_text( ps_talk_text, ps_cache_in );
+         bdestroy( ps_talk_text );
+         break;
+
       case SYSTYPE_VISNOV_CMD_PORTRAIT:
          /* If the given actor is already in the scene, remove them. */
          for( i = 0 ; i < ps_scene_in->actors_onscreen_count ; i++ ) {
@@ -461,7 +480,7 @@ void systype_visnov_exec_command(
             systype_visnov_get_actor(
                ps_command_in->data[0].serial,
                as_actors_in,
-               i_actors_count_in
+               *pi_actors_count_in
             );
          ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
             emotion_current = ps_command_in->data[1].emotion;

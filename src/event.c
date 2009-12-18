@@ -123,7 +123,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    if( SDL_QUIT == tps_event_temp->type ) {
       /* A quit event takes precedence over all others. */
       memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
-      ps_event_out->state[EVENT_ID_ESC] = TRUE;
+      ps_event_out->state[EVENT_ID_QUIT] = TRUE;
       return;
    }
 
