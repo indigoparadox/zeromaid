@@ -113,7 +113,7 @@ typedef struct {
       var_values; /* Parallel to var_keys, local variable values. */
    int var_count, /* Local variable count. */
       actors_onscreen_count;
-   SYSTYPE_VISNOV_ACTOR* actors_onscreen; /* Dupe ptrs to actors on-screen. */
+   SYSTYPE_VISNOV_ACTOR** actors_onscreen; /* Dupe ptrs to actors on-screen. */
 } SYSTYPE_VISNOV_SCENE;
 
 /* = Macros = */
@@ -154,4 +154,8 @@ void systype_visnov_exec_command(
    SYSTYPE_VISNOV_COMMAND*, int*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
    int
 );
+SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
+   int, SYSTYPE_VISNOV_ACTOR*, int
+);
+void systype_visnov_free_actor_arr( SYSTYPE_VISNOV_ACTOR* );
 void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* );

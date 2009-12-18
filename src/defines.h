@@ -143,7 +143,7 @@ typedef int COND_SCOPE;
    fflush( DEBUG_HANDLE_INFO );
 
 /* Print an info message involving a number. */
-#define DBG_INFO_NUM( msg, number ) \
+#define DBG_INFO_INT( msg, number ) \
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
    fflush( DEBUG_HANDLE_INFO );
 

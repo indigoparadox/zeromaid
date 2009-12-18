@@ -320,7 +320,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
 
       /* Figure out the file size. */
       ps_tileset_out->pixel_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
-      DBG_INFO_NUM( "Found tile size", ps_tileset_out->pixel_size );
+      DBG_INFO_INT( "Found tile size", ps_tileset_out->pixel_size );
 
       DBG_INFO_STR_PTR( "Loaded tile data", ps_path_in->data, ps_tileset_out );
    } else {

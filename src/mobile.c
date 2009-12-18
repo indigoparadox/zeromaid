@@ -50,7 +50,7 @@ void mobile_load_mobile( MOBILE_MOBILE* ps_mob_out, bstring ps_path_in ) {
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hp" ) ) {
          ps_mob_out->hp = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
-         DBG_INFO_NUM( "Mobile HP", ps_mob_out->hp );
+         DBG_INFO_INT( "Mobile HP", ps_mob_out->hp );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "spritesheet" ) ) {
          ps_path_temp = bformat(

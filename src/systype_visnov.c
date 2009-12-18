@@ -34,8 +34,9 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
       i_commands_count = 0,
       i_act_return = RETURN_ACTION_TITLE,
       i_command_cursor = 0, /* The index of the command to execute next. */
-      i; /* Loop iterator. */
+      i, j; /* Loop iterators. */
    GFX_COLOR* ps_color_fade;
+   GFX_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
    BOOL b_wait_for_talk = FALSE; /* Are we waiting for the player to read? */
@@ -54,6 +55,7 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
 
    /* Initialize what we need to use functions to initialize. */
    memset( &s_scene, 0, sizeof( SYSTYPE_VISNOV_SCENE ) );
+   memset( &s_rect_actor, 0, sizeof( GFX_RECTANGLE ) );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
    as_commands = systype_visnov_load_commands(
       &i_commands_count,
@@ -89,6 +91,18 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
       if( NULL != s_scene.bg ) {
          graphics_draw_blit_tile( s_scene.bg, NULL, NULL );
       }
+      for( i = 0 ; i < s_scene.actors_onscreen_count ; i++ ) {
+         j = s_scene.actors_onscreen[i]->emotion_current;
+         s_rect_actor.x = s_scene.actors_onscreen[i]->x;
+         s_rect_actor.y = s_scene.actors_onscreen[i]->y;
+         s_rect_actor.w = s_scene.actors_onscreen[i]->emotions[j].image->w;
+         s_rect_actor.h = s_scene.actors_onscreen[i]->emotions[j].image->h;
+         graphics_draw_blit_tile(
+            s_scene.actors_onscreen[i]->emotions[j].image,
+            NULL,
+            &s_rect_actor
+         );
+      }
       graphics_do_update();
 
       GFX_DRAW_LOOP_END
@@ -104,6 +118,10 @@ stvnl_cleanup:
 
    ezxml_free( ps_xml_scene );
    bdestroy( ps_scene_path );
+   for( i = 0 ; i < i_actors_count ; i++ ) {
+      systype_visnov_free_actor_arr( &as_actors[i] );
+   }
+   free( as_actors );
    for( i = 0 ; i < i_commands_count ; i++ ) {
       systype_visnov_free_command_arr( &as_commands[i] );
    }
@@ -138,11 +156,6 @@ SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors(
    /* Load each command in order. */
    ps_xml_actor = ezxml_child( ps_xml_actors_in, "actor" );
    while( NULL != ps_xml_actor ) {
-      /* Allocate the new actor item at the end of the list. */
-      UTIL_ARRAY_ALLOC(
-         SYSTYPE_VISNOV_ACTOR, ps_actors_out, *pi_count_out, stvnla_cleanup
-      );
-
       memset( &s_actor_tmp, 0, sizeof( SYSTYPE_VISNOV_ACTOR ) );
 
       /* ATTRIB: SERIAL */
@@ -206,14 +219,9 @@ SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors(
 
          /* If we've made it this far, the emotion is probably valid, so add  *
           * it to the current actor's list.                                   */
-         UTIL_ARRAY_ALLOC(
+         UTIL_ARRAY_ADD(
             SYSTYPE_VISNOV_EMOTION, s_actor_tmp.emotions,
-            s_actor_tmp.emotions_count, stvnla_cleanup
-         );
-         memcpy(
-            &s_actor_tmp.emotions[s_actor_tmp.emotions_count - 1],
-            &s_emotion_tmp,
-            sizeof( SYSTYPE_VISNOV_EMOTION )
+            s_actor_tmp.emotions_count, stvnla_cleanup, &s_emotion_tmp
          );
 
          DBG_INFO_INT_INT(
@@ -228,13 +236,9 @@ SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors(
 
       /* If we've made it this far, the emotion is probably valid, so add  *
        * it to the current actor's list.                                   */
-      UTIL_ARRAY_ALLOC(
-         SYSTYPE_VISNOV_ACTOR, ps_actors_out, *pi_count_out, stvnla_cleanup
-      );
-      memcpy(
-         &ps_actors_out[*pi_count_out - 1],
-         &s_actor_tmp,
-         sizeof( SYSTYPE_VISNOV_ACTOR )
+      UTIL_ARRAY_ADD(
+         SYSTYPE_VISNOV_ACTOR, ps_actors_out, *pi_count_out, stvnla_cleanup,
+         &s_actor_tmp
       );
 
       DBG_INFO_STR_INT(
@@ -292,8 +296,9 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
       }
 
       /* Allocate the new command item at the end of the list. */
-      UTIL_ARRAY_ALLOC(
-         SYSTYPE_VISNOV_COMMAND, ps_commands_out, *pi_count_out, stvnlc_cleanup
+      UTIL_ARRAY_ADD(
+         SYSTYPE_VISNOV_COMMAND, ps_commands_out, *pi_count_out, stvnlc_cleanup,
+         NULL
       );
 
       /* Parse the command's data and opcode. */
@@ -393,7 +398,7 @@ void systype_visnov_exec_command(
 ) {
    GFX_COLOR* ps_color_fade = NULL;
    static int ti_countdown = -1;
-   int i; /* Loop iterator. */
+   int i, z; /* Loop iterators. */
 
    switch( ps_command_in->command ) {
       case SYSTYPE_VISNOV_CMD_BACKGROUND:
@@ -424,9 +429,42 @@ void systype_visnov_exec_command(
                0 == bstrcmp( ps_command_in->data[1].key, &ps_scene_in->var_keys[i] ) &&
                0 == bstrcmp( ps_command_in->data[2].equals, &ps_scene_in->var_values[i] ))
             ) {
-
+               /* TODO */
             }
          }
+         break;
+
+      case SYSTYPE_VISNOV_CMD_PORTRAIT:
+         /* If the given actor is already in the scene, remove them. */
+         for( i = 0 ; i < ps_scene_in->actors_onscreen_count ; i++ ) {
+            if(
+               ps_scene_in->actors_onscreen[i]->serial ==
+               ps_command_in->data[0].serial
+            ) {
+               UTIL_ARRAY_DEL(
+                  SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
+                  ps_scene_in->actors_onscreen_count, stvnec_cleanup, i
+               );
+            }
+         }
+
+         /* Add the given emotion portrait to the scene. */
+         UTIL_ARRAY_ADD(
+            SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
+            ps_scene_in->actors_onscreen_count, stvnec_cleanup, NULL
+         );
+         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1] =
+            systype_visnov_get_actor(
+               ps_command_in->data[0].serial,
+               as_actors_in,
+               i_actors_count_in
+            );
+         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+            emotion_current = ps_command_in->data[1].emotion;
+         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+            x = ps_command_in->data[3].x;
+         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+            y = ps_command_in->data[4].y;
          break;
    }
 
@@ -436,6 +474,42 @@ void systype_visnov_exec_command(
 stvnec_cleanup:
 
    return;
+}
+
+/* Purpose: Return a pointer to the first actor with a given serial number.   */
+SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
+   int i_serial_in,
+   SYSTYPE_VISNOV_ACTOR* as_actors_in,
+   int i_actors_count_in
+) {
+   int i; /* Loop iterator. */
+
+   for( i = 0 ; i < i_actors_count_in ; i++ ) {
+      if( as_actors_in[i].serial == i_serial_in ) {
+         return &as_actors_in[i];
+      }
+   }
+
+   /* Actor wasn't found. */
+   return NULL;
+}
+
+/* Purpose: Free the memory held by the given actor's attributes.             *
+ *          (But DON'T free the pointer to the struct itself!)                */
+/* Parameters: A pointer to the actor struct to free.                         */
+void systype_visnov_free_actor_arr( SYSTYPE_VISNOV_ACTOR* ps_actor_in ) {
+   int i; /* Loop iterator. */
+
+   if( NULL == ps_actor_in ) {
+      return;
+   }
+
+   for( i = 0 ; i < ps_actor_in->emotions_count ; i++ ) {
+      graphics_free_image( ps_actor_in->emotions[i].image );
+   }
+   free( ps_actor_in->emotions );
+
+   DBG_INFO_INT( "Actor freed", ps_actor_in->serial );
 }
 
 /* Purpose: Free the memory held by the given command struct's data elements  *
