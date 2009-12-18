@@ -29,4 +29,4 @@
 
 /* = Function Prototypes = */
 
-int systype_platform_loop( bstring );
+int systype_platform_loop( CACHE_CACHE* );

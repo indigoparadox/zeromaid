@@ -42,7 +42,6 @@
 
 DBG_MAIN
 GFX_DRAW_LOOP_DECLARE
-CACHE_ENABLE
 
 /* = Global Variables = */
 
@@ -59,6 +58,7 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path;
    bstring ps_title;
+   CACHE_CACHE* ps_cache = NULL;
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
@@ -138,31 +138,31 @@ int main( int argc, char* argv[] ) {
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
     * current player/team.                                                    */
-   gps_cache = (CACHE_CACHE*)calloc( 1, sizeof( CACHE_CACHE ) );
-   if( NULL == gps_cache ) {
+   ps_cache = (CACHE_CACHE*)calloc( 1, sizeof( CACHE_CACHE ) );
+   if( NULL == ps_cache ) {
       DBG_ERR( "There was a problem allocating the system cache." );
       i_error_level = ERROR_LEVEL_MALLOC;
       goto main_cleanup;
    }
 
    /* Start the loop that loads the other gameplay loops. */
-   i_last_return = systype_title_loop();
+   i_last_return = systype_title_loop( ps_cache );
    while( RETURN_ACTION_QUIT != i_last_return ) {
 
       switch( i_last_return ) {
          case RETURN_ACTION_LOADCACHE:
             /* Execute the next instruction based on the system cache. */
-            if( SYSTEM_TYPE_ADVENTURE == gps_cache->game_type ) {
-               i_last_return = systype_adventure_loop( gps_cache->map_name );
-            } else if( SYSTEM_TYPE_VISNOV == gps_cache->game_type ) {
-               i_last_return = systype_visnov_loop( gps_cache->map_name );
-            } else if( SYSTEM_TYPE_PLATFORM == gps_cache->game_type ) {
-               i_last_return = systype_platform_loop( gps_cache->map_name );
+            if( SYSTEM_TYPE_ADVENTURE == ps_cache->game_type ) {
+               i_last_return = systype_adventure_loop( ps_cache );
+            } else if( SYSTEM_TYPE_VISNOV == ps_cache->game_type ) {
+               i_last_return = systype_visnov_loop( ps_cache );
+            } else if( SYSTEM_TYPE_PLATFORM == ps_cache->game_type ) {
+               i_last_return = systype_platform_loop( ps_cache );
             }
             break;
 
          default:
-            i_last_return = systype_title_loop();
+            i_last_return = systype_title_loop( ps_cache );
             break;
       }
    }

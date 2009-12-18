@@ -27,6 +27,7 @@
 #include "graphics.h"
 #include "event.h"
 #include "util.h"
+#include "window.h"
 
 /* = Definitons = */
 
@@ -147,12 +148,12 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-int systype_visnov_loop( bstring );
+int systype_visnov_loop( CACHE_CACHE* );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
 void systype_visnov_exec_command(
-   SYSTYPE_VISNOV_COMMAND*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
-   SYSTYPE_VISNOV_ACTOR*, int
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
+   SYSTYPE_VISNOV_ACTOR*, int*
 );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int

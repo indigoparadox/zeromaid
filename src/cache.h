@@ -39,8 +39,6 @@ typedef struct {
 
 /* = Macros = */
 
-#define CACHE_ENABLE extern CACHE_CACHE* gps_cache;
-
 /* = Function Prototypes = */
 
 short int cache_save( bstring );

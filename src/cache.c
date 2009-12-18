@@ -16,10 +16,6 @@
 
 #include "cache.h"
 
-/* = Global Variables = */
-
-CACHE_CACHE* gps_cache;
-
 /* = Functions = */
 
 /* Purpose: Save the system cache to the specified file.                      */

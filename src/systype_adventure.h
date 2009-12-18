@@ -42,14 +42,14 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-int systype_adventure_loop( bstring );
+int systype_adventure_loop( CACHE_CACHE* );
 BOOL systype_adventure_mobile_walk(
    MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*
 );
 void systype_adventure_viewport_scroll(
-   GFX_RECTANGLE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, TILEMAP_DIR );
+   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, TILEMAP_DIR );
 void systype_adventure_viewport_draw(
-   GFX_RECTANGLE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, BOOL );
+   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, BOOL );
 MOBILE_MOBILE* systype_adventure_load_mobiles( int*, TILEMAP_TILEMAP* );
 
 #endif /* SYSTYPE_ADVENTURE_H */

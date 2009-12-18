@@ -18,13 +18,12 @@
 
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
-CACHE_ENABLE
 
 /* = Functions = */
 
 /* Purpose: Title screen loop.                                                */
 /* Return: The code for the next action to take.                              */
-int systype_title_loop( void ) {
+int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
    int i_menu_selected = 0, i = 0, i_act_return = RETURN_ACTION_QUIT;
    GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
@@ -94,7 +93,7 @@ int systype_title_loop( void ) {
                /* Menu: SP Start */
                /* Set the cache to a new single-player game according to data *
                 * files and set the engine to load the new game.              */
-               systype_title_load_start( gps_cache );
+               systype_title_load_start( ps_cache_in );
                i_act_return = RETURN_ACTION_LOADCACHE;
                goto slt_cleanup;
 
@@ -372,6 +371,10 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    /* ps_cache_in->game_type = SYSTEM_TYPE_ADVENTURE;
    bdestroy( ps_cache_in->map_name );
    ps_cache_in->map_name = bformat( "field" ); */
+
+   /* Reminder to my future self: If the cache remained a global variable,    *
+    * might never have found this. Stupid. ~_~                                */
+   memset( &s_cache_temp, 0, sizeof( CACHE_CACHE ) );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_system_path ) ) {

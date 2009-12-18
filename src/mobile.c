@@ -17,7 +17,6 @@
 #include "mobile.h"
 
 DBG_ENABLE
-CACHE_ENABLE
 
 /* = Functions = */
 

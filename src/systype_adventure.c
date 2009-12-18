@@ -18,27 +18,27 @@
 
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
-CACHE_ENABLE
 
 /* = Functions = */
 
 /* Purpose: Adventure game loop.                                              */
 /* Return: The code for the next action to take.                              */
-int systype_adventure_loop( bstring ps_map_name_in ) {
+int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    int i_act_return = RETURN_ACTION_TITLE,
       i = 0, /* Loop iterator. */
       i_mobile_count = 0; /* Counter for the NPC array below. */
-   bstring ps_map_path;
-   TILEMAP_TILEMAP* ps_map;
-   GFX_COLOR* ps_color_fade;
+   bstring ps_map_path = NULL;
+   TILEMAP_TILEMAP* ps_map = NULL;
+   GFX_COLOR* ps_color_fade = NULL;
    GFX_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
 
    /* Initialize what we need to use functions to initialize. */
+   memset( &s_event, 0, sizeof( EVENT_EVENT ) );
    ps_map_path =
-      bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_map_name_in->data );
-   ps_map = tilemap_create_map( ps_map_name_in, ps_map_path );
+      bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_cache_in->map_name->data );
+   ps_map = tilemap_create_map( ps_cache_in->map_name, ps_map_path );
    bdestroy( ps_map_path );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
 
@@ -58,12 +58,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
-   gps_cache->player_team_front = 0;
-   gps_cache->player_team_count = 0;
-   gps_cache->player_team = calloc( 1, sizeof( MOBILE_MOBILE ) );
-   MOBILE_MOBILE* fff = gps_cache->player_team;
-   memcpy( &gps_cache->player_team[0], &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
-   gps_cache->player_team[gps_cache->player_team_front].pixel_x +=
+   ps_cache_in->player_team_front = 0;
+   ps_cache_in->player_team_count = 0;
+   ps_cache_in->player_team = calloc( 1, sizeof( MOBILE_MOBILE ) );
+   memcpy( &ps_cache_in->player_team[0], &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
+   ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x +=
       ps_map->tileset->pixel_size;
 
    while( 1 ) {
@@ -73,11 +72,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       event_do_poll( &s_event, TRUE );
       if( s_event.state[EVENT_ID_UP] ) {
          //s_viewport.y -= 32;
-         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
-            gps_cache->player_team[gps_cache->player_team_front].
+         if( !ps_cache_in->player_team[ps_cache_in->player_team_front].moving ) {
+            ps_cache_in->player_team[ps_cache_in->player_team_front].
                current_animation = MOBILE_ANI_WALK_NORTH;
             systype_adventure_mobile_walk(
-               &gps_cache->player_team[gps_cache->player_team_front],
+               &ps_cache_in->player_team[ps_cache_in->player_team_front],
                TILEMAP_DIR_NORTH,
                as_mobile_list,
                i_mobile_count,
@@ -87,11 +86,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_DOWN] ) {
          //s_viewport.y += 32;
-         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
-            gps_cache->player_team[gps_cache->player_team_front].
+         if( !ps_cache_in->player_team[ps_cache_in->player_team_front].moving ) {
+            ps_cache_in->player_team[ps_cache_in->player_team_front].
                current_animation = MOBILE_ANI_WALK_SOUTH;
             systype_adventure_mobile_walk(
-               &gps_cache->player_team[gps_cache->player_team_front],
+               &ps_cache_in->player_team[ps_cache_in->player_team_front],
                TILEMAP_DIR_SOUTH,
                as_mobile_list,
                i_mobile_count,
@@ -101,11 +100,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_RIGHT] ) {
          //s_viewport.x += 32;
-         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
-            gps_cache->player_team[gps_cache->player_team_front].
+         if( !ps_cache_in->player_team[ps_cache_in->player_team_front].moving ) {
+            ps_cache_in->player_team[ps_cache_in->player_team_front].
                current_animation = MOBILE_ANI_WALK_EAST;
             systype_adventure_mobile_walk(
-               &gps_cache->player_team[gps_cache->player_team_front],
+               &ps_cache_in->player_team[ps_cache_in->player_team_front],
                TILEMAP_DIR_EAST,
                as_mobile_list,
                i_mobile_count,
@@ -115,11 +114,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_LEFT] ) {
          //s_viewport.x -= 32;
-         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
-            gps_cache->player_team[gps_cache->player_team_front].
+         if( !ps_cache_in->player_team[ps_cache_in->player_team_front].moving ) {
+            ps_cache_in->player_team[ps_cache_in->player_team_front].
                current_animation = MOBILE_ANI_WALK_WEST;
             systype_adventure_mobile_walk(
-               &gps_cache->player_team[gps_cache->player_team_front],
+               &ps_cache_in->player_team[ps_cache_in->player_team_front],
                TILEMAP_DIR_WEST,
                as_mobile_list,
                i_mobile_count,
@@ -128,7 +127,7 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          }
       }
       if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
-         gps_cache->game_type = SYSTEM_TYPE_TITLE;
+         ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
          goto sal_cleanup;
       }
 
@@ -140,32 +139,36 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       /* If the player is out of the viewport then scroll the viewport to     *
        * accomodate.                                                          */
       if(
-         gps_cache->player_team[gps_cache->player_team_front].pixel_y <
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y <
          s_viewport.y
       ) { /* North */
          systype_adventure_viewport_scroll(
-            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_NORTH
+            &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
+            TILEMAP_DIR_NORTH
          );
       } else if(
-         gps_cache->player_team[gps_cache->player_team_front].pixel_y >=
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y >=
          s_viewport.y + s_viewport.h
       ) { /* South */
          systype_adventure_viewport_scroll(
-            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_SOUTH
+            &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
+            TILEMAP_DIR_SOUTH
          );
       } else if(
-         gps_cache->player_team[gps_cache->player_team_front].pixel_x >=
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x >=
          s_viewport.x + s_viewport.w
       ) { /* East */
          systype_adventure_viewport_scroll(
-            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_EAST
+            &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
+            TILEMAP_DIR_EAST
          );
       } else if(
-         gps_cache->player_team[gps_cache->player_team_front].pixel_x <
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x <
          s_viewport.x
       ) { /* West */
          systype_adventure_viewport_scroll(
-            &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_WEST
+            &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
+            TILEMAP_DIR_WEST
          );
       }
 
@@ -178,16 +181,16 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          )->dirty = TRUE;
       }
       tilemap_get_tile(
-         gps_cache->player_team[gps_cache->player_team_front].pixel_x /
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x /
             ps_map->tileset->pixel_size,
-         gps_cache->player_team[gps_cache->player_team_front].pixel_y /
+         ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y /
             ps_map->tileset->pixel_size,
          ps_map
       )->dirty = TRUE;
 
       /* Draw the viewport. */
       systype_adventure_viewport_draw(
-         &s_viewport, as_mobile_list, i_mobile_count, ps_map, FALSE
+         &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map, FALSE
       );
 
       GFX_DRAW_LOOP_END
@@ -377,6 +380,7 @@ BOOL systype_adventure_mobile_walk(
 
 void systype_adventure_viewport_scroll(
    GFX_RECTANGLE* ps_viewport_in,
+   CACHE_CACHE* ps_cache_in,
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,
    TILEMAP_TILEMAP* ps_map_in,
@@ -398,7 +402,7 @@ void systype_adventure_viewport_scroll(
          (tilemap_dir_get_add_y( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
 
       systype_adventure_viewport_draw(
-         ps_viewport_in, as_mobiles_in, i_mobiles_count_in, ps_map_in, TRUE
+         ps_viewport_in, ps_cache_in, as_mobiles_in, i_mobiles_count_in, ps_map_in, TRUE
       );
 
       GFX_DRAW_LOOP_END
@@ -409,6 +413,7 @@ void systype_adventure_viewport_scroll(
 /* Purpose: Draw the current viewport.                                        */
 void systype_adventure_viewport_draw(
    GFX_RECTANGLE* ps_viewport_in,
+   CACHE_CACHE* ps_cache_in,
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,
    TILEMAP_TILEMAP* ps_map_in,
@@ -423,7 +428,7 @@ void systype_adventure_viewport_draw(
       mobile_draw( &as_mobiles_in[i], ps_viewport_in ); /* NPCs */
    }
    mobile_draw(
-      &gps_cache->player_team[gps_cache->player_team_front], ps_viewport_in
+      &ps_cache_in->player_team[ps_cache_in->player_team_front], ps_viewport_in
    ); /* PCs */
 
    graphics_do_update();
