@@ -17,10 +17,7 @@
 #include "systype_visnov.h"
 
 DBG_ENABLE
-
-/* = Global Variables = */
-
-extern CACHE_CACHE* gps_cache;
+CACHE_ENABLE
 
 /* = Functions = */
 
@@ -78,8 +75,8 @@ int systype_visnov_loop( bstring ps_scene_name_in ) {
       /* Execute the next command unless we're waiting. */
       if( !b_wait_for_talk && i_command_cursor < i_commands_count ) {
          systype_visnov_exec_command(
-            &as_commands[i_command_cursor], &i_command_cursor, &s_scene,
-            as_actors, i_actors_count
+            &as_commands[i_command_cursor], &b_wait_for_talk, &i_command_cursor,
+            &s_scene, as_actors, i_actors_count
          );
       }
       if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
@@ -270,6 +267,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
    const char* pc_command_action = NULL; /* Pointer to ezxml action result. */
    bstring ps_command_attr = bfromcstr( "" ), /* String holding what to add to cmd data. */
       ps_command_action = bfromcstr( "" ); /* Copy of the command's action for later. */
+   SYSTYPE_VISNOV_COMMAND s_command_tmp;
 
    /* Verify that the script exists. */
    if( NULL == ps_xml_script_in ) {
@@ -283,6 +281,8 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
    /* Load each command in order. */
    ps_xml_command = ezxml_child( ps_xml_script_in, "command" );
    while( NULL != ps_xml_command ) {
+      memset( &s_command_tmp, 0, sizeof( SYSTYPE_VISNOV_COMMAND ) );
+
       pc_command_action = ezxml_attr( ps_xml_command, "action" );
       bassignformat(
          ps_command_action,
@@ -295,13 +295,11 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          continue;
       }
 
-      /* Allocate the new command item at the end of the list. */
-      UTIL_ARRAY_ADD(
-         SYSTYPE_VISNOV_COMMAND, ps_commands_out, *pi_count_out, stvnlc_cleanup,
-         NULL
-      );
-
-      /* Parse the command's data and opcode. */
+      /* Parse the command's data and opcode. See the systype_visnov.h header    *
+       * for information on which Data Index (DI) belongs to which command and   *
+       * data item for that command, although that much should be evident from   *
+       * the list below. At any rate, be aware of the header and be sure to      *
+       * update it accordingly when adding new items.                            */
       if( 0 == strcmp( pc_command_action, "background" ) ) {
          /* COMMAND: BACKGROUND */
          STVN_PARSE_CMD_ALLOC(
@@ -311,8 +309,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
             "%svnbg_%s.%s", PATH_SHARE, ezxml_attr( ps_xml_command, "bg" ),
             FILE_EXTENSION_IMAGE
          );
-         ps_commands_out[*pi_count_out - 1].data[0].bg =
-            graphics_create_image( ps_command_attr );
+         s_command_tmp.data[0].bg = graphics_create_image( ps_command_attr );
 
       } else if( 0 == strcmp( pc_command_action, "pause" ) ) {
          /* COMMAND: PAUSE */
@@ -372,6 +369,12 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
 
       }
 
+      /* Allocate the new command item at the end of the list. */
+      UTIL_ARRAY_ADD(
+         SYSTYPE_VISNOV_COMMAND, ps_commands_out, *pi_count_out, stvnlc_cleanup,
+         &s_command_tmp
+      );
+
       DBG_INFO_STR( "Command added", ps_command_action->data );
 
       /* Go on to the next one. */
@@ -391,6 +394,7 @@ stvnlc_cleanup:
  *             the calling loop's command index cursor.                       */
 void systype_visnov_exec_command(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   BOOL* pb_wait_for_talk_in,
    int* pi_command_cursor_in,
    SYSTYPE_VISNOV_SCENE* ps_scene_in,
    SYSTYPE_VISNOV_ACTOR* as_actors_in,

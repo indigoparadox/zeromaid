@@ -18,11 +18,7 @@
 
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
-
-/* = Global Variables = */
-
-extern CACHE_CACHE* gps_cache;
-static MOBILE_MOBILE* gps_player;
+CACHE_ENABLE
 
 /* = Functions = */
 
@@ -62,9 +58,13 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
-   gps_player = (MOBILE_MOBILE*)malloc( sizeof( MOBILE_MOBILE ) );
-   memcpy( gps_player, &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
-   gps_player->pixel_x += ps_map->tileset->pixel_size;
+   gps_cache->player_team_front = 0;
+   gps_cache->player_team_count = 0;
+   gps_cache->player_team = calloc( 1, sizeof( MOBILE_MOBILE ) );
+   MOBILE_MOBILE* fff = gps_cache->player_team;
+   memcpy( &gps_cache->player_team[0], &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
+   gps_cache->player_team[gps_cache->player_team_front].pixel_x +=
+      ps_map->tileset->pixel_size;
 
    while( 1 ) {
       GFX_DRAW_LOOP_START
@@ -73,10 +73,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       event_do_poll( &s_event, TRUE );
       if( s_event.state[EVENT_ID_UP] ) {
          //s_viewport.y -= 32;
-         if( !gps_player->moving ) {
-            gps_player->current_animation = MOBILE_ANI_WALK_NORTH;
+         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
+            gps_cache->player_team[gps_cache->player_team_front].
+               current_animation = MOBILE_ANI_WALK_NORTH;
             systype_adventure_mobile_walk(
-               gps_player,
+               &gps_cache->player_team[gps_cache->player_team_front],
                TILEMAP_DIR_NORTH,
                as_mobile_list,
                i_mobile_count,
@@ -86,10 +87,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_DOWN] ) {
          //s_viewport.y += 32;
-         if( !gps_player->moving ) {
-            gps_player->current_animation = MOBILE_ANI_WALK_SOUTH;
+         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
+            gps_cache->player_team[gps_cache->player_team_front].
+               current_animation = MOBILE_ANI_WALK_SOUTH;
             systype_adventure_mobile_walk(
-               gps_player,
+               &gps_cache->player_team[gps_cache->player_team_front],
                TILEMAP_DIR_SOUTH,
                as_mobile_list,
                i_mobile_count,
@@ -99,10 +101,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_RIGHT] ) {
          //s_viewport.x += 32;
-         if( !gps_player->moving ) {
-            gps_player->current_animation = MOBILE_ANI_WALK_EAST;
+         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
+            gps_cache->player_team[gps_cache->player_team_front].
+               current_animation = MOBILE_ANI_WALK_EAST;
             systype_adventure_mobile_walk(
-               gps_player,
+               &gps_cache->player_team[gps_cache->player_team_front],
                TILEMAP_DIR_EAST,
                as_mobile_list,
                i_mobile_count,
@@ -112,10 +115,11 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
       }
       if( s_event.state[EVENT_ID_LEFT] ) {
          //s_viewport.x -= 32;
-         if( !gps_player->moving ) {
-            gps_player->current_animation = MOBILE_ANI_WALK_WEST;
+         if( !gps_cache->player_team[gps_cache->player_team_front].moving ) {
+            gps_cache->player_team[gps_cache->player_team_front].
+               current_animation = MOBILE_ANI_WALK_WEST;
             systype_adventure_mobile_walk(
-               gps_player,
+               &gps_cache->player_team[gps_cache->player_team_front],
                TILEMAP_DIR_WEST,
                as_mobile_list,
                i_mobile_count,
@@ -135,19 +139,31 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
 
       /* If the player is out of the viewport then scroll the viewport to     *
        * accomodate.                                                          */
-      if( gps_player->pixel_y < s_viewport.y ) { /* North */
+      if(
+         gps_cache->player_team[gps_cache->player_team_front].pixel_y <
+         s_viewport.y
+      ) { /* North */
          systype_adventure_viewport_scroll(
             &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_NORTH
          );
-      } else if( gps_player->pixel_y >= s_viewport.y + s_viewport.h ) { /* South */
+      } else if(
+         gps_cache->player_team[gps_cache->player_team_front].pixel_y >=
+         s_viewport.y + s_viewport.h
+      ) { /* South */
          systype_adventure_viewport_scroll(
             &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_SOUTH
          );
-      } else if( gps_player->pixel_x >= s_viewport.x + s_viewport.w ) { /* East */
+      } else if(
+         gps_cache->player_team[gps_cache->player_team_front].pixel_x >=
+         s_viewport.x + s_viewport.w
+      ) { /* East */
          systype_adventure_viewport_scroll(
             &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_EAST
          );
-      } else if( gps_player->pixel_x < s_viewport.x ) { /* West */
+      } else if(
+         gps_cache->player_team[gps_cache->player_team_front].pixel_x <
+         s_viewport.x
+      ) { /* West */
          systype_adventure_viewport_scroll(
             &s_viewport, as_mobile_list, i_mobile_count, ps_map, TILEMAP_DIR_WEST
          );
@@ -162,8 +178,10 @@ int systype_adventure_loop( bstring ps_map_name_in ) {
          )->dirty = TRUE;
       }
       tilemap_get_tile(
-         gps_player->pixel_x / ps_map->tileset->pixel_size,
-         gps_player->pixel_y / ps_map->tileset->pixel_size,
+         gps_cache->player_team[gps_cache->player_team_front].pixel_x /
+            ps_map->tileset->pixel_size,
+         gps_cache->player_team[gps_cache->player_team_front].pixel_y /
+            ps_map->tileset->pixel_size,
          ps_map
       )->dirty = TRUE;
 
@@ -404,12 +422,9 @@ void systype_adventure_viewport_draw(
       mobile_execute_ai( &as_mobiles_in[i], MOBILE_AI_ADV_NORMAL );
       mobile_draw( &as_mobiles_in[i], ps_viewport_in ); /* NPCs */
    }
-   #if 0
-   for( i = 0 ; i < gps_cache->player_team_count ; i++ ) {
-      mobile_draw( &gps_cache->player_team[i], &s_viewport ); /* PCs */
-   }
-   #endif
-   mobile_draw( gps_player, ps_viewport_in );
+   mobile_draw(
+      &gps_cache->player_team[gps_cache->player_team_front], ps_viewport_in
+   ); /* PCs */
 
    graphics_do_update();
 }
