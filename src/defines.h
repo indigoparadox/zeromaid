@@ -59,6 +59,8 @@ typedef int COND_SCOPE;
 #define COND_SCOPE_LOCAL 0
 #define COND_SCOPE_GLOBAL 0
 
+#define FONT_WINDOW_TEXT "font_prstart"
+
 /* The directory from which to fetch data files. */
 #ifdef USEWII
 #define PATH_SHARE "zeromaid_wii_data:/"
@@ -67,6 +69,7 @@ typedef int COND_SCOPE;
 #endif /* USEWII */
 
 #define PATH_FILE_SYSTEM "system.xml"
+#define PATH_FILE_WINDOW_WIDE "screen_window_wide." FILE_EXTENSION_IMAGE
 
 #define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
 #define RETURN_ACTION_TITLE 1 /* Display the title screen. */

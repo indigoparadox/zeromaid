@@ -109,6 +109,9 @@ typedef struct {
 #define GFX_DRAW_LOOP_END SDL_Delay( 1000 / GFX_FPS );
 #define GFX_DRAW_LOOP_FREE
 
+#define GFX_GET_SCREEN_WIDTH SDL_GetVideoSurface()->w
+#define GFX_GET_SCREEN_HEIGHT SDL_GetVideoSurface()->h
+
 #else
 
 #define GFX_DRAW_LOOP_DECLARE EVENT_TIMER* gps_fps;
