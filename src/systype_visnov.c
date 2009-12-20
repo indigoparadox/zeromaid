@@ -99,6 +99,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
             &s_rect_actor
          );
       }
+      window_draw_text( 0, ps_cache_in );
       graphics_do_update();
 
       GFX_DRAW_LOOP_END
@@ -336,16 +337,14 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TALK, SYSTYPE_VISNOV_CMD_TALK_DC );
          STVN_PARSE_CMD_DAT_INT( serial, 0 );
-         STVN_PARSE_CMD_DAT_STR( talktext, 1 );
+         STVN_PARSE_CMD_DAT_STR_BODY( talktext, 1 );
          STVN_PARSE_CMD_DAT_INT( speed, 2 );
 
       } else if( 0 == strcmp( pc_command_action, "goto" ) ) {
          /* COMMAND: GOTO */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_GOTO, SYSTYPE_VISNOV_CMD_GOTO_DC );
-         STVN_PARSE_CMD_DAT_INT( serial, 0 );
-         STVN_PARSE_CMD_DAT_STR( talktext, 1 );
-         STVN_PARSE_CMD_DAT_INT( speed, 2 );
+         STVN_PARSE_CMD_DAT_STR( target, 0 );
 
       } else if( 0 == strcmp( pc_command_action, "portrait" ) ) {
          /* COMMAND: PORTRAIT */
@@ -403,7 +402,7 @@ void systype_visnov_exec_command(
    GFX_COLOR* ps_color_fade = NULL;
    static int ti_countdown = -1;
    int i, z; /* Loop iterators. */
-   bstring ps_talk_text = NULL;
+   bstring ps_talk_text = NULL, ps_formatted_talk = NULL;
 
    switch( ps_command_in->command ) {
       case SYSTYPE_VISNOV_CMD_BACKGROUND:
@@ -444,6 +443,9 @@ void systype_visnov_exec_command(
          *pb_wait_for_talk_in = TRUE;
 
          /* Format and prettify the text for the window. */
+         ps_formatted_talk = bstrcpy( ps_command_in->data[1].talktext );
+         btrimws( ps_formatted_talk );
+
          ps_talk_text = bformat(
             "%s: %s",
             systype_visnov_get_actor(
@@ -451,9 +453,14 @@ void systype_visnov_exec_command(
                as_actors_in,
                *pi_actors_count_in
             )->name->data,
-            ps_command_in->data[1].talktext->data
+            ps_formatted_talk->data
          );
+
+         /* Actually display the text window. */
          window_create_text( ps_talk_text, ps_cache_in );
+
+         /* Clean up. */
+         bdestroy( ps_formatted_talk );
          bdestroy( ps_talk_text );
          break;
 

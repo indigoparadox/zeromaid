@@ -398,13 +398,13 @@ GFX_COLOR* graphics_create_color_html( bstring ps_color_in ) {
 }
 
 /* Purpose: Render a given text string to the screen.                         */
-/* Parameters: Coordinates to render to, string to render, font name, point   *
- * size, render color.                                                        */
+/* Parameters: Coordinates to render to, string to render, font file system   *
+ * path, point size, render color.                                            */
 void graphics_draw_text(
    int i_x_in,
    int i_y_in,
    bstring ps_string_in,
-   bstring ps_font_name_in,
+   bstring ps_path_in,
    int i_size_in,
    GFX_COLOR* ps_color_in
 ) {
@@ -413,7 +413,6 @@ void graphics_draw_text(
    TTF_Font* ps_font = NULL;
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
-   static bstring ps_last_font = NULL;
    int i; /* Loop iterator. */
 
    static TTF_Font** tas_font_list = NULL; /* List of loaded fonts. */
@@ -426,7 +425,7 @@ void graphics_draw_text(
       DBG_ERR( "Attempted to blit NULL string!" );
       return;
    }
-   if( NULL == ps_font_name_in ) {
+   if( NULL == ps_path_in ) {
       DBG_ERR( "Attempted to blit string with NULL font!" );
       return;
    }
@@ -442,7 +441,7 @@ void graphics_draw_text(
    /* See if we've already loaded the font. */
    for( i = 0 ; i < ti_font_list_count ; i++ ) {
       if(
-         0 == strcmp( ps_font_name_in->data, tas_font_list_names[i]->data ) &&
+         0 == strcmp( ps_path_in->data, tas_font_list_names[i]->data ) &&
          i_size_in == tai_font_list_sizes[i]
       ) {
          /* The requested font/size was found, so use it. */
@@ -460,7 +459,7 @@ void graphics_draw_text(
          ti_font_list_count * sizeof( TTF_Font* )
       );
       tas_font_list[ti_font_list_count - 1] =
-         TTF_OpenFont( ps_font_name_in->data, i_size_in );
+         TTF_OpenFont( ps_path_in->data, i_size_in );
 
       /* Resize and append to the names array. */
       tas_font_list_names = realloc(
@@ -468,7 +467,7 @@ void graphics_draw_text(
          ti_font_list_count * sizeof( bstring )
       );
       tas_font_list_names[ti_font_list_count - 1] =
-         bformat( "%s", ps_font_name_in->data );
+         bformat( "%s", ps_path_in->data );
 
       /* Resize and append to the sizes array. */
       tai_font_list_sizes = realloc(
@@ -477,21 +476,30 @@ void graphics_draw_text(
       );
       tai_font_list_sizes[ti_font_list_count - 1] = i_size_in;
 
+      DBG_INFO_STR_INT(
+         "Font added to static cache", ps_path_in->data, i_size_in
+      );
+
       /* Finally, select the font. */
       ps_font = tas_font_list[ti_font_list_count - 1];
    }
 
+   #if 0
+   /* XXX: Work this error handling into the loading mechanism above. Prevent *
+    *      allocation if the font is bad.                                     */
    /* Open the font and render the text. */
    if( NULL == ps_font ) {
       /* Only log the error once. */
-      if( 0 != bstrcmp( ps_last_font, ps_font_name_in ) ) {
-         DBG_ERR_STR( "Unable to load font", ps_font_name_in->data );
+      if( 0 != bstrcmp( ps_last_font, ps_path_in ) ) {
+         DBG_ERR_STR( "Unable to load font", ps_path_in->data );
          DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
          bdestroy( ps_last_font );
-         ps_last_font = bstrcpy( ps_font_name_in );
+         ps_last_font = bstrcpy( ps_path_in );
       }
       return;
    }
+   #endif
+
    ps_type_render_out = TTF_RenderText_Solid(
       ps_font, ps_string_in->data, ps_color_sdl
    );

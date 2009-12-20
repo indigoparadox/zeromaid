@@ -146,6 +146,13 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       bstrcpy( ps_command_attr );
 
+#define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
+   ); \
+   s_command_tmp.data[di].dtype = \
+      bstrcpy( ps_command_attr );
+
 /* = Function Prototypes = */
 
 int systype_visnov_loop( CACHE_CACHE* );
