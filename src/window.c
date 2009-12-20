@@ -47,6 +47,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    static BOOL tb_success = TRUE;
    static bstring tps_font_name = NULL;
    int i_window_index = (ps_cache_in->text_log_count - 1) - i_index_in,
+      i_lines_printed = 0,
       i_buffer_result = BSTR_OK;
    size_t i_buffer_start = 0, /* Offset to print from current input buffer. */
       i_buffer_end = WINDOW_BUFFER_LENGTH,
@@ -92,10 +93,22 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
    i_buffer_len = strlen( ps_cache_in->text_log[i_window_index]->data );
    while( i_buffer_start < i_buffer_len && BSTR_ERR != i_buffer_result ) {
+      /* If the nominal buffer length would be beyond the end of the string,  *
+       * then print to the end of the string. Otherwise, print to the nominal *
+       * buffer length.                                                       */
       if( i_buffer_start + WINDOW_BUFFER_LENGTH > i_buffer_len ) {
          i_buffer_end = i_buffer_len - i_buffer_start;
       } else {
          i_buffer_end = WINDOW_BUFFER_LENGTH;
+
+         /* Decrease the end until we find a whitespace character. */
+         while(
+            i_buffer_end > 1 &&
+            ps_cache_in->text_log[i_window_index]->
+               data[i_buffer_start + i_buffer_end] != ' '
+         ) {
+            i_buffer_end--;
+         }
       }
 
       i_buffer_result = bassignmidstr (
@@ -109,13 +122,14 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          graphics_draw_text(
             ts_rect_window.x + 20,
             ts_rect_window.y +
-               ((i_buffer_start / WINDOW_BUFFER_LENGTH) * 20) +  20,
+               (i_lines_printed * 20) +  20,
             ps_line_buffer,
             tps_font_name,
             12,
             &ts_color_text
          );
-         i_buffer_start += WINDOW_BUFFER_LENGTH;
+         i_buffer_start += i_buffer_end + 1; /* Add 1 for trailing space. */
+         i_lines_printed++;
       }
    }
 
