@@ -45,6 +45,78 @@ wct_cleanup:
    return as_text_windows_in;
 }
 
+/* Purpose: Create the given menu in the given list of menus.                 */
+/* Parameters: A pointer to the menu to add and the cache to add it to.       */
+/* Return: The new address of the given menu list.                            */
+WINDOW_MENU* window_create_menu(
+   bstring ps_items_in,
+   COND_SCOPE i_scope_in,
+   WINDOW_MENU_COLORS* ps_colors_in,
+   WINDOW_MENU* as_menu_list_in,
+   int* pi_menu_list_count_in
+) {
+   struct bstrList* ps_items_list = NULL,
+      * ps_item_iter = NULL,
+      * ps_keyval_iter = NULL;
+   WINDOW_MENU s_menu_tmp; /* Temporary menu struct to copy to the stack. */
+   int i; /* Loop iterator. */
+
+   memset( &s_menu_tmp, 0, sizeof( WINDOW_MENU ) );
+
+   /* Copy the colors struct. */
+   memcpy( &s_menu_tmp.colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
+
+   /* Set the scope. */
+   s_menu_tmp.scope = i_scope_in;
+
+   /* Split apart the items list into Label:Target pairs. */
+   ps_items_list = bsplit( ps_items_in, ';' );
+   for( i = 0 ; i < ps_items_list->qty ; i++ ) {
+      ps_item_iter = bsplit( ps_items_list->entry[i], ':' );
+
+      /* There's no point in proceeding if there's not a description    *
+       * and target for this item.                                      */
+      if( ps_item_iter->qty < 2 ) {
+         continue;
+      }
+
+      ps_keyval_iter = bsplit( ps_item_iter->entry[1], ',' );
+
+      /* If there's no value then the default should be "true".         */
+      if( ps_keyval_iter->qty < 2 ) {
+         ps_keyval_iter->qty++;
+         ps_keyval_iter->entry[1] = bformat( "true" );
+      }
+
+      /* Add the menu item to the new menu. */
+      UTIL_ARRAY_ADD(
+         WINDOW_MENU_ITEM, s_menu_tmp.options,
+         s_menu_tmp.options_count, wcm_cleanup, NULL
+      );
+      s_menu_tmp.options[s_menu_tmp.options_count - 1].desc =
+         bstrcpy( ps_item_iter->entry[0] );
+      s_menu_tmp.options[s_menu_tmp.options_count - 1].key =
+         bstrcpy( ps_keyval_iter->entry[0] );
+      s_menu_tmp.options[s_menu_tmp.options_count - 1].value =
+         bstrcpy( ps_keyval_iter->entry[1] );
+
+      /* Clean up. */
+      bstrListDestroy( ps_item_iter );
+   }
+   bstrListDestroy( ps_items_list );
+
+   UTIL_ARRAY_ADD(
+      WINDOW_MENU, as_menu_list_in, *pi_menu_list_count_in, wcm_cleanup,
+      &s_menu_tmp
+   );
+
+   DBG_INFO_INT( "Menu created", *pi_menu_list_count_in - 1 );
+
+wcm_cleanup:
+
+   return as_menu_list_in;
+}
+
 /* Purpose: Draw the selected text window on-screen, or the top-most window   *
  *          if no index is given or the index is invalid.                     */
 void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
@@ -148,78 +220,6 @@ wdt_cleanup:
    return;
 }
 
-/* Purpose: Create the given menu in the given list of menus.                 */
-/* Parameters: A pointer to the menu to add and the cache to add it to.       */
-/* Return: The new address of the given menu list.                            */
-WINDOW_MENU* window_create_menu(
-   bstring ps_items_in,
-   COND_SCOPE i_scope_in,
-   WINDOW_MENU_COLORS* ps_colors_in,
-   WINDOW_MENU* as_menu_list_in,
-   int* pi_menu_list_count_in
-) {
-   struct bstrList* ps_items_list = NULL,
-      * ps_item_iter = NULL,
-      * ps_keyval_iter = NULL;
-   WINDOW_MENU s_menu_tmp; /* Temporary menu struct to copy to the stack. */
-   int i; /* Loop iterator. */
-
-   memset( &s_menu_tmp, 0, sizeof( WINDOW_MENU ) );
-
-   /* Copy the colors struct. */
-   memcpy( &s_menu_tmp.colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
-
-   /* Set the scope. */
-   s_menu_tmp.scope = i_scope_in;
-
-   /* Split apart the items list into Label:Target pairs. */
-   ps_items_list = bsplit( ps_items_in, ';' );
-   for( i = 0 ; i < ps_items_list->qty ; i++ ) {
-      ps_item_iter = bsplit( ps_items_list->entry[i], ':' );
-
-      /* There's no point in proceeding if there's not a description    *
-       * and target for this item.                                      */
-      if( ps_item_iter->qty < 2 ) {
-         continue;
-      }
-
-      ps_keyval_iter = bsplit( ps_item_iter->entry[1], ',' );
-
-      /* If there's no value then the default should be "true".         */
-      if( ps_keyval_iter->qty < 2 ) {
-         ps_keyval_iter->qty++;
-         ps_keyval_iter->entry[1] = bformat( "true" );
-      }
-
-      /* Add the menu item to the new menu. */
-      UTIL_ARRAY_ADD(
-         WINDOW_MENU_ITEM, s_menu_tmp.options,
-         s_menu_tmp.options_count, wcm_cleanup, NULL
-      );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].desc =
-         bstrcpy( ps_item_iter->entry[0] );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].key =
-         bstrcpy( ps_keyval_iter->entry[0] );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].value =
-         bstrcpy( ps_keyval_iter->entry[1] );
-
-      /* Clean up. */
-      bstrListDestroy( ps_item_iter );
-   }
-   bstrListDestroy( ps_items_list );
-
-   UTIL_ARRAY_ADD(
-      WINDOW_MENU, as_menu_list_in, *pi_menu_list_count_in, wcm_cleanup,
-      &s_menu_tmp
-   );
-
-   DBG_INFO( "Menu created." );
-
-wcm_cleanup:
-
-   return as_menu_list_in;
-}
-
 /* Purpose: Draw all on-screen menus with the newest layered foremost.        */
 /* Parameters: The list of menus to draw and the number of menus in the list. */
 void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
@@ -283,4 +283,24 @@ void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
 wdm_cleanup:
 
    return;
+}
+
+/* Purpose: Free the top-most menu from the given menu stack.                 */
+WINDOW_MENU* window_free_menu(
+   WINDOW_MENU* ps_menu_list_in,
+   int* pi_menu_list_count_in
+) {
+   int z; /* Loop iterator. */
+
+   UTIL_ARRAY_DEL(
+      WINDOW_MENU, ps_menu_list_in, *pi_menu_list_count_in,
+      wfm_cleanup, *pi_menu_list_count_in - 1
+   );
+
+   /* The index has had 1 subtracted from it by the macro above. */
+   DBG_INFO_INT( "Menu freed", *pi_menu_list_count_in );
+
+wfm_cleanup:
+
+   return ps_menu_list_in;
 }

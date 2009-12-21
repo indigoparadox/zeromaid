@@ -131,17 +131,28 @@ typedef struct {
 /* == Scene Stuff == */
 
 typedef struct {
+   CACHE_VARIABLE* locals;
    BOOL dirty; /* Does the scene need to be redrawn? */
    GFX_SURFACE* bg; /* Current scene background. */
-   bstring var_keys, /* Local variable keys. */
-      var_values; /* Parallel to var_keys, local variable values. */
-   int var_count, /* Local variable count. */
+   int locals_count, /* Local variable count. */
       actors_onscreen_count;
    SYSTYPE_VISNOV_ACTOR** actors_onscreen; /* Dupe ptrs to actors on-screen. */
 } SYSTYPE_VISNOV_SCENE;
 
 /* = Macros = */
 
+/* Purpose: Select the appropriate cache for the given scope and set the      *
+ *          given key to the given value within it.                           */
+#define STVN_CACHE_SET( key, value, scope, g_addr, gc_addr, l_addr, lc_addr ) \
+   if( COND_SCOPE_GLOBAL == scope ) { \
+      g_addr = cache_set_var( key, value, g_addr, gc_addr ); \
+   } else if( COND_SCOPE_LOCAL == scope ) { \
+      l_addr = cache_set_var( key, value, l_addr, lc_addr ); \
+   } else { \
+      DBG_ERR_INT( "Unrecognized variable scope", scope ); \
+   }
+
+/* Purpose: Allocate a new command of the given type with the given DI count. */
 #define STVN_PARSE_CMD_ALLOC( type, dc ) \
    s_command_tmp.command = type; \
    s_command_tmp.data = calloc( \
@@ -193,7 +204,8 @@ int systype_visnov_exec_background(
 );
 int systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int );
 int systype_visnov_exec_cond(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, int
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, SYSTYPE_VISNOV_SCENE*,
+   CACHE_CACHE*, int
 );
 int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
@@ -203,10 +215,16 @@ int systype_visnov_exec_talk(
    SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, SYSTYPE_VISNOV_ACTOR*,
    int, int
 );
-int systype_visnov_exec_menu(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, WINDOW_MENU**, int*, int
+int systype_visnov_exec_goto(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, int
 );
-int systype_visnov_exec_set( SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, int );
+int systype_visnov_exec_menu(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, CACHE_CACHE*, EVENT_EVENT*,
+   WINDOW_MENU**, int*, int
+);
+int systype_visnov_exec_set(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, CACHE_CACHE*, int
+);
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int
 );

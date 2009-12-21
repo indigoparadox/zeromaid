@@ -85,7 +85,8 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
          case SYSTYPE_VISNOV_CMD_COND:
             i_command_cursor = systype_visnov_exec_cond(
-               &as_commands[i_command_cursor], &s_scene, i_command_cursor
+               &as_commands[i_command_cursor], as_commands, i_commands_count,
+               &s_scene, ps_cache_in, i_command_cursor
             );
             break;
 
@@ -93,6 +94,13 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
             i_command_cursor = systype_visnov_exec_talk(
                &as_commands[i_command_cursor], ps_cache_in, &s_event,
                as_actors, i_actors_count, i_command_cursor
+            );
+            break;
+
+         case SYSTYPE_VISNOV_CMD_GOTO:
+            i_command_cursor = systype_visnov_exec_goto(
+               &as_commands[i_command_cursor], as_commands, i_commands_count,
+               i_command_cursor
             );
             break;
 
@@ -105,14 +113,15 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
          case SYSTYPE_VISNOV_CMD_MENU:
             i_command_cursor = systype_visnov_exec_menu(
-               &as_commands[i_command_cursor], ps_cache_in, &s_event,
+               &as_commands[i_command_cursor], &s_scene, ps_cache_in, &s_event,
                &as_menus, &i_menus_count, i_command_cursor
             );
             break;
 
          case SYSTYPE_VISNOV_CMD_SET:
             i_command_cursor = systype_visnov_exec_set(
-               &as_commands[i_command_cursor], ps_cache_in, i_command_cursor
+               &as_commands[i_command_cursor], &s_scene, ps_cache_in,
+               i_command_cursor
             );
 
          default:
@@ -494,18 +503,41 @@ int systype_visnov_exec_pause(
 /* COMMAND: COND */
 int systype_visnov_exec_cond(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_COMMAND* as_command_list_in,
+   int i_command_list_count_in,
    SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
    int i; /* Loop iterator. */
 
-   for( i = 0 ; i < ps_scene_in->var_count ; i++ ) {
-      if(
-         (COND_SCOPE_LOCAL == ps_command_in->data[1].scope &&
-         0 == bstrcmp( ps_command_in->data[2].key, &ps_scene_in->var_keys[i] ) &&
-         0 == bstrcmp( ps_command_in->data[3].equals, &ps_scene_in->var_values[i] ))
-      ) {
-         /* TODO */
+   if( COND_SCOPE_GLOBAL == ps_command_in->data[1].scope ) {
+      for( i = 0 ; i < ps_cache_in->globals_count ; i++ ) {
+         if(
+            0 == bstrcmp(
+               ps_command_in->data[2].key, ps_cache_in->globals[i].key ) &&
+            0 == bstrcmp(
+               ps_command_in->data[3].equals, ps_cache_in->globals[i].value )
+         ) {
+            /* Conditions are matched, so jump to target. */
+            return systype_visnov_exec_goto(
+               ps_command_in,
+               as_command_list_in,
+               i_command_list_count_in,
+               i_command_cursor_in
+            );
+         }
+      }
+   } else if( COND_SCOPE_LOCAL == ps_command_in->data[1].scope ) {
+      for( i = 0 ; i < ps_scene_in->locals_count ; i++ ) {
+         if(
+            0 == bstrcmp(
+               ps_command_in->data[2].key, ps_scene_in->locals[i].key ) &&
+            0 == bstrcmp(
+               ps_command_in->data[3].equals, ps_scene_in->locals[i].value )
+         ) {
+            /* Conditions are matched, so jump to target. */
+         }
       }
    }
 
@@ -567,6 +599,35 @@ int systype_visnov_exec_talk(
    return i_command_cursor_in;
 }
 
+int systype_visnov_exec_goto(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_COMMAND* as_commands_in,
+   int i_commands_count_in,
+   int i_command_cursor_in
+) {
+   int i; /* Loop iterator. */
+
+   for( i = 0 ; i < i_commands_count_in ; i++ ) {
+      if(
+         SYSTYPE_VISNOV_CMD_LABEL == as_commands_in[i].command &&
+         0 == bstrcmp(
+            ps_command_in->data[0].target, as_commands_in[i].data[0].name )
+      ) {
+         DBG_INFO_STR(
+            "Jumping to label", as_commands_in[i].data[0].name->data
+         );
+         /* Line found, return its index. */
+         return i;
+      }
+   }
+
+   /* Label not found, move on. */
+   DBG_ERR_STR(
+      "Visual novel label not found", ps_command_in->data[0].target->data
+   );
+   return ++i_command_cursor_in;
+}
+
 /* COMMAND: PORTRAIT */
 int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
@@ -619,6 +680,7 @@ stvnepr_cleanup:
  *       to the list is expected in case realloc changes the list address.    */
 int systype_visnov_exec_menu(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_SCENE* ps_scene_in,
    CACHE_CACHE* ps_cache_in,
    EVENT_EVENT* ps_event_in,
    WINDOW_MENU** pas_menu_list_in,
@@ -627,7 +689,6 @@ int systype_visnov_exec_menu(
 ) {
    static WINDOW_MENU* tps_last_menu = NULL;
    WINDOW_MENU_COLORS s_colors_tmp;
-   int z;
 
    /* If the menu we're about to create is already on the stack, then just    *
     * reset the command cursor back one and quit.                             */
@@ -638,16 +699,16 @@ int systype_visnov_exec_menu(
       /* The last menu created is the menu currently displaying. */
       if( ps_event_in->state[EVENT_ID_FIRE] ) {
          /* The player wants to advance. */
-         cache_set_var(
+         STVN_CACHE_SET(
             tps_last_menu->options[tps_last_menu->selected].key,
             tps_last_menu->options[tps_last_menu->selected].value,
             tps_last_menu->scope,
-            ps_cache_in
+            ps_cache_in->globals,
+            &ps_cache_in->globals_count,
+            ps_scene_in->locals,
+            &ps_scene_in->locals_count
          );
-         UTIL_ARRAY_DEL(
-            WINDOW_MENU, *pas_menu_list_in, *pi_menu_list_count_in,
-            stvnem_cleanup, (*pi_menu_list_count_in - 1)
-         );
+         window_free_menu( *pas_menu_list_in, pi_menu_list_count_in );
          tps_last_menu = NULL;
 
          i_command_cursor_in++;
@@ -702,14 +763,18 @@ stvnem_cleanup:
 /* COMMAND: SET */
 int systype_visnov_exec_set(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_SCENE* ps_scene_in,
    CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
-   cache_set_var(
+   STVN_CACHE_SET(
       ps_command_in->data[2].key,
       ps_command_in->data[3].equals,
       ps_command_in->data[1].scope,
-      ps_cache_in
+      ps_cache_in->globals,
+      &ps_cache_in->globals_count,
+      ps_scene_in->locals,
+      &ps_scene_in->locals_count
    );
 
    return ++i_command_cursor_in;
