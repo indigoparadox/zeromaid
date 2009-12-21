@@ -53,5 +53,6 @@ typedef struct {
 
 BOOL cache_save( bstring );
 BOOL cache_load( bstring );
+void cache_set_var( bstring, bstring, COND_SCOPE, CACHE_CACHE* );
 
 #endif /* CACHE_H */
