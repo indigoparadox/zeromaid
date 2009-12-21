@@ -68,6 +68,7 @@ typedef int COND_SCOPE;
 
 #define PATH_FILE_SYSTEM "system.xml"
 #define PATH_FILE_WINDOW_WIDE "screen_window_wide." FILE_EXTENSION_IMAGE
+#define PATH_FILE_WINDOW_RECT "screen_window." FILE_EXTENSION_IMAGE
 
 #define RETURN_ACTION_QUIT 0 /* Quit cleanly. */
 #define RETURN_ACTION_TITLE 1 /* Display the title screen. */

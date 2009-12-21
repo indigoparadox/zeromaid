@@ -26,7 +26,7 @@ DBG_ENABLE
 int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    SYSTYPE_VISNOV_ACTOR* as_actors = NULL;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
-   WINDOW_MENU* as_menus;
+   WINDOW_MENU* as_menus = NULL;
    int i_actors_count = 0,
       i_commands_count = 0,
       i_menus_count = 0,
@@ -37,7 +37,6 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    GFX_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
-   BOOL b_wait = FALSE; /* Are we waiting for the player to read? */
    EVENT_EVENT s_event;
    SYSTYPE_VISNOV_SCENE s_scene;
 
@@ -70,54 +69,52 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Listen for events. */
       event_do_poll( &s_event, FALSE );
-      if( s_event.state[EVENT_ID_FIRE] && b_wait ) {
-         b_wait = FALSE;
+      /* Execute the next command unless we're waiting. */
+      switch( as_commands[i_command_cursor].command ) {
+         case SYSTYPE_VISNOV_CMD_BACKGROUND:
+            i_command_cursor = systype_visnov_exec_background(
+               &as_commands[i_command_cursor], &s_scene, i_command_cursor
+            );
+            break;
 
-      } else if( !b_wait && i_command_cursor < i_commands_count ) {
-         /* Execute the next command unless we're waiting. */
-         switch( as_commands[i_command_cursor].command ) {
-            case SYSTYPE_VISNOV_CMD_BACKGROUND:
-               systype_visnov_exec_background(
-                  &as_commands[i_command_cursor], &s_scene
-               );
-               break;
+         case SYSTYPE_VISNOV_CMD_PAUSE:
+            i_command_cursor = systype_visnov_exec_pause(
+               &as_commands[i_command_cursor], i_command_cursor
+            );
+            break;
 
-            case SYSTYPE_VISNOV_CMD_PAUSE:
-               systype_visnov_exec_pause(
-                  &as_commands[i_command_cursor], &i_command_cursor
-               );
-               break;
+         case SYSTYPE_VISNOV_CMD_COND:
+            i_command_cursor = systype_visnov_exec_cond(
+               &as_commands[i_command_cursor], &s_scene, i_command_cursor
+            );
+            break;
 
-            case SYSTYPE_VISNOV_CMD_COND:
-               systype_visnov_exec_cond(
-                  &as_commands[i_command_cursor], &s_scene
-               );
-               break;
+         case SYSTYPE_VISNOV_CMD_TALK:
+            i_command_cursor = systype_visnov_exec_talk(
+               &as_commands[i_command_cursor], ps_cache_in, &s_event,
+               as_actors, i_actors_count, i_command_cursor
+            );
+            break;
 
-            case SYSTYPE_VISNOV_CMD_TALK:
-               systype_visnov_exec_talk(
-                  &as_commands[i_command_cursor], ps_cache_in, &b_wait,
-                  as_actors, i_actors_count
-               );
-               break;
+         case SYSTYPE_VISNOV_CMD_PORTRAIT:
+            i_command_cursor = systype_visnov_exec_portrait(
+               &as_commands[i_command_cursor], &s_scene, as_actors,
+               i_actors_count, i_command_cursor
+            );
+            break;
 
-            case SYSTYPE_VISNOV_CMD_PORTRAIT:
-               systype_visnov_exec_portrait(
-                  &as_commands[i_command_cursor], &s_scene, as_actors,
-                  i_actors_count
-               );
-               break;
+         case SYSTYPE_VISNOV_CMD_MENU:
+            i_command_cursor = systype_visnov_exec_menu(
+               &as_commands[i_command_cursor], ps_cache_in, &s_event,
+               &as_menus, &i_menus_count, i_command_cursor
+            );
+            break;
 
-            case SYSTYPE_VISNOV_CMD_MENU:
-               systype_visnov_exec_menu(
-                  &as_commands[i_command_cursor], ps_cache_in, &b_wait,
-                  as_menus, &i_menus_count
-               );
-               break;
-         }
-
-         i_command_cursor++;
+         default:
+            /* Just skip commands we don't understand yet. */
+            i_command_cursor++;
       }
+
       if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
          ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
          goto stvnl_cleanup;
@@ -140,6 +137,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
          );
       }
       window_draw_text( 0, ps_cache_in );
+      window_draw_menu( as_menus, i_menus_count );
       graphics_do_update();
 
       GFX_DRAW_LOOP_END
@@ -439,9 +437,10 @@ stvnlc_cleanup:
 }
 
 /* COMMAND: BACKGROUND */
-void systype_visnov_exec_background(
+int systype_visnov_exec_background(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in
+   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   int i_command_cursor_in
 ) {
    GFX_COLOR* ps_color_fade = NULL;
 
@@ -450,12 +449,14 @@ void systype_visnov_exec_background(
    graphics_draw_blit_tile( ps_scene_in->bg, NULL, NULL );
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    free( ps_color_fade );
+
+   return ++i_command_cursor_in;
 }
 
 /* COMMAND: PAUSE */
-void systype_visnov_exec_pause(
+int systype_visnov_exec_pause(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   int* pi_command_cursor_in
+   int i_command_cursor_in
 ) {
    static int ti_countdown = -1;
 
@@ -464,23 +465,23 @@ void systype_visnov_exec_pause(
    if( 0 <= ti_countdown ) {
       ti_countdown--;
       if( 0 <= ti_countdown ) {
-         /* This isn't the last tick, decrement the instruction cursor. */
-         (*pi_command_cursor_in)--;
-         goto stvnepa_cleanup;
+         /* This isn't the last tick, so keep waiting. */
+         return i_command_cursor_in;
+      } else {
+         /* Time can move again. */
+         return ++i_command_cursor_in;
       }
    } else {
       ti_countdown = ps_command_in->data[0].delay;
+      return i_command_cursor_in;
    }
-
-stvnepa_cleanup:
-
-   return;
 }
 
-/* COMMAND: PAUSE */
-void systype_visnov_exec_cond(
+/* COMMAND: COND */
+int systype_visnov_exec_cond(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in
+   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   int i_command_cursor_in
 ) {
    int i; /* Loop iterator. */
 
@@ -493,20 +494,37 @@ void systype_visnov_exec_cond(
          /* TODO */
       }
    }
+
+   return ++i_command_cursor_in;
 }
 
 /* COMMAND: TALK */
-void systype_visnov_exec_talk(
+int systype_visnov_exec_talk(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    CACHE_CACHE* ps_cache_in,
-   BOOL* pb_wait_in,
+   EVENT_EVENT* ps_event_in,
    SYSTYPE_VISNOV_ACTOR* as_actors_in,
-   int i_actors_count_in
+   int i_actors_count_in,
+   int i_command_cursor_in
 ) {
    bstring ps_talk_text = NULL, ps_formatted_talk = NULL;
+   static CACHE_LOG_ENTRY* tps_last_text = NULL;
 
-   /* Make sure the loop pauses so the player can read. */
-   *pb_wait_in = TRUE;
+   /* If the window we're about to create is already on the stack, then just  *
+    * reset the command cursor back one and quit.                             */
+   if(
+      0 < ps_cache_in->text_log_count &&
+      tps_last_text == &ps_cache_in->text_log[ps_cache_in->text_log_count - 1]
+   ) {
+      /* The last entry created is the entry currently displaying. */
+      if( ps_event_in->state[EVENT_ID_FIRE] ) {
+         /* The player wants to advance. */
+         tps_last_text = NULL;
+         return ++i_command_cursor_in;
+      } else {
+         return i_command_cursor_in;
+      }
+   }
 
    /* Format and prettify the text for the window. */
    ps_formatted_talk = bstrcpy( ps_command_in->data[1].talktext );
@@ -523,19 +541,25 @@ void systype_visnov_exec_talk(
    );
 
    /* Actually display the text window. */
-   window_create_text( ps_talk_text, ps_cache_in );
+   ps_cache_in->text_log = window_create_text(
+      ps_talk_text, ps_cache_in->text_log, &ps_cache_in->text_log_count
+   );
+   tps_last_text = &ps_cache_in->text_log[ps_cache_in->text_log_count - 1];
 
    /* Clean up. */
    bdestroy( ps_formatted_talk );
    bdestroy( ps_talk_text );
+
+   return i_command_cursor_in;
 }
 
 /* COMMAND: PORTRAIT */
-void systype_visnov_exec_portrait(
+int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    SYSTYPE_VISNOV_SCENE* ps_scene_in,
    SYSTYPE_VISNOV_ACTOR* as_actors_in,
-   int i_actors_count_in
+   int i_actors_count_in,
+   int i_command_cursor_in
 ) {
 
    int i, z; /* Loop iterators. */
@@ -573,64 +597,49 @@ void systype_visnov_exec_portrait(
 
 stvnepr_cleanup:
 
-   return;
+   return ++i_command_cursor_in;
 }
 
 /* COMMAND: MENU */
-void systype_visnov_exec_menu(
+/* NOTE: This command modifies the list of menus, so a pointer to the pointer *
+ *       to the list is expected in case realloc changes the list address.    */
+int systype_visnov_exec_menu(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    CACHE_CACHE* ps_cache_in,
-   BOOL* pb_wait_in,
-   WINDOW_MENU* as_menu_list_in,
-   int* pi_menu_list_count_in
+   EVENT_EVENT* ps_event_in,
+   WINDOW_MENU** pas_menu_list_in,
+   int* pi_menu_list_count_in,
+   int i_command_cursor_in
 ) {
-   WINDOW_MENU* ps_menu_tmp = NULL;
-   struct bstrList* ps_items_list = NULL, * ps_item_iter = NULL;
-   int i; /* Loop iterator. */
+   static WINDOW_MENU* tps_last_menu = NULL;
 
    /* If the menu we're about to create is already on the stack, then just    *
     * reset the command cursor back one and quit.                             */
-   // TODO
-
-   /* Create the menu struct to append to the stack. */
-   ps_menu_tmp = calloc( 1, sizeof( WINDOW_MENU ) );
-
-   /* Split apart the items list into Label:Target pairs. */
-   ps_items_list = bsplit( ps_command_in->data[0].items, ';' );
-   for( i = 0 ; i < ps_items_list->qty ; i++ ) {
-      ps_item_iter = bsplit( ps_items_list->entry[i], ':' );
-
-      /* There's no point in proceeding if there's not a description    *
-       * and target for this item.                                      */
-      if( ps_item_iter->qty < 2 ) {
-         continue;
+   if(
+      0 < *pi_menu_list_count_in &&
+      tps_last_menu == &(*pas_menu_list_in)[*pi_menu_list_count_in - 1]
+   ) {
+      /* The last menu created is the menu currently displaying. */
+      if( ps_event_in->state[EVENT_ID_FIRE] ) {
+         /* The player wants to advance. */
+         tps_last_menu = NULL;
+         return ++i_command_cursor_in;
+      } else {
+         return i_command_cursor_in;
       }
-
-      /* Add the menu item to the new menu. */
-      UTIL_ARRAY_ADD(
-         WINDOW_MENU_ITEM, ps_menu_tmp->options,
-         ps_menu_tmp->options_count, stvnem_cleanup, NULL
-      );
-      ps_menu_tmp->options[ps_menu_tmp->options_count - 1].desc =
-         bstrcpy( ps_item_iter->entry[0] );
-      ps_menu_tmp->options[ps_menu_tmp->options_count - 1].key =
-         bstrcpy( ps_item_iter->entry[1] );
-
-      /* Clean up. */
-      bstrListDestroy( ps_item_iter );
    }
-   bstrListDestroy( ps_items_list );
 
    /* Append the menu struct and clean up. It's all right to just free  *
     * it since the dynamic stuff pointed to it will be pointed to by    *
     * the copy on the menu stack.                                       */
-   window_create_menu(
-      ps_menu_tmp, ps_cache_in, as_menu_list_in, pi_menu_list_count_in
+   (*pas_menu_list_in) = window_create_menu(
+      ps_command_in->data[0].items, *pas_menu_list_in, pi_menu_list_count_in
    );
+   tps_last_menu = &(*pas_menu_list_in)[(*pi_menu_list_count_in) - 1];
 
 stvnem_cleanup:
 
-   free( ps_menu_tmp );
+   return i_command_cursor_in;
 }
 
 /* Purpose: Return a pointer to the first actor with a given serial number.   */

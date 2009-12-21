@@ -31,7 +31,6 @@ typedef struct {
 
 typedef struct {
    bstring text;
-   time_t created;
 } CACHE_LOG_ENTRY;
 
 typedef struct {
