@@ -67,6 +67,8 @@ typedef int SYSTYPE_VISNOV_CMD;
 #define SYSTYPE_VISNOV_CMD_TELEPORT_DC 4
 #define SYSTYPE_VISNOV_CMD_MENU 9
 #define SYSTYPE_VISNOV_CMD_MENU_DC 6
+#define SYSTYPE_VISNOV_CMD_SET 10
+#define SYSTYPE_VISNOV_CMD_SET_DC 4
 
 /* TODO: MUSIC, MENU */
 
@@ -75,19 +77,20 @@ typedef int SYSTYPE_VISNOV_CMD;
 /* == Command Stuff == */
 
 typedef union {
+   int null;   /* Can be used to space out DIs that can't be reconciled. */
    GFX_COLOR
       * color_fg,    /* DI 2 - MENU */
       * color_bg,    /* DI 3 - MENU */
       * color_sfg,   /* DI 4 - MENU */
       * color_sbg;   /* DI 5 - MENU */
    bstring name,     /* DI 0 - LABEL */
-      key,           /* DI 2 - COND */
-      equals,        /* DI 3 - COND */
+      key,           /* DI 2 - COND, SET */
+      equals,        /* DI 3 - COND, SET */
       destmap,       /* DI 0 - TELEPORT */
       talktext,      /* DI 1 - TALK */
       target,        /* DI 0 - GOTO, COND */
       items;         /* DI 0 - MENU */
-   COND_SCOPE scope; /* DI 1 - COND, MENU */
+   COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
       emotion,       /* DI 1 - PORTRAIT */
@@ -203,6 +206,7 @@ int systype_visnov_exec_talk(
 int systype_visnov_exec_menu(
    SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, WINDOW_MENU**, int*, int
 );
+int systype_visnov_exec_set( SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, int );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int
 );

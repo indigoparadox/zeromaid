@@ -110,6 +110,11 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
             );
             break;
 
+         case SYSTYPE_VISNOV_CMD_SET:
+            i_command_cursor = systype_visnov_exec_set(
+               &as_commands[i_command_cursor], ps_cache_in, i_command_cursor
+            );
+
          default:
             /* Just skip commands we don't understand yet. */
             i_command_cursor++;
@@ -414,6 +419,15 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_COL( color_sfg, 4 );
          STVN_PARSE_CMD_DAT_COL( color_sbg, 5 );
 
+      } else if( 0 == strcmp( pc_command_action, "set" ) ) {
+         /* COMMAND: SET */
+         STVN_PARSE_CMD_ALLOC(
+            SYSTYPE_VISNOV_CMD_SET, SYSTYPE_VISNOV_CMD_SET_DC );
+         STVN_PARSE_CMD_DAT_INT( null, 0 );
+         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_STR( key, 2 );
+         STVN_PARSE_CMD_DAT_STR( equals, 3 );
+
       }
 
       /* Allocate the new command item at the end of the list. */
@@ -685,6 +699,22 @@ stvnem_cleanup:
    return i_command_cursor_in;
 }
 
+/* COMMAND: SET */
+int systype_visnov_exec_set(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   CACHE_CACHE* ps_cache_in,
+   int i_command_cursor_in
+) {
+   cache_set_var(
+      ps_command_in->data[2].key,
+      ps_command_in->data[3].equals,
+      ps_command_in->data[1].scope,
+      ps_cache_in
+   );
+
+   return ++i_command_cursor_in;
+}
+
 /* Purpose: Return a pointer to the first actor with a given serial number.   */
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int i_serial_in,
@@ -769,6 +799,11 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          free( ps_command_in->data[3].color_bg );
          free( ps_command_in->data[4].color_sfg );
          free( ps_command_in->data[5].color_sbg );
+         break;
+
+      case SYSTYPE_VISNOV_CMD_SET:
+         bdestroy( ps_command_in->data[2].key );
+         bdestroy( ps_command_in->data[3].equals );
          break;
    }
 }
