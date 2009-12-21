@@ -176,27 +176,24 @@ typedef struct {
 int systype_visnov_loop( CACHE_CACHE* );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
-
-void systype_visnov_exec_background(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*
+int systype_visnov_exec_background(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, int
 );
-void systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int* );
-void systype_visnov_exec_cond( SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE* );
-void systype_visnov_exec_portrait(
+int systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int );
+int systype_visnov_exec_cond(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, int
+);
+int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
-   int
+   int, int
 );
-void systype_visnov_exec_talk(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, SYSTYPE_VISNOV_ACTOR*, int
+int systype_visnov_exec_talk(
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, SYSTYPE_VISNOV_ACTOR*,
+   int, int
 );
-void systype_visnov_exec_menu(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, WINDOW_MENU*, int*
+int systype_visnov_exec_menu(
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, WINDOW_MENU**, int*, int
 );
-
-/* void systype_visnov_exec_command(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
-   SYSTYPE_VISNOV_ACTOR*, int*, WINDOW_MENU*, int*
-); */
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int
 );

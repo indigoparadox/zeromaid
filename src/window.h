@@ -28,6 +28,8 @@
 
 /* = Includes = */
 
+#include <time.h>
+
 #include "defines.h"
 #include "cache.h"
 
@@ -55,9 +57,9 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-void window_create_text( bstring, CACHE_CACHE* );
+CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
 void window_draw_text( int, CACHE_CACHE* );
-void window_create_menu( WINDOW_MENU*, CACHE_CACHE*, WINDOW_MENU*, int* );
-void window_draw_menu( WINDOW_MENU* );
+WINDOW_MENU* window_create_menu( bstring, WINDOW_MENU*, int* );
+void window_draw_menu( WINDOW_MENU*, int );
 
 #endif /* WINDOW_H */
