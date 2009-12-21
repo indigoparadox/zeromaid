@@ -26,8 +26,10 @@ DBG_ENABLE
 int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    SYSTYPE_VISNOV_ACTOR* as_actors = NULL;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
+   WINDOW_MENU* as_menus;
    int i_actors_count = 0,
       i_commands_count = 0,
+      i_menus_count = 0,
       i_act_return = RETURN_ACTION_TITLE,
       i_command_cursor = 0, /* The index of the command to execute next. */
       i, j; /* Loop iterators. */
@@ -35,7 +37,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    GFX_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
-   BOOL b_wait_for_talk = FALSE; /* Are we waiting for the player to read? */
+   BOOL b_wait = FALSE; /* Are we waiting for the player to read? */
    EVENT_EVENT s_event;
    SYSTYPE_VISNOV_SCENE s_scene;
 
@@ -68,15 +70,53 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Listen for events. */
       event_do_poll( &s_event, FALSE );
-      if( s_event.state[EVENT_ID_FIRE] && b_wait_for_talk ) {
-         b_wait_for_talk = FALSE;
+      if( s_event.state[EVENT_ID_FIRE] && b_wait ) {
+         b_wait = FALSE;
 
-      } else if( !b_wait_for_talk && i_command_cursor < i_commands_count ) {
+      } else if( !b_wait && i_command_cursor < i_commands_count ) {
          /* Execute the next command unless we're waiting. */
-         systype_visnov_exec_command(
-            &as_commands[i_command_cursor], ps_cache_in, &b_wait_for_talk,
-            &i_command_cursor, &s_scene, as_actors, &i_actors_count
-         );
+         switch( as_commands[i_command_cursor].command ) {
+            case SYSTYPE_VISNOV_CMD_BACKGROUND:
+               systype_visnov_exec_background(
+                  &as_commands[i_command_cursor], &s_scene
+               );
+               break;
+
+            case SYSTYPE_VISNOV_CMD_PAUSE:
+               systype_visnov_exec_pause(
+                  &as_commands[i_command_cursor], &i_command_cursor
+               );
+               break;
+
+            case SYSTYPE_VISNOV_CMD_COND:
+               systype_visnov_exec_cond(
+                  &as_commands[i_command_cursor], &s_scene
+               );
+               break;
+
+            case SYSTYPE_VISNOV_CMD_TALK:
+               systype_visnov_exec_talk(
+                  &as_commands[i_command_cursor], ps_cache_in, &b_wait,
+                  as_actors, i_actors_count
+               );
+               break;
+
+            case SYSTYPE_VISNOV_CMD_PORTRAIT:
+               systype_visnov_exec_portrait(
+                  &as_commands[i_command_cursor], &s_scene, as_actors,
+                  i_actors_count
+               );
+               break;
+
+            case SYSTYPE_VISNOV_CMD_MENU:
+               systype_visnov_exec_menu(
+                  &as_commands[i_command_cursor], ps_cache_in, &b_wait,
+                  as_menus, &i_menus_count
+               );
+               break;
+         }
+
+         i_command_cursor++;
       }
       if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
          ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
@@ -328,9 +368,9 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_COND, SYSTYPE_VISNOV_CMD_COND_DC );
          STVN_PARSE_CMD_DAT_STR( target, 0 );
-         STVN_PARSE_CMD_DAT_STR( key, 1 );
-         STVN_PARSE_CMD_DAT_STR( equals, 2 );
-         STVN_PARSE_CMD_DAT_INT( scope, 3 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_STR( key, 2 );
+         STVN_PARSE_CMD_DAT_STR( equals, 3 );
 
       } else if( 0 == strcmp( pc_command_action, "talk" ) ) {
          /* COMMAND: TALK */
@@ -365,6 +405,17 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_INT( desty, 2 );
          STVN_PARSE_CMD_DAT_INT( type, 3 ); /* TODO: Parse the type. */
 
+      } else if( 0 == strcmp( pc_command_action, "menu" ) ) {
+         /* COMMAND: MENU */
+         STVN_PARSE_CMD_ALLOC(
+            SYSTYPE_VISNOV_CMD_MENU, SYSTYPE_VISNOV_CMD_MENU_DC );
+         STVN_PARSE_CMD_DAT_STR( items, 0 );
+         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_COL( color_fg, 2 );
+         STVN_PARSE_CMD_DAT_COL( color_bg, 3 );
+         STVN_PARSE_CMD_DAT_COL( color_sfg, 4 );
+         STVN_PARSE_CMD_DAT_COL( color_sbg, 5 );
+
       }
 
       /* Allocate the new command item at the end of the list. */
@@ -387,123 +438,199 @@ stvnlc_cleanup:
    return ps_commands_out;
 }
 
-/* Purpose: Execute the given command.                                        */
-/* Parameters: A pointer to the command struct to execute and a pointer to    *
- *             the calling loop's command index cursor.                       */
-void systype_visnov_exec_command(
+/* COMMAND: BACKGROUND */
+void systype_visnov_exec_background(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   CACHE_CACHE* ps_cache_in,
-   BOOL* pb_wait_for_talk_in,
-   int* pi_command_cursor_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
-   SYSTYPE_VISNOV_ACTOR* as_actors_in,
-   int* pi_actors_count_in
+   SYSTYPE_VISNOV_SCENE* ps_scene_in
 ) {
    GFX_COLOR* ps_color_fade = NULL;
+
+   ps_color_fade = graphics_create_color( 0, 0, 0 );
+   ps_scene_in->bg = ps_command_in->data->bg;
+   graphics_draw_blit_tile( ps_scene_in->bg, NULL, NULL );
+   graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
+   free( ps_color_fade );
+}
+
+/* COMMAND: PAUSE */
+void systype_visnov_exec_pause(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   int* pi_command_cursor_in
+) {
    static int ti_countdown = -1;
-   int i, z; /* Loop iterators. */
-   bstring ps_talk_text = NULL, ps_formatted_talk = NULL;
 
-   switch( ps_command_in->command ) {
-      case SYSTYPE_VISNOV_CMD_BACKGROUND:
-         ps_color_fade = graphics_create_color( 0, 0, 0 );
-         ps_scene_in->bg = ps_command_in->data->bg;
-         graphics_draw_blit_tile( ps_scene_in->bg, NULL, NULL );
-         graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
-         free( ps_color_fade );
-         break;
-
-      case SYSTYPE_VISNOV_CMD_PAUSE:
-         /* If we're still counting down then count down one more and quit. */
-         if( 0 <= ti_countdown ) {
-            ti_countdown--;
-            if( 0 <= ti_countdown ) {
-               /* This isn't the last tick, so skip the instruction incr. */
-               goto stvnec_cleanup;
-            }
-         } else {
-            ti_countdown = ps_command_in->data[0].delay;
-         }
-         break;
-
-      case SYSTYPE_VISNOV_CMD_COND:
-         for( i = 0 ; i < ps_scene_in->var_count ; i++ ) {
-            if(
-               (COND_SCOPE_LOCAL == ps_command_in->data[3].scope &&
-               0 == bstrcmp( ps_command_in->data[1].key, &ps_scene_in->var_keys[i] ) &&
-               0 == bstrcmp( ps_command_in->data[2].equals, &ps_scene_in->var_values[i] ))
-            ) {
-               /* TODO */
-            }
-         }
-         break;
-
-      case SYSTYPE_VISNOV_CMD_TALK:
-         /* Make sure the loop pauses so the player can read. */
-         *pb_wait_for_talk_in = TRUE;
-
-         /* Format and prettify the text for the window. */
-         ps_formatted_talk = bstrcpy( ps_command_in->data[1].talktext );
-         btrimws( ps_formatted_talk );
-
-         ps_talk_text = bformat(
-            "%s: %s",
-            systype_visnov_get_actor(
-               ps_command_in->data[0].serial,
-               as_actors_in,
-               *pi_actors_count_in
-            )->name->data,
-            ps_formatted_talk->data
-         );
-
-         /* Actually display the text window. */
-         window_create_text( ps_talk_text, ps_cache_in );
-
-         /* Clean up. */
-         bdestroy( ps_formatted_talk );
-         bdestroy( ps_talk_text );
-         break;
-
-      case SYSTYPE_VISNOV_CMD_PORTRAIT:
-         /* If the given actor is already in the scene, remove them. */
-         for( i = 0 ; i < ps_scene_in->actors_onscreen_count ; i++ ) {
-            if(
-               ps_scene_in->actors_onscreen[i]->serial ==
-               ps_command_in->data[0].serial
-            ) {
-               UTIL_ARRAY_DEL(
-                  SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
-                  ps_scene_in->actors_onscreen_count, stvnec_cleanup, i
-               );
-            }
-         }
-
-         /* Add the given emotion portrait to the scene. */
-         UTIL_ARRAY_ADD(
-            SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
-            ps_scene_in->actors_onscreen_count, stvnec_cleanup, NULL
-         );
-         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1] =
-            systype_visnov_get_actor(
-               ps_command_in->data[0].serial,
-               as_actors_in,
-               *pi_actors_count_in
-            );
-         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
-            emotion_current = ps_command_in->data[1].emotion;
-         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
-            x = ps_command_in->data[3].x;
-         ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
-            y = ps_command_in->data[4].y;
-         break;
+   /* If we're still counting down then count down one more, reverse the      *
+    * calling execution cursor, and quit.                                     */
+   if( 0 <= ti_countdown ) {
+      ti_countdown--;
+      if( 0 <= ti_countdown ) {
+         /* This isn't the last tick, decrement the instruction cursor. */
+         (*pi_command_cursor_in)--;
+         goto stvnepa_cleanup;
+      }
+   } else {
+      ti_countdown = ps_command_in->data[0].delay;
    }
 
-   /* This command was executed successfully, so go on to the next one. */
-   (*pi_command_cursor_in)++;
-
-stvnec_cleanup:
+stvnepa_cleanup:
 
    return;
+}
+
+/* COMMAND: PAUSE */
+void systype_visnov_exec_cond(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_SCENE* ps_scene_in
+) {
+   int i; /* Loop iterator. */
+
+   for( i = 0 ; i < ps_scene_in->var_count ; i++ ) {
+      if(
+         (COND_SCOPE_LOCAL == ps_command_in->data[1].scope &&
+         0 == bstrcmp( ps_command_in->data[2].key, &ps_scene_in->var_keys[i] ) &&
+         0 == bstrcmp( ps_command_in->data[3].equals, &ps_scene_in->var_values[i] ))
+      ) {
+         /* TODO */
+      }
+   }
+}
+
+/* COMMAND: TALK */
+void systype_visnov_exec_talk(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   CACHE_CACHE* ps_cache_in,
+   BOOL* pb_wait_in,
+   SYSTYPE_VISNOV_ACTOR* as_actors_in,
+   int i_actors_count_in
+) {
+   bstring ps_talk_text = NULL, ps_formatted_talk = NULL;
+
+   /* Make sure the loop pauses so the player can read. */
+   *pb_wait_in = TRUE;
+
+   /* Format and prettify the text for the window. */
+   ps_formatted_talk = bstrcpy( ps_command_in->data[1].talktext );
+   btrimws( ps_formatted_talk );
+
+   ps_talk_text = bformat(
+      "%s: %s",
+      systype_visnov_get_actor(
+         ps_command_in->data[0].serial,
+         as_actors_in,
+         i_actors_count_in
+      )->name->data,
+      ps_formatted_talk->data
+   );
+
+   /* Actually display the text window. */
+   window_create_text( ps_talk_text, ps_cache_in );
+
+   /* Clean up. */
+   bdestroy( ps_formatted_talk );
+   bdestroy( ps_talk_text );
+}
+
+/* COMMAND: PORTRAIT */
+void systype_visnov_exec_portrait(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   SYSTYPE_VISNOV_ACTOR* as_actors_in,
+   int i_actors_count_in
+) {
+
+   int i, z; /* Loop iterators. */
+
+   /* If the given actor is already in the scene, remove them. */
+   for( i = 0 ; i < ps_scene_in->actors_onscreen_count ; i++ ) {
+      if(
+         ps_scene_in->actors_onscreen[i]->serial ==
+         ps_command_in->data[0].serial
+      ) {
+         UTIL_ARRAY_DEL(
+            SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
+            ps_scene_in->actors_onscreen_count, stvnepr_cleanup, i
+         );
+      }
+   }
+
+   /* Add the given emotion portrait to the scene. */
+   UTIL_ARRAY_ADD(
+      SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
+      ps_scene_in->actors_onscreen_count, stvnepr_cleanup, NULL
+   );
+   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1] =
+      systype_visnov_get_actor(
+         ps_command_in->data[0].serial,
+         as_actors_in,
+         i_actors_count_in
+      );
+   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+      emotion_current = ps_command_in->data[1].emotion;
+   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+      x = ps_command_in->data[3].x;
+   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+            y = ps_command_in->data[4].y;
+
+stvnepr_cleanup:
+
+   return;
+}
+
+/* COMMAND: MENU */
+void systype_visnov_exec_menu(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   CACHE_CACHE* ps_cache_in,
+   BOOL* pb_wait_in,
+   WINDOW_MENU* as_menu_list_in,
+   int* pi_menu_list_count_in
+) {
+   WINDOW_MENU* ps_menu_tmp = NULL;
+   struct bstrList* ps_items_list = NULL, * ps_item_iter = NULL;
+   int i; /* Loop iterator. */
+
+   /* If the menu we're about to create is already on the stack, then just    *
+    * reset the command cursor back one and quit.                             */
+   // TODO
+
+   /* Create the menu struct to append to the stack. */
+   ps_menu_tmp = calloc( 1, sizeof( WINDOW_MENU ) );
+
+   /* Split apart the items list into Label:Target pairs. */
+   ps_items_list = bsplit( ps_command_in->data[0].items, ';' );
+   for( i = 0 ; i < ps_items_list->qty ; i++ ) {
+      ps_item_iter = bsplit( ps_items_list->entry[i], ':' );
+
+      /* There's no point in proceeding if there's not a description    *
+       * and target for this item.                                      */
+      if( ps_item_iter->qty < 2 ) {
+         continue;
+      }
+
+      /* Add the menu item to the new menu. */
+      UTIL_ARRAY_ADD(
+         WINDOW_MENU_ITEM, ps_menu_tmp->options,
+         ps_menu_tmp->options_count, stvnem_cleanup, NULL
+      );
+      ps_menu_tmp->options[ps_menu_tmp->options_count - 1].desc =
+         bstrcpy( ps_item_iter->entry[0] );
+      ps_menu_tmp->options[ps_menu_tmp->options_count - 1].key =
+         bstrcpy( ps_item_iter->entry[1] );
+
+      /* Clean up. */
+      bstrListDestroy( ps_item_iter );
+   }
+   bstrListDestroy( ps_items_list );
+
+   /* Append the menu struct and clean up. It's all right to just free  *
+    * it since the dynamic stuff pointed to it will be pointed to by    *
+    * the copy on the menu stack.                                       */
+   window_create_menu(
+      ps_menu_tmp, ps_cache_in, as_menu_list_in, pi_menu_list_count_in
+   );
+
+stvnem_cleanup:
+
+   free( ps_menu_tmp );
 }
 
 /* Purpose: Return a pointer to the first actor with a given serial number.   */
@@ -564,8 +691,9 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_COND:
-         bdestroy( ps_command_in->data[0].key );
-         bdestroy( ps_command_in->data[1].equals );
+         bdestroy( ps_command_in->data[0].target );
+         bdestroy( ps_command_in->data[2].key );
+         bdestroy( ps_command_in->data[3].equals );
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
@@ -581,6 +709,14 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
 
       case SYSTYPE_VISNOV_CMD_TELEPORT:
          bdestroy( ps_command_in->data[0].destmap );
+         break;
+
+      case SYSTYPE_VISNOV_CMD_MENU:
+         bdestroy( ps_command_in->data[0].items );
+         free( ps_command_in->data[2].color_fg );
+         free( ps_command_in->data[3].color_bg );
+         free( ps_command_in->data[4].color_sfg );
+         free( ps_command_in->data[5].color_sbg );
          break;
    }
 }

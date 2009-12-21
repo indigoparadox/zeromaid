@@ -59,8 +59,6 @@ typedef int COND_SCOPE;
 #define COND_SCOPE_LOCAL 0
 #define COND_SCOPE_GLOBAL 0
 
-#define FONT_WINDOW_TEXT "font_prstart"
-
 /* The directory from which to fetch data files. */
 #ifdef USEWII
 #define PATH_SHARE "zeromaid_wii_data:/"

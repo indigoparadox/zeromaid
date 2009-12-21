@@ -14,6 +14,9 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
+#ifndef WINDOW_H
+#define WINDOW_H
+
 /* = Notes = */
 
 /* The window list in the system cache starts with the oldest window at index *
@@ -30,12 +33,31 @@
 
 /* = Definitions = */
 
-#define WINDOW_BUFFER_LENGTH 48
+#define WINDOW_BUFFER_LENGTH 38
+
+#define WINDOW_TEXT_FONT "font_manaspc"
+#define WINDOW_TEXT_SIZE 22
+#define WINDOW_TEXT_HEIGHT 25
 
 /* = Type and Struct Definitions = */
+
+typedef struct {
+   bstring desc, /* The description to display on-screen for this item. */
+      key; /* The label to go to if this item is selected. */
+} WINDOW_MENU_ITEM;
+
+typedef struct {
+   WINDOW_MENU_ITEM* options;
+   int options_count, /* The total number of options. */
+      selected, /* The currently selected option. */
+      x, y; /* Where the menu on the screen is located. */
+} WINDOW_MENU;
 
 /* = Function Prototypes = */
 
 void window_create_text( bstring, CACHE_CACHE* );
 void window_draw_text( int, CACHE_CACHE* );
-void window_draw_menu( CACHE_CACHE* );
+void window_create_menu( WINDOW_MENU*, CACHE_CACHE*, WINDOW_MENU*, int* );
+void window_draw_menu( WINDOW_MENU* );
+
+#endif /* WINDOW_H */

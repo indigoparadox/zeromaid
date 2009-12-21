@@ -14,6 +14,9 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
+#ifndef SYSTYPE_VISNOV_H
+#define SYSTYPE_VISNOV_H
+
 /* = Notes = */
 
 /* Conditionals and labels are a simple-to-implement system of flow control   *
@@ -53,6 +56,8 @@ typedef int SYSTYPE_VISNOV_CMD;
 #define SYSTYPE_VISNOV_CMD_PORTRAIT_DC 5
 #define SYSTYPE_VISNOV_CMD_TELEPORT 8
 #define SYSTYPE_VISNOV_CMD_TELEPORT_DC 4
+#define SYSTYPE_VISNOV_CMD_MENU 9
+#define SYSTYPE_VISNOV_CMD_MENU_DC 6
 
 /* TODO: MUSIC, MENU */
 
@@ -61,13 +66,19 @@ typedef int SYSTYPE_VISNOV_CMD;
 /* == Command Stuff == */
 
 typedef union {
+   GFX_COLOR
+      * color_fg,    /* DI 2 - MENU */
+      * color_bg,    /* DI 3 - MENU */
+      * color_sfg,   /* DI 4 - MENU */
+      * color_sbg;   /* DI 5 - MENU */
    bstring name,     /* DI 0 - LABEL */
-      key,           /* DI 1 - COND */
-      equals,        /* DI 2 - COND */
+      key,           /* DI 2 - COND */
+      equals,        /* DI 3 - COND */
       destmap,       /* DI 0 - TELEPORT */
       talktext,      /* DI 1 - TALK */
-      target;        /* DI 0 - GOTO, COND */
-   COND_SCOPE scope; /* DI 3 - COND */
+      target,        /* DI 0 - GOTO, COND */
+      items;         /* DI 0 - MENU */
+   COND_SCOPE scope; /* DI 1 - COND, MENU */
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
       emotion,       /* DI 1 - PORTRAIT */
@@ -146,6 +157,13 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       bstrcpy( ps_command_attr );
 
+#define STVN_PARSE_CMD_DAT_COL( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   ); \
+   s_command_tmp.data[di].dtype = \
+      graphics_create_color_html( ps_command_attr );
+
 #define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
@@ -158,12 +176,31 @@ typedef struct {
 int systype_visnov_loop( CACHE_CACHE* );
 SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
-void systype_visnov_exec_command(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
-   SYSTYPE_VISNOV_ACTOR*, int*
+
+void systype_visnov_exec_background(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*
 );
+void systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int* );
+void systype_visnov_exec_cond( SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE* );
+void systype_visnov_exec_portrait(
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
+   int
+);
+void systype_visnov_exec_talk(
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, SYSTYPE_VISNOV_ACTOR*, int
+);
+void systype_visnov_exec_menu(
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, WINDOW_MENU*, int*
+);
+
+/* void systype_visnov_exec_command(
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, BOOL*, int*, SYSTYPE_VISNOV_SCENE*,
+   SYSTYPE_VISNOV_ACTOR*, int*, WINDOW_MENU*, int*
+); */
 SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
    int, SYSTYPE_VISNOV_ACTOR*, int
 );
 void systype_visnov_free_actor_arr( SYSTYPE_VISNOV_ACTOR* );
 void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* );
+
+#endif /* SYSTYPE_VISNOV_H */
