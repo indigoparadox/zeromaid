@@ -14,6 +14,9 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
+#ifndef SYSTYPE_PLATFORM_H
+#define SYSTYPE_PLATFORM_H
+
 /* = Includes = */
 
 #include "defines.h"
@@ -26,7 +29,9 @@
 
 #define SYSTYPE_PLATFORM_JUMP_INIT 32
 #define SYSTYPE_PLATFORM_JUMP_ACCEL 4
-
+SYSTYPE_PLATFORM_H
 /* = Function Prototypes = */
 
 int systype_platform_loop( CACHE_CACHE* );
+
+#endif /* SYSTYPE_PLATFORM_H */

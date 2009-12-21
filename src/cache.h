@@ -25,10 +25,21 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   bstring var_keys, /* Global variable keys. */
-      var_values, /* Parallel to var_keys, global variable values. */
-      * text_log; /* Log of previously spoken text. */
-   int var_count, /* Global variable count. */
+   bstring key,
+      value;
+} CACHE_VARIABLE;
+
+typedef struct {
+   bstring text;
+   time_t created;
+} CACHE_LOG_ENTRY;
+
+typedef struct {
+   CACHE_VARIABLE* globals, /* Global variables. */
+      * locals; /* Local variables. */
+   CACHE_LOG_ENTRY* text_log; /* Log of previously displayed text. */
+   int globals_count,
+      locals_count,
       text_log_count, /* Number of previously spoken text item. */
       player_team_count, /* Number of members in the player's party. */
       player_team_front; /* The team member currently playable. */
@@ -41,7 +52,7 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-short int cache_save( bstring );
-short int cache_load( bstring );
+BOOL cache_save( bstring );
+BOOL cache_load( bstring );
 
 #endif /* CACHE_H */

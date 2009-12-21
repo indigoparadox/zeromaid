@@ -24,12 +24,16 @@ void window_create_text(
    bstring ps_text_in,
    CACHE_CACHE* ps_cache_in
 ) {
+   CACHE_LOG_ENTRY s_entry_tmp;
+
+   //memset( s_entry_tmp, 0, sizeof( CACHE_LOG_ENTRY ) );
+
+   s_entry_tmp.text = bstrcpy( ps_text_in );
+
    UTIL_ARRAY_ADD(
       bstring, ps_cache_in->text_log, ps_cache_in->text_log_count, wct_cleanup,
-      NULL
+      &s_entry_tmp
    );
-   ps_cache_in->text_log[ps_cache_in->text_log_count - 1] =
-      bstrcpy( ps_text_in );
 
    DBG_INFO_STR( "Text window created", ps_text_in->data );
 
@@ -64,8 +68,9 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
     * empty, assume everything still needs to be setup.                       */
    if( NULL == tps_text_window_bg ) {
       /* Setup the font name. */
-      tps_font_name =
-         bformat( "%s%s.%s", PATH_SHARE, FONT_WINDOW_TEXT, FILE_EXTENSION_FONT );
+      tps_font_name = bformat(
+         "%s%s.%s", PATH_SHARE, WINDOW_TEXT_FONT, FILE_EXTENSION_FONT
+      );
 
       /* Setup the background. */
       ps_bg_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_WINDOW_WIDE );
@@ -91,7 +96,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
 
    /* Draw the actual window and text. */
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
-   i_buffer_len = strlen( ps_cache_in->text_log[i_window_index]->data );
+   i_buffer_len = strlen( ps_cache_in->text_log[i_window_index].text->data );
    while( i_buffer_start < i_buffer_len && BSTR_ERR != i_buffer_result ) {
       /* If the nominal buffer length would be beyond the end of the string,  *
        * then print to the end of the string. Otherwise, print to the nominal *
@@ -104,7 +109,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          /* Decrease the end until we find a whitespace character. */
          while(
             i_buffer_end > 1 &&
-            ps_cache_in->text_log[i_window_index]->
+            ps_cache_in->text_log[i_window_index].text->
                data[i_buffer_start + i_buffer_end] != ' '
          ) {
             i_buffer_end--;
@@ -113,7 +118,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
 
       i_buffer_result = bassignmidstr (
          ps_line_buffer,
-         ps_cache_in->text_log[i_window_index],
+         ps_cache_in->text_log[i_window_index].text,
          i_buffer_start,
          i_buffer_end
       );
@@ -122,10 +127,10 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          graphics_draw_text(
             ts_rect_window.x + 20,
             ts_rect_window.y +
-               (i_lines_printed * 20) +  20,
+               (i_lines_printed * WINDOW_TEXT_HEIGHT) +  20,
             ps_line_buffer,
             tps_font_name,
-            12,
+            WINDOW_TEXT_SIZE,
             &ts_color_text
          );
          i_buffer_start += i_buffer_end + 1; /* Add 1 for trailing space. */
@@ -140,6 +145,26 @@ wdt_cleanup:
    return;
 }
 
-void window_draw_menu( CACHE_CACHE* ps_cache_in ) {
+/* Purpose: Copy the given menu to the cache's list of menus. Remember to     *
+ *          free it afterward if it was dynamically allocated, as this        *
+ *          function will merely copy the menu given.                         */
+/* Parameters: A pointer to the menu to add and the cache to add it to.       */
+void window_create_menu(
+   WINDOW_MENU* ps_menu_in,
+   CACHE_CACHE* ps_cache_in,
+   WINDOW_MENU* as_menu_list_in,
+   int* pi_menu_list_in
+) {
+   /*UTIL_ARRAY_ADD(
+      WINDOW_MENU, ps_cache_in->menus, ps_cache_in->menus_count, wcm_cleanup,
+      ps_menu_in
+   );*/
+
+wcm_cleanup:
+
+   return;
+}
+
+void window_draw_menu( WINDOW_MENU* ps_cache_in ) {
 
 }

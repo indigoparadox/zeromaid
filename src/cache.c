@@ -21,13 +21,13 @@
 /* Purpose: Save the system cache to the specified file.                      */
 /* Parameters: Path of the file to save to.                                   */
 /* Return: A boolean integer indicating save success.                         */
-short int cache_save( bstring ps_out_path_in ) {
+BOOL cache_save( bstring ps_out_path_in ) {
    return FALSE;
 }
 
 /* Purpose: Load the system cache from the specified save file.               */
 /* Parameters: Path of the save file to load.                                 */
 /* Return: A boolean integer indicating load success.                         */
-short int cache_load( bstring ps_in_path_in ) {
+BOOL cache_load( bstring ps_in_path_in ) {
    return FALSE;
 }
