@@ -153,14 +153,24 @@ wdt_cleanup:
 /* Return: The new address of the given menu list.                            */
 WINDOW_MENU* window_create_menu(
    bstring ps_items_in,
+   COND_SCOPE i_scope_in,
+   WINDOW_MENU_COLORS* ps_colors_in,
    WINDOW_MENU* as_menu_list_in,
    int* pi_menu_list_count_in
 ) {
-   struct bstrList* ps_items_list = NULL, * ps_item_iter = NULL;
+   struct bstrList* ps_items_list = NULL,
+      * ps_item_iter = NULL,
+      * ps_keyval_iter = NULL;
    WINDOW_MENU s_menu_tmp; /* Temporary menu struct to copy to the stack. */
    int i; /* Loop iterator. */
 
    memset( &s_menu_tmp, 0, sizeof( WINDOW_MENU ) );
+
+   /* Copy the colors struct. */
+   memcpy( &s_menu_tmp.colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
+
+   /* Set the scope. */
+   s_menu_tmp.scope = i_scope_in;
 
    /* Split apart the items list into Label:Target pairs. */
    ps_items_list = bsplit( ps_items_in, ';' );
@@ -173,6 +183,14 @@ WINDOW_MENU* window_create_menu(
          continue;
       }
 
+      ps_keyval_iter = bsplit( ps_item_iter->entry[1], ',' );
+
+      /* If there's no value then the default should be "true".         */
+      if( ps_keyval_iter->qty < 2 ) {
+         ps_keyval_iter->qty++;
+         ps_keyval_iter->entry[1] = bformat( "true" );
+      }
+
       /* Add the menu item to the new menu. */
       UTIL_ARRAY_ADD(
          WINDOW_MENU_ITEM, s_menu_tmp.options,
@@ -181,7 +199,9 @@ WINDOW_MENU* window_create_menu(
       s_menu_tmp.options[s_menu_tmp.options_count - 1].desc =
          bstrcpy( ps_item_iter->entry[0] );
       s_menu_tmp.options[s_menu_tmp.options_count - 1].key =
-         bstrcpy( ps_item_iter->entry[1] );
+         bstrcpy( ps_keyval_iter->entry[0] );
+      s_menu_tmp.options[s_menu_tmp.options_count - 1].value =
+         bstrcpy( ps_keyval_iter->entry[1] );
 
       /* Clean up. */
       bstrListDestroy( ps_item_iter );
@@ -204,28 +224,25 @@ wcm_cleanup:
 /* Parameters: The list of menus to draw and the number of menus in the list. */
 void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
    static GFX_SURFACE* tps_menu_window_bg = NULL;
-   static GFX_COLOR ts_color_text;
    static GFX_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
-   static bstring tps_font_name = NULL;
+   static bstring tps_font_path = NULL;
+   GFX_COLOR* ps_color = NULL;
    bstring ps_bg_path = NULL;
-   int i; /* Loop iterator. */
+   int i, j; /* Loop iterators. */
 
    /* If we passed the success check above and the window background is       *
     * empty, assume everything still needs to be setup.                       */
    if( NULL == tps_menu_window_bg ) {
       /* Setup the font name. */
-      tps_font_name = bformat(
-         "%s%s.%s", PATH_SHARE, WINDOW_TEXT_FONT, FILE_EXTENSION_FONT
+      tps_font_path = bformat(
+         "%s%s.%s", PATH_SHARE, WINDOW_MENU_TEXT_FONT, FILE_EXTENSION_FONT
       );
 
       /* Setup the background. */
       ps_bg_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_WINDOW_RECT );
       tps_menu_window_bg = graphics_create_image( ps_bg_path );
       bdestroy( ps_bg_path );
-
-      /* Setup the color. */
-      memset( &ts_color_text, 0, sizeof( GFX_COLOR ) );
 
       /* Setup the window rectangle. */
       ts_rect_window.w = tps_menu_window_bg->w;
@@ -234,7 +251,7 @@ void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
       ts_rect_window.y = (GFX_GET_SCREEN_HEIGHT - ts_rect_window.h) / 2;
 
       /* If something's still empty then there's no helping it. */
-      if( NULL == tps_menu_window_bg || NULL == tps_font_name ) {
+      if( NULL == tps_menu_window_bg || NULL == tps_font_path ) {
          DBG_ERR( "Unable to setup menu window drawing facilities." );
          tb_success = FALSE;
          goto wdm_cleanup;
@@ -243,8 +260,25 @@ void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
 
    for( i = 0 ; i < i_menus_count_in ; i++ ) {
       graphics_draw_blit_tile( tps_menu_window_bg, NULL, &ts_rect_window );
-   }
 
+      /* Draw the menu options. */
+      for( j = 0 ; j < as_menus_in[i].options_count ; j++ ) {
+         if( j == as_menus_in[i].selected ) {
+            ps_color = &as_menus_in[i].colors.sfg;
+         } else {
+            ps_color = &as_menus_in[i].colors.fg;
+         }
+
+         graphics_draw_text(
+            ts_rect_window.x + 30,
+            ts_rect_window.y + 30 + (WINDOW_MENU_TEXT_HEIGHT * j),
+            as_menus_in[i_menus_count_in - 1].options[j].desc,
+            tps_font_path,
+            WINDOW_MENU_TEXT_SIZE,
+            ps_color
+         );
+      }
+   }
 
 wdm_cleanup:
 

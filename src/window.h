@@ -41,11 +41,20 @@
 #define WINDOW_TEXT_SIZE 22
 #define WINDOW_TEXT_HEIGHT 25
 
+#define WINDOW_MENU_TEXT_FONT "font_manaspc"
+#define WINDOW_MENU_TEXT_SIZE 22
+#define WINDOW_MENU_TEXT_HEIGHT 30
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
+   GFX_COLOR fg, bg, sfg, sbg;
+} WINDOW_MENU_COLORS;
+
+typedef struct {
    bstring desc, /* The description to display on-screen for this item. */
-      key; /* The label to go to if this item is selected. */
+      key, /* The key to set if this item is selected. */
+      value; /* The value to set it to if this item is selected. */
 } WINDOW_MENU_ITEM;
 
 typedef struct {
@@ -53,13 +62,16 @@ typedef struct {
    int options_count, /* The total number of options. */
       selected, /* The currently selected option. */
       x, y; /* Where the menu on the screen is located. */
+   WINDOW_MENU_COLORS colors;
+   COND_SCOPE scope;
 } WINDOW_MENU;
 
 /* = Function Prototypes = */
 
 CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
 void window_draw_text( int, CACHE_CACHE* );
-WINDOW_MENU* window_create_menu( bstring, WINDOW_MENU*, int* );
+WINDOW_MENU* window_create_menu(
+   bstring, COND_SCOPE, WINDOW_MENU_COLORS*, WINDOW_MENU*, int* );
 void window_draw_menu( WINDOW_MENU*, int );
 
 #endif /* WINDOW_H */

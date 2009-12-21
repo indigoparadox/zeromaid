@@ -612,6 +612,8 @@ int systype_visnov_exec_menu(
    int i_command_cursor_in
 ) {
    static WINDOW_MENU* tps_last_menu = NULL;
+   WINDOW_MENU_COLORS s_colors_tmp;
+   int z;
 
    /* If the menu we're about to create is already on the stack, then just    *
     * reset the command cursor back one and quit.                             */
@@ -622,18 +624,59 @@ int systype_visnov_exec_menu(
       /* The last menu created is the menu currently displaying. */
       if( ps_event_in->state[EVENT_ID_FIRE] ) {
          /* The player wants to advance. */
+         cache_set_var(
+            tps_last_menu->options[tps_last_menu->selected].key,
+            tps_last_menu->options[tps_last_menu->selected].value,
+            tps_last_menu->scope,
+            ps_cache_in
+         );
+         UTIL_ARRAY_DEL(
+            WINDOW_MENU, *pas_menu_list_in, *pi_menu_list_count_in,
+            stvnem_cleanup, (*pi_menu_list_count_in - 1)
+         );
          tps_last_menu = NULL;
-         return ++i_command_cursor_in;
-      } else {
+
+         i_command_cursor_in++;
+
+         goto stvnem_cleanup;
+
+      } else if( ps_event_in->state[EVENT_ID_DOWN] ) {
+         /* Move the menu cursor down. */
+         if( tps_last_menu->selected < tps_last_menu->options_count - 1 ) {
+            tps_last_menu->selected++;
+         } else {
+            tps_last_menu->selected = 0;
+         }
          return i_command_cursor_in;
+
+      } else if( ps_event_in->state[EVENT_ID_UP] ) {
+         /* Move the menu cursor up. */
+         if( tps_last_menu->selected > 0 ) {
+            tps_last_menu->selected--;
+         } else {
+            tps_last_menu->selected = tps_last_menu->options_count - 1;
+         }
+         return i_command_cursor_in;
+
+      } else {
+         /* No command, so hold our position. */
+         return i_command_cursor_in;
+
       }
    }
+
+   /* Setup the new menu colors. */
+   memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GFX_COLOR ) );
 
    /* Append the menu struct and clean up. It's all right to just free  *
     * it since the dynamic stuff pointed to it will be pointed to by    *
     * the copy on the menu stack.                                       */
    (*pas_menu_list_in) = window_create_menu(
-      ps_command_in->data[0].items, *pas_menu_list_in, pi_menu_list_count_in
+      ps_command_in->data[0].items, ps_command_in->data[1].scope, &s_colors_tmp,
+      *pas_menu_list_in, pi_menu_list_count_in
    );
    tps_last_menu = &(*pas_menu_list_in)[(*pi_menu_list_count_in) - 1];
 

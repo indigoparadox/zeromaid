@@ -23,6 +23,15 @@
  * for the time being. If a label is defined more than once, the first one    *
  * defined will be used.                                                      */
 
+/* In order to add a command to the visual novel engine, one must:            *
+ *                                                                            *
+ * 1. Add an opcode constant and data count (parameter count) constant to the *
+ *    definitions section below.                                              *
+ * 2. Work the parameters into the data union below without messing up the    *
+ *    data types for other commands (this is a pain).                         *
+ * 3. Add a section to the load_commands function to load the new command.    *
+ * 4. Add an exec function to execute the new command.                        */
+
 /* = Includes = */
 
 #include "defines.h"
