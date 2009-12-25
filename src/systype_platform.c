@@ -34,7 +34,6 @@ int systype_platform_loop( CACHE_CACHE* ps_cache_in ) {
       GFX_DRAW_LOOP_END
    }
 
-
 stpl_cleanup:
 
    return 0;

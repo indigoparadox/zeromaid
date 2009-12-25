@@ -58,8 +58,8 @@ CACHE_VARIABLE* cache_set_var(
    /* If the variable didn't exist, create it. */
    if( !b_found ) {
       memset( &s_var_tmp, 0, sizeof( CACHE_VARIABLE ) );
-      bassign( s_var_tmp.key, ps_key_in );
-      bassign( s_var_tmp.value, ps_value_in );
+      s_var_tmp.key = bstrcpy( ps_key_in );
+      s_var_tmp.value = bstrcpy( ps_value_in );
       UTIL_ARRAY_ADD(
          CACHE_VARIABLE, as_varlist_in, *pi_varlist_count_in, csv_cleanup,
          &s_var_tmp

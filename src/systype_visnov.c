@@ -33,12 +33,13 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       i_act_return = RETURN_ACTION_TITLE,
       i_command_cursor = 0, /* The index of the command to execute next. */
       i, j; /* Loop iterators. */
-   GFX_COLOR* ps_color_fade;
+   GFX_COLOR* ps_color_fade = NULL;
    GFX_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
    EVENT_EVENT s_event;
    SYSTYPE_VISNOV_SCENE s_scene;
+   BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
@@ -111,6 +112,19 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
             );
             break;
 
+         case SYSTYPE_VISNOV_CMD_TELEPORT:
+            i_command_cursor = systype_visnov_exec_teleport(
+               &as_commands[i_command_cursor], &b_teleport, ps_cache_in,
+               i_command_cursor
+            );
+
+            /* If the teleport command was successful, exit the loop and let  *
+             * the cache contents take care of the rest.                      */
+            if( b_teleport ) {
+               goto stvnl_cleanup;
+            }
+            break;
+
          case SYSTYPE_VISNOV_CMD_MENU:
             i_command_cursor = systype_visnov_exec_menu(
                &as_commands[i_command_cursor], &s_scene, ps_cache_in, &s_event,
@@ -162,19 +176,33 @@ stvnl_cleanup:
    /* Fade out the playing map screen. */
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
 
+   /* We won't free the bg pointer inside of the scene struct because it      *
+    * points to an image which is also pointed to by one of the commands      *
+    * below. If we free it as part of the commands then it's no problem.      */
+   for( i = 0 ; i < s_scene.locals_count ; i++ ) {
+      bdestroy( s_scene.locals[i].key );
+      bdestroy( s_scene.locals[i].value );
+   }
+   free( s_scene.locals );
+
    /* Clean up! */
    free( ps_color_fade );
-
    ezxml_free( ps_xml_scene );
    bdestroy( ps_scene_path );
+
    for( i = 0 ; i < i_actors_count ; i++ ) {
       systype_visnov_free_actor_arr( &as_actors[i] );
    }
    free( as_actors );
+
    for( i = 0 ; i < i_commands_count ; i++ ) {
       systype_visnov_free_command_arr( &as_commands[i] );
    }
    free( as_commands );
+
+   while( 0 < i_menus_count ) {
+      as_menus = window_free_menu( as_menus, &i_menus_count );
+   }
 
    return i_act_return;
 }
@@ -380,7 +408,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_COND, SYSTYPE_VISNOV_CMD_COND_DC );
          STVN_PARSE_CMD_DAT_STR( target, 0 );
-         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_SCOPE( scope, 1 );
          STVN_PARSE_CMD_DAT_STR( key, 2 );
          STVN_PARSE_CMD_DAT_STR( equals, 3 );
 
@@ -422,7 +450,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_MENU, SYSTYPE_VISNOV_CMD_MENU_DC );
          STVN_PARSE_CMD_DAT_STR( items, 0 );
-         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_SCOPE( scope, 1 );
          STVN_PARSE_CMD_DAT_COL( color_fg, 2 );
          STVN_PARSE_CMD_DAT_COL( color_bg, 3 );
          STVN_PARSE_CMD_DAT_COL( color_sfg, 4 );
@@ -433,7 +461,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_SET, SYSTYPE_VISNOV_CMD_SET_DC );
          STVN_PARSE_CMD_DAT_INT( null, 0 );
-         STVN_PARSE_CMD_DAT_INT( scope, 1 ); /* TODO: Parse the scope. */
+         STVN_PARSE_CMD_DAT_SCOPE( scope, 1 );
          STVN_PARSE_CMD_DAT_STR( key, 2 );
          STVN_PARSE_CMD_DAT_STR( equals, 3 );
 
@@ -511,6 +539,12 @@ int systype_visnov_exec_cond(
 ) {
    int i; /* Loop iterator. */
 
+   DBG_INFO_STR_STR(
+      "Testing condition (key, equals)",
+      ps_command_in->data[2].key->data,
+      ps_command_in->data[3].equals->data
+   );
+
    if( COND_SCOPE_GLOBAL == ps_command_in->data[1].scope ) {
       for( i = 0 ; i < ps_cache_in->globals_count ; i++ ) {
          if(
@@ -526,6 +560,18 @@ int systype_visnov_exec_cond(
                i_command_list_count_in,
                i_command_cursor_in
             );
+         } else if(
+            0 == bstrcmp(
+               ps_command_in->data[2].key, ps_cache_in->globals[i].key )
+         ) {
+            /* The key was found but the value was different. */
+            DBG_INFO_STR_STR(
+               "Key found with different value",
+               ps_cache_in->globals[i].key->data,
+               ps_cache_in->globals[i].value->data
+            );
+         } else {
+            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key->data );
          }
       }
    } else if( COND_SCOPE_LOCAL == ps_command_in->data[1].scope ) {
@@ -537,10 +583,29 @@ int systype_visnov_exec_cond(
                ps_command_in->data[3].equals, ps_scene_in->locals[i].value )
          ) {
             /* Conditions are matched, so jump to target. */
+            return systype_visnov_exec_goto(
+               ps_command_in,
+               as_command_list_in,
+               i_command_list_count_in,
+               i_command_cursor_in
+            );
+         } else if(
+            0 == bstrcmp(
+               ps_command_in->data[2].key, ps_scene_in->locals[i].key )
+         ) {
+            /* The key was found but the value was different. */
+            DBG_INFO_STR_STR(
+               "Key found with different value",
+               ps_scene_in->locals[i].key->data,
+               ps_scene_in->locals[i].value->data
+            );
+         } else {
+            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key->data );
          }
       }
    }
 
+   /* The condition was not found or didn't match, so keep going. */
    return ++i_command_cursor_in;
 }
 
@@ -671,6 +736,18 @@ int systype_visnov_exec_portrait(
             y = ps_command_in->data[4].y;
 
 stvnepr_cleanup:
+
+   return ++i_command_cursor_in;
+}
+
+/* COMMAND: TELEPORT */
+int systype_visnov_exec_teleport(
+   SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   BOOL* pb_teleport_out,
+   CACHE_CACHE* ps_cache_in,
+   int i_command_cursor_in
+) {
+   /* Verify that the target map exists. */
 
    return ++i_command_cursor_in;
 }
