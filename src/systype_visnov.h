@@ -143,6 +143,7 @@ typedef struct {
 
 /* Purpose: Select the appropriate cache for the given scope and set the      *
  *          given key to the given value within it.                           */
+// XXX: The l_addr assignment isn't taking!
 #define STVN_CACHE_SET( key, value, scope, g_addr, gc_addr, l_addr, lc_addr ) \
    if( COND_SCOPE_GLOBAL == scope ) { \
       g_addr = cache_set_var( key, value, g_addr, gc_addr ); \
@@ -159,6 +160,7 @@ typedef struct {
       dc, sizeof( SYSTYPE_VISNOV_DATA ) \
    );
 
+/* Purpose: Parse an int attribute into the property specified by dtype.      */
 #define STVN_PARSE_CMD_DAT_INT( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
@@ -166,6 +168,7 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       atoi( ps_command_attr->data );
 
+/* Purpose: Parse a float attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
@@ -173,6 +176,7 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       atof( ps_command_attr->data );
 
+/* Purpose: Parse a string attribute into the property specified by dtype.    */
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
@@ -180,6 +184,23 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       bstrcpy( ps_command_attr );
 
+/* Purpose: Parse a scope attribute into the property specified by dtype.     */
+#define STVN_PARSE_CMD_DAT_SCOPE( dtype, di ) \
+   bassignformat( \
+      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   ); \
+   if( 0 == strcmp( ps_command_attr->data, "local" ) ) { \
+      s_command_tmp.data[di].dtype = COND_SCOPE_LOCAL; \
+      DBG_INFO( "Setting scope: local" ); \
+   } else if( 0 == strcmp( ps_command_attr->data, "global" ) ) { \
+      s_command_tmp.data[di].dtype = COND_SCOPE_GLOBAL; \
+      DBG_INFO( "Setting scope: global" ); \
+   } else { \
+      s_command_tmp.data[di].dtype = -1; \
+      DBG_INFO( "Setting scope: unknown" ); \
+   }
+
+/* Purpose: Parse a color attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_COL( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
@@ -187,6 +208,7 @@ typedef struct {
    s_command_tmp.data[di].dtype = \
       graphics_create_color_html( ps_command_attr );
 
+/* Purpose: Parse an string body into the property specified by dtype.        */
 #define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
    bassignformat( \
       ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
@@ -210,6 +232,9 @@ int systype_visnov_exec_cond(
 int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
    int, int
+);
+int systype_visnov_exec_teleport(
+   SYSTYPE_VISNOV_COMMAND*, BOOL*, CACHE_CACHE*, int
 );
 int systype_visnov_exec_talk(
    SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, SYSTYPE_VISNOV_ACTOR*,

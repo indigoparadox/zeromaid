@@ -124,15 +124,21 @@ typedef int COND_SCOPE;
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
    fflush( DEBUG_HANDLE_INFO );
 
+/* Print an info message involving a pointer. */
+#define DBG_INFO_PTR( msg, ptr ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %p\n", FILE_SHORT, __LINE__, msg, ptr ); \
+   fflush( DEBUG_HANDLE_INFO );
+
 /* Print an info message involving a string. */
 #define DBG_INFO_STR( msg, string ) \
    fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
    fflush( DEBUG_HANDLE_INFO );
 
-/* Print an info message involving a pointer. */
-#define DBG_INFO_PTR( msg, ptr ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %p\n", FILE_SHORT, __LINE__, msg, ptr ); \
+/* Print an info message involving two strings. */
+#define DBG_INFO_STR_STR( msg, string1, string2 ) \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %s\n", FILE_SHORT, __LINE__, msg, string1, string2 ); \
    fflush( DEBUG_HANDLE_INFO );
+
 
 /* Print an info message involving a string and a pointer. */
 #define DBG_INFO_STR_PTR( msg, string, ptr ) \
