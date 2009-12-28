@@ -32,6 +32,10 @@
  * 3. Add a section to the load_commands function to load the new command.    *
  * 4. Add an exec function to execute the new command.                        */
 
+/* XXX: The game keeps crashing when not run in the debugger somewhere around *
+ *      the drawing functions maybe? This only happens in Windows. Maybe the  *
+ *      Wii would shed some light on this?                                    */
+
 /* = Includes = */
 
 #include "defines.h"
