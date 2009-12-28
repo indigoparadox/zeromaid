@@ -420,6 +420,8 @@ void graphics_draw_text(
    static int* tai_font_list_sizes = NULL;
    static int ti_font_list_count = 0; /* Number of loaded fonts. */
    #endif /* USESDL */
+   /* XXX: Figure out why visual novel engine drawing text causes crash       *
+    *      outside of debugger.                                               */
 
    if( NULL == ps_string_in ) {
       DBG_ERR( "Attempted to blit NULL string!" );
@@ -504,12 +506,19 @@ void graphics_draw_text(
       ps_font, ps_string_in->data, ps_color_sdl
    );
 
+   if( NULL == ps_type_render_out ) {
+      DBG_ERR_STR( "Unable to render text", ps_string_in->data );
+      goto gdt_cleanup;
+   }
+
    /* Place the text on the screen. */
    ps_destreg.x = i_x_in;
    ps_destreg.y = i_y_in;
    ps_destreg.w = ps_type_render_out->w;
    ps_destreg.h = ps_type_render_out->h;
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
+
+gdt_cleanup:
 
    /* Clean up. */
    SDL_FreeSurface( ps_type_render_out );

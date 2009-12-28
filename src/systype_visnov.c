@@ -749,6 +749,8 @@ int systype_visnov_exec_teleport(
 ) {
    /* Verify that the target map exists. */
 
+   //DBG_INFO_STR( "Initiating teleportation", ps_command_in->data[0].destmap );
+
    return ++i_command_cursor_in;
 }
 

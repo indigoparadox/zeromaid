@@ -31,6 +31,8 @@ CACHE_LOG_ENTRY* window_create_text(
 ) {
    CACHE_LOG_ENTRY s_entry_tmp;
 
+   memset( &s_entry_tmp, 0, sizeof( CACHE_LOG_ENTRY ) );
+
    s_entry_tmp.text = bstrcpy( ps_text_in );
 
    UTIL_ARRAY_ADD(
@@ -130,9 +132,9 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       i_buffer_result = BSTR_OK;
    size_t i_buffer_start = 0, /* Offset to print from current input buffer. */
       i_buffer_end = WINDOW_BUFFER_LENGTH,
-      i_buffer_len; /* The length of the input buffer. */
+      i_buffer_len = 0; /* The length of the input buffer. */
    bstring ps_bg_path = NULL,
-      ps_line_buffer = bfromcstr( "" ); /* The buffer for multi-line strings. */
+      ps_line_buffer = bformat( "" ); /* The buffer for multi-line strings. */
 
    /* Verify that the requested window index is valid. */
    if( 0 > i_window_index || !tb_success ) {
@@ -156,6 +158,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       memset( &ts_color_text, 0, sizeof( GFX_COLOR ) );
 
       /* Setup the window rectangle. */
+      memset( &ts_rect_window, 0, sizeof( GFX_RECTANGLE ) );
       ts_rect_window.w = tps_text_window_bg->w;
       ts_rect_window.h = tps_text_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;
@@ -168,6 +171,10 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          goto wdt_cleanup;
       }
    }
+
+   DBG_INFO_INT( "index", i_window_index );
+   DBG_INFO_PTR( "ptr", ps_cache_in->text_log );
+   DBG_INFO_STR( "str0", ps_cache_in->text_log[0].text->data );
 
    /* Draw the actual window and text. */
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
@@ -245,6 +252,7 @@ void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
       bdestroy( ps_bg_path );
 
       /* Setup the window rectangle. */
+      memset( &ts_rect_window, 0, sizeof( GFX_RECTANGLE ) );
       ts_rect_window.w = tps_menu_window_bg->w;
       ts_rect_window.h = tps_menu_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;
@@ -290,7 +298,15 @@ WINDOW_MENU* window_free_menu(
    WINDOW_MENU* ps_menu_list_in,
    int* pi_menu_list_count_in
 ) {
-   int z; /* Loop iterator. */
+   int i, z; /* Loop iterators. */
+
+   DBG_INFO_INT( "Freeing menu", *pi_menu_list_count_in - 1 );
+
+   for( i = 0 ; i < ps_menu_list_in[*pi_menu_list_count_in - 1].options_count ; i++ ) {
+      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].desc );
+      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].key );
+      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].value );
+   }
 
    UTIL_ARRAY_DEL(
       WINDOW_MENU, ps_menu_list_in, *pi_menu_list_count_in,
