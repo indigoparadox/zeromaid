@@ -37,6 +37,7 @@ typedef struct {
    CACHE_VARIABLE* globals; /* Global variables. */
    CACHE_LOG_ENTRY* text_log; /* Log of previously displayed text. */
    int globals_count,
+      text_log_current,
       text_log_count, /* Number of previously spoken text item. */
       player_team_count, /* Number of members in the player's party. */
       player_team_front; /* The team member currently playable. */

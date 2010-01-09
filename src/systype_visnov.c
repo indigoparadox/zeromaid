@@ -26,10 +26,8 @@ DBG_ENABLE
 int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    SYSTYPE_VISNOV_ACTOR* as_actors = NULL;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
-   WINDOW_MENU* as_menus = NULL;
    int i_actors_count = 0,
       i_commands_count = 0,
-      i_menus_count = 0,
       i_act_return = RETURN_ACTION_TITLE,
       i_command_cursor = 0, /* The index of the command to execute next. */
       i, j; /* Loop iterators. */
@@ -40,6 +38,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    EVENT_EVENT s_event;
    SYSTYPE_VISNOV_SCENE s_scene;
    BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
+   WINDOW_MENU* ps_menu = NULL;
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
@@ -127,8 +126,8 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
          case SYSTYPE_VISNOV_CMD_MENU:
             i_command_cursor = systype_visnov_exec_menu(
-               &as_commands[i_command_cursor], &s_scene, ps_cache_in, &s_event,
-               &as_menus, &i_menus_count, i_command_cursor
+               &as_commands[i_command_cursor], &ps_menu, &s_scene,
+               ps_cache_in, &s_event, i_command_cursor
             );
             break;
 
@@ -165,7 +164,9 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
          );
       }
       window_draw_text( 0, ps_cache_in );
-      window_draw_menu( as_menus, i_menus_count );
+      if( NULL != ps_menu ) {
+         window_draw_menu( ps_menu );
+      }
       graphics_do_update();
 
       GFX_DRAW_LOOP_END
@@ -200,8 +201,8 @@ stvnl_cleanup:
    }
    free( as_commands );
 
-   while( 0 < i_menus_count ) {
-      as_menus = window_free_menu( as_menus, &i_menus_count );
+   if( NULL != ps_menu ) {
+      window_free_menu( ps_menu );
    }
 
    return i_act_return;
@@ -618,28 +619,25 @@ int systype_visnov_exec_talk(
    int i_actors_count_in,
    int i_command_cursor_in
 ) {
-   bstring ps_talk_text = NULL, ps_formatted_talk = NULL;
-   static CACHE_LOG_ENTRY* tps_last_text = NULL;
+   bstring ps_talk_text = NULL;
+   static int ti_cleared_count = 0;
 
    /* If the window we're about to create is already on the stack, then just  *
     * reset the command cursor back one and quit.                             */
    if(
       0 < ps_cache_in->text_log_count &&
-      tps_last_text == &ps_cache_in->text_log[ps_cache_in->text_log_count - 1]
+      ti_cleared_count < ps_cache_in->text_log_count
    ) {
       /* The last entry created is the entry currently displaying. */
       if( ps_event_in->state[EVENT_ID_FIRE] ) {
-         /* The player wants to advance. */
-         tps_last_text = NULL;
+         /* The player wants to advance to the front of the text array. */
+         ti_cleared_count = ps_cache_in->text_log_count;
+         ps_cache_in->text_log_current = 0;
          return ++i_command_cursor_in;
       } else {
          return i_command_cursor_in;
       }
    }
-
-   /* Format and prettify the text for the window. */
-   ps_formatted_talk = bstrcpy( ps_command_in->data[1].talktext );
-   btrimws( ps_formatted_talk );
 
    ps_talk_text = bformat(
       "%s: %s",
@@ -648,17 +646,16 @@ int systype_visnov_exec_talk(
          as_actors_in,
          i_actors_count_in
       )->name->data,
-      ps_formatted_talk->data
+      ps_command_in->data[1].talktext->data
    );
 
    /* Actually display the text window. */
    ps_cache_in->text_log = window_create_text(
       ps_talk_text, ps_cache_in->text_log, &ps_cache_in->text_log_count
    );
-   tps_last_text = &ps_cache_in->text_log[ps_cache_in->text_log_count - 1];
+   ps_cache_in->text_log_current = 0;
 
    /* Clean up. */
-   bdestroy( ps_formatted_talk );
    bdestroy( ps_talk_text );
 
    return i_command_cursor_in;
@@ -759,36 +756,33 @@ int systype_visnov_exec_teleport(
  *       to the list is expected in case realloc changes the list address.    */
 int systype_visnov_exec_menu(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
+   WINDOW_MENU** pps_menu_in,
    SYSTYPE_VISNOV_SCENE* ps_scene_in,
    CACHE_CACHE* ps_cache_in,
    EVENT_EVENT* ps_event_in,
-   WINDOW_MENU** pas_menu_list_in,
-   int* pi_menu_list_count_in,
    int i_command_cursor_in
 ) {
-   static WINDOW_MENU* tps_last_menu = NULL;
    WINDOW_MENU_COLORS s_colors_tmp;
+   bstring ps_items = ps_command_in->data[0].items;
+   COND_SCOPE i_scope = ps_command_in->data[1].scope;
 
-   /* If the menu we're about to create is already on the stack, then just    *
-    * reset the command cursor back one and quit.                             */
-   if(
-      0 < *pi_menu_list_count_in &&
-      tps_last_menu == &(*pas_menu_list_in)[*pi_menu_list_count_in - 1]
-   ) {
+   /* If the menu we're about to create is already active, then just reset    *
+    * the command cursor back one and quit.                                   */
+   if( NULL != *pps_menu_in ) {
       /* The last menu created is the menu currently displaying. */
       if( ps_event_in->state[EVENT_ID_FIRE] ) {
          /* The player wants to advance. */
          STVN_CACHE_SET(
-            tps_last_menu->options[tps_last_menu->selected].key,
-            tps_last_menu->options[tps_last_menu->selected].value,
-            tps_last_menu->scope,
+            (*pps_menu_in)->options[(*pps_menu_in)->selected].key,
+            (*pps_menu_in)->options[(*pps_menu_in)->selected].value,
+            (*pps_menu_in)->scope,
             ps_cache_in->globals,
             &ps_cache_in->globals_count,
             ps_scene_in->locals,
             &ps_scene_in->locals_count
          );
-         window_free_menu( *pas_menu_list_in, pi_menu_list_count_in );
-         tps_last_menu = NULL;
+         window_free_menu( *pps_menu_in );
+         *pps_menu_in = NULL;
 
          i_command_cursor_in++;
 
@@ -796,19 +790,19 @@ int systype_visnov_exec_menu(
 
       } else if( ps_event_in->state[EVENT_ID_DOWN] ) {
          /* Move the menu cursor down. */
-         if( tps_last_menu->selected < tps_last_menu->options_count - 1 ) {
-            tps_last_menu->selected++;
+         if( (*pps_menu_in)->selected < (*pps_menu_in)->options_count - 1 ) {
+            (*pps_menu_in)->selected++;
          } else {
-            tps_last_menu->selected = 0;
+            (*pps_menu_in)->selected = 0;
          }
          return i_command_cursor_in;
 
       } else if( ps_event_in->state[EVENT_ID_UP] ) {
          /* Move the menu cursor up. */
-         if( tps_last_menu->selected > 0 ) {
-            tps_last_menu->selected--;
+         if( (*pps_menu_in)->selected > 0 ) {
+            (*pps_menu_in)->selected--;
          } else {
-            tps_last_menu->selected = tps_last_menu->options_count - 1;
+            (*pps_menu_in)->selected = (*pps_menu_in)->options_count - 1;
          }
          return i_command_cursor_in;
 
@@ -828,11 +822,9 @@ int systype_visnov_exec_menu(
    /* Append the menu struct and clean up. It's all right to just free  *
     * it since the dynamic stuff pointed to it will be pointed to by    *
     * the copy on the menu stack.                                       */
-   (*pas_menu_list_in) = window_create_menu(
-      ps_command_in->data[0].items, ps_command_in->data[1].scope, &s_colors_tmp,
-      *pas_menu_list_in, pi_menu_list_count_in
+   *pps_menu_in = window_create_menu(
+      ps_items, i_scope, &s_colors_tmp
    );
-   tps_last_menu = &(*pas_menu_list_in)[(*pi_menu_list_count_in) - 1];
 
 stvnem_cleanup:
 

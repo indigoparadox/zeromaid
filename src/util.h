@@ -62,6 +62,24 @@
    } \
    (array_count)--;
 
+/* Purpose: Allocate space for the additional item and then push it onto the  *
+ *          given stack.                                                      */
+/* Parameters: The type of the stack items, a pointer to the stack, the       *
+ *             number of items in the stack, the label to jump to on failure, *
+ *             a pointer to the item to add (NULL if none).                   */
+#define UTIL_STACK_ADD( type, stack_ptr, stack_count, cleanup, item_addr ) \
+   (stack_count)++; \
+   stack_ptr = (type*)realloc( stack_ptr, stack_count * sizeof( type ) ); \
+   if( NULL == stack_ptr ) { \
+      DBG_ERR( "Unable to allocate stack: " #stack_ptr ); \
+      goto cleanup; \
+   } \
+   for( z = stack_count - 1 ; z > 0 ; z-- ) { \
+      memcpy( &stack_ptr[z], &stack_ptr[z - 1], sizeof( type ) ); \
+   } \
+   if( NULL != item_addr ) { \
+      memcpy( &stack_ptr[0], item_addr, sizeof( type ) ); \
+   }
 
 /* = Function Prototypes = */
 
