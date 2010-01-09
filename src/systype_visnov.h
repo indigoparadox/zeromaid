@@ -32,10 +32,6 @@
  * 3. Add a section to the load_commands function to load the new command.    *
  * 4. Add an exec function to execute the new command.                        */
 
-/* XXX: The game keeps crashing when not run in the debugger somewhere around *
- *      the drawing functions maybe? This only happens in Windows. Maybe the  *
- *      Wii would shed some light on this?                                    */
-
 /* = Includes = */
 
 #include "defines.h"
@@ -147,7 +143,6 @@ typedef struct {
 
 /* Purpose: Select the appropriate cache for the given scope and set the      *
  *          given key to the given value within it.                           */
-// XXX: The l_addr assignment isn't taking!
 #define STVN_CACHE_SET( key, value, scope, g_addr, gc_addr, l_addr, lc_addr ) \
    if( COND_SCOPE_GLOBAL == scope ) { \
       g_addr = cache_set_var( key, value, g_addr, gc_addr ); \
@@ -217,6 +212,7 @@ typedef struct {
    bassignformat( \
       ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
    ); \
+   btrimws( ps_command_attr ); \
    s_command_tmp.data[di].dtype = \
       bstrcpy( ps_command_attr );
 
@@ -248,8 +244,8 @@ int systype_visnov_exec_goto(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, int
 );
 int systype_visnov_exec_menu(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, CACHE_CACHE*, EVENT_EVENT*,
-   WINDOW_MENU**, int*, int
+   SYSTYPE_VISNOV_COMMAND*, WINDOW_MENU**, SYSTYPE_VISNOV_SCENE*,
+   CACHE_CACHE*, EVENT_EVENT*, int
 );
 int systype_visnov_exec_set(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, CACHE_CACHE*, int

@@ -420,8 +420,6 @@ void graphics_draw_text(
    static int* tai_font_list_sizes = NULL;
    static int ti_font_list_count = 0; /* Number of loaded fonts. */
    #endif /* USESDL */
-   /* XXX: Figure out why visual novel engine drawing text causes crash       *
-    *      outside of debugger.                                               */
 
    if( NULL == ps_string_in ) {
       DBG_ERR( "Attempted to blit NULL string!" );

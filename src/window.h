@@ -69,10 +69,9 @@ typedef struct {
 /* = Function Prototypes = */
 
 CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
-WINDOW_MENU* window_create_menu(
-   bstring, COND_SCOPE, WINDOW_MENU_COLORS*, WINDOW_MENU*, int* );
+WINDOW_MENU* window_create_menu( bstring, COND_SCOPE, WINDOW_MENU_COLORS* );
 void window_draw_text( int, CACHE_CACHE* );
-void window_draw_menu( WINDOW_MENU*, int );
-WINDOW_MENU* window_free_menu( WINDOW_MENU*, int* );
+void window_draw_menu( WINDOW_MENU* );
+void window_free_menu( WINDOW_MENU* );
 
 #endif /* WINDOW_H */

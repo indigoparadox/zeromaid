@@ -18,6 +18,10 @@
 
 DBG_ENABLE
 
+/* = Global Variables = */
+
+WINDOW_MENU* gps_menu = NULL;
+
 /* = Functions = */
 
 /* Purpose: Create a text log entry with it at the end of the given list.     */
@@ -30,12 +34,13 @@ CACHE_LOG_ENTRY* window_create_text(
    int* pi_text_windows_count_in
 ) {
    CACHE_LOG_ENTRY s_entry_tmp;
+   int z; /* Loop iterator. */
 
    memset( &s_entry_tmp, 0, sizeof( CACHE_LOG_ENTRY ) );
 
    s_entry_tmp.text = bstrcpy( ps_text_in );
 
-   UTIL_ARRAY_ADD(
+   UTIL_STACK_ADD(
       CACHE_LOG_ENTRY, as_text_windows_in, *pi_text_windows_count_in,
       wct_cleanup, &s_entry_tmp
    );
@@ -53,23 +58,21 @@ wct_cleanup:
 WINDOW_MENU* window_create_menu(
    bstring ps_items_in,
    COND_SCOPE i_scope_in,
-   WINDOW_MENU_COLORS* ps_colors_in,
-   WINDOW_MENU* as_menu_list_in,
-   int* pi_menu_list_count_in
+   WINDOW_MENU_COLORS* ps_colors_in
 ) {
    struct bstrList* ps_items_list = NULL,
       * ps_item_iter = NULL,
       * ps_keyval_iter = NULL;
-   WINDOW_MENU s_menu_tmp; /* Temporary menu struct to copy to the stack. */
+   WINDOW_MENU* ps_menu_out = NULL; /* Temporary menu struct to copy to the stack. */
    int i; /* Loop iterator. */
 
-   memset( &s_menu_tmp, 0, sizeof( WINDOW_MENU ) );
+   ps_menu_out = calloc( 1, sizeof( WINDOW_MENU ) );
 
    /* Copy the colors struct. */
-   memcpy( &s_menu_tmp.colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
+   memcpy( &ps_menu_out->colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
 
    /* Set the scope. */
-   s_menu_tmp.scope = i_scope_in;
+   ps_menu_out->scope = i_scope_in;
 
    /* Split apart the items list into Label:Target pairs. */
    ps_items_list = bsplit( ps_items_in, ';' );
@@ -92,14 +95,14 @@ WINDOW_MENU* window_create_menu(
 
       /* Add the menu item to the new menu. */
       UTIL_ARRAY_ADD(
-         WINDOW_MENU_ITEM, s_menu_tmp.options,
-         s_menu_tmp.options_count, wcm_cleanup, NULL
+         WINDOW_MENU_ITEM, ps_menu_out->options,
+         ps_menu_out->options_count, wcm_cleanup, NULL
       );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].desc =
+      ps_menu_out->options[ps_menu_out->options_count - 1].desc =
          bstrcpy( ps_item_iter->entry[0] );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].key =
+      ps_menu_out->options[ps_menu_out->options_count - 1].key =
          bstrcpy( ps_keyval_iter->entry[0] );
-      s_menu_tmp.options[s_menu_tmp.options_count - 1].value =
+      ps_menu_out->options[ps_menu_out->options_count - 1].value =
          bstrcpy( ps_keyval_iter->entry[1] );
 
       /* Clean up. */
@@ -107,16 +110,11 @@ WINDOW_MENU* window_create_menu(
    }
    bstrListDestroy( ps_items_list );
 
-   UTIL_ARRAY_ADD(
-      WINDOW_MENU, as_menu_list_in, *pi_menu_list_count_in, wcm_cleanup,
-      &s_menu_tmp
-   );
-
-   DBG_INFO_INT( "Menu created", *pi_menu_list_count_in - 1 );
+   DBG_INFO( "Menu created" );
 
 wcm_cleanup:
 
-   return as_menu_list_in;
+   return ps_menu_out;
 }
 
 /* Purpose: Draw the selected text window on-screen, or the top-most window   *
@@ -127,8 +125,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    static GFX_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
    static bstring tps_font_name = NULL;
-   int i_window_index = (ps_cache_in->text_log_count - 1) - i_index_in,
-      i_lines_printed = 0,
+   int i_lines_printed = 0,
       i_buffer_result = BSTR_OK;
    size_t i_buffer_start = 0, /* Offset to print from current input buffer. */
       i_buffer_end = WINDOW_BUFFER_LENGTH,
@@ -137,7 +134,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       ps_line_buffer = bformat( "" ); /* The buffer for multi-line strings. */
 
    /* Verify that the requested window index is valid. */
-   if( 0 > i_window_index || !tb_success ) {
+   if( i_index_in >= ps_cache_in->text_log_count || !tb_success ) {
       return;
    }
 
@@ -172,13 +169,14 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       }
    }
 
-   DBG_INFO_INT( "index", i_window_index );
+   DBG_INFO_INT( "index", i_index_in );
+   DBG_INFO_INT( "count", ps_cache_in->text_log_count );
    DBG_INFO_PTR( "ptr", ps_cache_in->text_log );
    DBG_INFO_STR( "str0", ps_cache_in->text_log[0].text->data );
 
    /* Draw the actual window and text. */
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
-   i_buffer_len = strlen( ps_cache_in->text_log[i_window_index].text->data );
+   i_buffer_len = strlen( ps_cache_in->text_log[i_index_in].text->data );
    while( i_buffer_start < i_buffer_len && BSTR_ERR != i_buffer_result ) {
       /* If the nominal buffer length would be beyond the end of the string,  *
        * then print to the end of the string. Otherwise, print to the nominal *
@@ -191,7 +189,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          /* Decrease the end until we find a whitespace character. */
          while(
             i_buffer_end > 1 &&
-            ps_cache_in->text_log[i_window_index].text->
+            ps_cache_in->text_log[i_index_in].text->
                data[i_buffer_start + i_buffer_end] != ' '
          ) {
             i_buffer_end--;
@@ -200,7 +198,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
 
       i_buffer_result = bassignmidstr (
          ps_line_buffer,
-         ps_cache_in->text_log[i_window_index].text,
+         ps_cache_in->text_log[i_index_in].text,
          i_buffer_start,
          i_buffer_end
       );
@@ -229,14 +227,14 @@ wdt_cleanup:
 
 /* Purpose: Draw all on-screen menus with the newest layered foremost.        */
 /* Parameters: The list of menus to draw and the number of menus in the list. */
-void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
+void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
    static GFX_SURFACE* tps_menu_window_bg = NULL;
    static GFX_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
    static bstring tps_font_path = NULL;
    GFX_COLOR* ps_color = NULL;
    bstring ps_bg_path = NULL;
-   int i, j; /* Loop iterators. */
+   int i; /* Loop iterators. */
 
    /* If we passed the success check above and the window background is       *
     * empty, assume everything still needs to be setup.                       */
@@ -266,26 +264,24 @@ void window_draw_menu( WINDOW_MENU* as_menus_in, int i_menus_count_in ) {
       }
    }
 
-   for( i = 0 ; i < i_menus_count_in ; i++ ) {
-      graphics_draw_blit_tile( tps_menu_window_bg, NULL, &ts_rect_window );
+   graphics_draw_blit_tile( tps_menu_window_bg, NULL, &ts_rect_window );
 
-      /* Draw the menu options. */
-      for( j = 0 ; j < as_menus_in[i].options_count ; j++ ) {
-         if( j == as_menus_in[i].selected ) {
-            ps_color = &as_menus_in[i].colors.sfg;
-         } else {
-            ps_color = &as_menus_in[i].colors.fg;
-         }
-
-         graphics_draw_text(
-            ts_rect_window.x + 30,
-            ts_rect_window.y + 30 + (WINDOW_MENU_TEXT_HEIGHT * j),
-            as_menus_in[i_menus_count_in - 1].options[j].desc,
-            tps_font_path,
-            WINDOW_MENU_TEXT_SIZE,
-            ps_color
-         );
+   /* Draw the menu options. */
+   for( i = 0 ; i < ps_menu_in->options_count ; i++ ) {
+      if( i == ps_menu_in->selected ) {
+         ps_color = &ps_menu_in->colors.sfg;
+      } else {
+         ps_color = &ps_menu_in->colors.fg;
       }
+
+      graphics_draw_text(
+         ts_rect_window.x + 30,
+         ts_rect_window.y + 30 + (WINDOW_MENU_TEXT_HEIGHT * i),
+         ps_menu_in->options[i].desc,
+         tps_font_path,
+         WINDOW_MENU_TEXT_SIZE,
+         ps_color
+      );
    }
 
 wdm_cleanup:
@@ -294,29 +290,21 @@ wdm_cleanup:
 }
 
 /* Purpose: Free the top-most menu from the given menu stack.                 */
-WINDOW_MENU* window_free_menu(
-   WINDOW_MENU* ps_menu_list_in,
-   int* pi_menu_list_count_in
-) {
-   int i, z; /* Loop iterators. */
+void window_free_menu( WINDOW_MENU* ps_menu_in ) {
+   int i; /* Loop iterator. */
 
-   DBG_INFO_INT( "Freeing menu", *pi_menu_list_count_in - 1 );
+   DBG_INFO( "Freeing menu" );
 
-   for( i = 0 ; i < ps_menu_list_in[*pi_menu_list_count_in - 1].options_count ; i++ ) {
-      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].desc );
-      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].key );
-      bdestroy( ps_menu_list_in[*pi_menu_list_count_in - 1].options[i].value );
+   for( i = 0 ; i < ps_menu_in->options_count ; i++ ) {
+      bdestroy( ps_menu_in->options[i].desc );
+      bdestroy( ps_menu_in->options[i].key );
+      bdestroy( ps_menu_in->options[i].value );
    }
 
-   UTIL_ARRAY_DEL(
-      WINDOW_MENU, ps_menu_list_in, *pi_menu_list_count_in,
-      wfm_cleanup, *pi_menu_list_count_in - 1
-   );
-
    /* The index has had 1 subtracted from it by the macro above. */
-   DBG_INFO_INT( "Menu freed", *pi_menu_list_count_in );
+   DBG_INFO( "Menu freed" );
 
 wfm_cleanup:
 
-   return ps_menu_list_in;
+   return;
 }
