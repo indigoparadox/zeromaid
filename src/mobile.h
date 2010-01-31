@@ -21,6 +21,7 @@
 
 #include "defines.h"
 #include "graphics.h"
+#include "tilemap.h"
 
 /* = Defines = */
 
@@ -44,11 +45,15 @@ typedef int MOBILE_AI;
 #define MOBILE_ANIM_FRAMES 3 /* Max index of animation frames. */
 #define MOBILE_ANIM_DRAWS 20 /* Max index of drawing cycles per frame. */
 
+#define MOBILE_CROP_SIZE 110 /* The width and height of an image crop rect. */
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
+   int id;
    GFX_SURFACE* image;
-} MOBILE_PORTRAIT;
+   GFX_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
+} MOBILE_EMOTION;
 
 typedef struct {
    int opcode;
@@ -60,11 +65,14 @@ typedef struct {
    MOBILE_AI_LIST_COUNTER ai_normal_counter;
 
    BOOL moving; /* Is the mobile moving or acting right now? */
-   unsigned int hp;
-   MOBILE_PORTRAIT* portraits;
+   unsigned int hp,
+      serial;
+   MOBILE_EMOTION* emotions;
    int pixel_x, pixel_y,
       pixel_size, /* The size of the mobile's sprite. */
-      portraits_count,
+      emotions_count,
+      emotion_current,
+      emotion_x, emotion_y, /* Location on-screen of emotion portrait in VN. */
       current_animation; /* Vertical offset of current frame on spritesheet. */
    float pixel_multiplier; /* The size to expand the mobile to when blitted. */
    bstring proper_name, /* The name to display for this mobile. */
@@ -74,7 +82,9 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-void mobile_load_mobile( MOBILE_MOBILE*, bstring );
+MOBILE_MOBILE* mobile_load_mobiles( int*, ezxml_t, TILEMAP_TILEMAP* );
+MOBILE_MOBILE* mobile_load_mobile( bstring );
+BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
 void mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );

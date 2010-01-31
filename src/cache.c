@@ -35,10 +35,10 @@ BOOL cache_load( bstring ps_in_path_in ) {
 /* Purpose: Set the given variable to the given value within the given scope. */
 /* Parameters: The key to set, the value to set it to, the scope in which to  *
  *             set it, and the cache to set it in.                            */
-CACHE_VARIABLE* cache_set_var(
+void cache_set_var(
    bstring ps_key_in,
    bstring ps_value_in,
-   CACHE_VARIABLE* as_varlist_in,
+   CACHE_VARIABLE** as_varlist_in,
    int* pi_varlist_count_in
 ) {
    BOOL b_found = FALSE; /* Did the variable already exist? */
@@ -47,9 +47,9 @@ CACHE_VARIABLE* cache_set_var(
 
    /* Find and set the variable. */
    for( i = 0 ; i < *pi_varlist_count_in ; i++ ) {
-      if( 0 == bstrcmp( as_varlist_in[i].key, ps_key_in ) ) {
+      if( 0 == bstrcmp( (*as_varlist_in)[i].key, ps_key_in ) ) {
          /* Found it! Now set the value. */
-         bassign( as_varlist_in[i].value, ps_value_in );
+         bassign( (*as_varlist_in)[i].value, ps_value_in );
          b_found = TRUE;
          break;
       }
@@ -61,12 +61,12 @@ CACHE_VARIABLE* cache_set_var(
       s_var_tmp.key = bstrcpy( ps_key_in );
       s_var_tmp.value = bstrcpy( ps_value_in );
       UTIL_ARRAY_ADD(
-         CACHE_VARIABLE, as_varlist_in, *pi_varlist_count_in, csv_cleanup,
+         CACHE_VARIABLE, *as_varlist_in, *pi_varlist_count_in, csv_cleanup,
          &s_var_tmp
       );
    }
 
 csv_cleanup:
 
-   return as_varlist_in;
+   return;
 }

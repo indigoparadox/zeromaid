@@ -24,21 +24,26 @@ DBG_ENABLE
 /* Parameters: The name of the scene to play.                                 */
 /* Return: The code for the next action to take.                              */
 int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
-   SYSTYPE_VISNOV_ACTOR* as_actors = NULL;
+   CACHE_VARIABLE* as_locals;
+   MOBILE_MOBILE** aps_actors_onscreen; /* Dupe ptrs to actors on-screen. */
+   MOBILE_MOBILE* as_actors;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
    int i_actors_count = 0,
       i_commands_count = 0,
       i_act_return = RETURN_ACTION_TITLE,
       i_command_cursor = 0, /* The index of the command to execute next. */
-      i, j; /* Loop iterators. */
+      i, j, /* Loop iterators. */
+      i_locals_count = 0, /* Local variable count. */
+      i_actors_onscreen_count = 0;
    GFX_COLOR* ps_color_fade = NULL;
    GFX_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
    EVENT_EVENT s_event;
-   SYSTYPE_VISNOV_SCENE s_scene;
    BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
    WINDOW_MENU* ps_menu = NULL;
+   BOOL b_scene_dirty; /* Does the scene need to be redrawn? */
+   GFX_SURFACE* ps_bg; /* Current scene background. */
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
@@ -51,7 +56,6 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    ps_xml_scene = ezxml_parse_file( (const char*)ps_scene_path->data );
 
    /* Initialize what we need to use functions to initialize. */
-   memset( &s_scene, 0, sizeof( SYSTYPE_VISNOV_SCENE ) );
    memset( &s_rect_actor, 0, sizeof( GFX_RECTANGLE ) );
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
@@ -59,9 +63,10 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       &i_commands_count,
       ezxml_child( ps_xml_scene, "script" )
    );
-   as_actors = systype_visnov_load_actors(
+   as_actors = mobile_load_mobiles(
       &i_actors_count,
-      ezxml_child( ps_xml_scene, "actors" )
+      ezxml_child( ps_xml_scene, "mobiles" ),
+      NULL
    );
 
    while( 1 ) {
@@ -73,7 +78,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       switch( as_commands[i_command_cursor].command ) {
          case SYSTYPE_VISNOV_CMD_BACKGROUND:
             i_command_cursor = systype_visnov_exec_background(
-               &as_commands[i_command_cursor], &s_scene, i_command_cursor
+               &as_commands[i_command_cursor], &ps_bg, i_command_cursor
             );
             break;
 
@@ -86,7 +91,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
          case SYSTYPE_VISNOV_CMD_COND:
             i_command_cursor = systype_visnov_exec_cond(
                &as_commands[i_command_cursor], as_commands, i_commands_count,
-               &s_scene, ps_cache_in, i_command_cursor
+               as_locals, i_locals_count, ps_cache_in, i_command_cursor
             );
             break;
 
@@ -106,8 +111,9 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
          case SYSTYPE_VISNOV_CMD_PORTRAIT:
             i_command_cursor = systype_visnov_exec_portrait(
-               &as_commands[i_command_cursor], &s_scene, as_actors,
-               i_actors_count, i_command_cursor
+               &as_commands[i_command_cursor], &aps_actors_onscreen,
+               &i_actors_onscreen_count, as_actors, i_actors_count,
+               i_command_cursor, ps_cache_in
             );
             break;
 
@@ -126,15 +132,15 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
          case SYSTYPE_VISNOV_CMD_MENU:
             i_command_cursor = systype_visnov_exec_menu(
-               &as_commands[i_command_cursor], &ps_menu, &s_scene,
-               ps_cache_in, &s_event, i_command_cursor
+               &as_commands[i_command_cursor], &ps_menu, &as_locals,
+               &i_locals_count, ps_cache_in, &s_event, i_command_cursor
             );
             break;
 
          case SYSTYPE_VISNOV_CMD_SET:
             i_command_cursor = systype_visnov_exec_set(
-               &as_commands[i_command_cursor], &s_scene, ps_cache_in,
-               i_command_cursor
+               &as_commands[i_command_cursor], &as_locals, &i_locals_count,
+               ps_cache_in, i_command_cursor
             );
 
          default:
@@ -148,17 +154,17 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       }
 
       /* Draw the on-screen items. */
-      if( NULL != s_scene.bg ) {
-         graphics_draw_blit_tile( s_scene.bg, NULL, NULL );
+      if( NULL != ps_bg ) {
+         graphics_draw_blit_tile( ps_bg, NULL, NULL );
       }
-      for( i = 0 ; i < s_scene.actors_onscreen_count ; i++ ) {
-         j = s_scene.actors_onscreen[i]->emotion_current;
-         s_rect_actor.x = s_scene.actors_onscreen[i]->x;
-         s_rect_actor.y = s_scene.actors_onscreen[i]->y;
-         s_rect_actor.w = s_scene.actors_onscreen[i]->emotions[j].image->w;
-         s_rect_actor.h = s_scene.actors_onscreen[i]->emotions[j].image->h;
+      for( i = 0 ; i < i_actors_onscreen_count ; i++ ) {
+         j = aps_actors_onscreen[i]->emotion_current;
+         s_rect_actor.x = aps_actors_onscreen[i]->emotion_x;
+         s_rect_actor.y = aps_actors_onscreen[i]->emotion_y;
+         s_rect_actor.w = aps_actors_onscreen[i]->emotions[j].image->w;
+         s_rect_actor.h = aps_actors_onscreen[i]->emotions[j].image->h;
          graphics_draw_blit_tile(
-            s_scene.actors_onscreen[i]->emotions[j].image,
+            aps_actors_onscreen[i]->emotions[j].image,
             NULL,
             &s_rect_actor
          );
@@ -180,11 +186,11 @@ stvnl_cleanup:
    /* We won't free the bg pointer inside of the scene struct because it      *
     * points to an image which is also pointed to by one of the commands      *
     * below. If we free it as part of the commands then it's no problem.      */
-   for( i = 0 ; i < s_scene.locals_count ; i++ ) {
-      bdestroy( s_scene.locals[i].key );
-      bdestroy( s_scene.locals[i].value );
+   for( i = 0 ; i < i_locals_count ; i++ ) {
+      bdestroy( as_locals[i].key );
+      bdestroy( as_locals[i].value );
    }
-   free( s_scene.locals );
+   free( as_locals );
 
    /* Clean up! */
    free( ps_color_fade );
@@ -192,7 +198,7 @@ stvnl_cleanup:
    bdestroy( ps_scene_path );
 
    for( i = 0 ; i < i_actors_count ; i++ ) {
-      systype_visnov_free_actor_arr( &as_actors[i] );
+      mobile_free_arr( &as_actors[i] );
    }
    free( as_actors );
 
@@ -206,134 +212,6 @@ stvnl_cleanup:
    }
 
    return i_act_return;
-}
-
-/* Purpose: Load the array of scene actors.                                   */
-/* Parameters: The address of the actor array size indicator.                 */
-/* Return: A pointer to the actor array.                                      */
-SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors(
-   int* pi_count_out,
-   ezxml_t ps_xml_actors_in
-) {
-   SYSTYPE_VISNOV_ACTOR* ps_actors_out = NULL;
-   SYSTYPE_VISNOV_EMOTION s_emotion_tmp; /* A temp emotion iterator. */
-   SYSTYPE_VISNOV_ACTOR s_actor_tmp;
-   ezxml_t ps_xml_actor = NULL, ps_xml_emotion = NULL;
-   const char* pc_attr = NULL;
-   bstring ps_attr_temp = bfromcstr( "" );
-
-   /* Verify that the script exists. */
-   if( NULL == ps_xml_actors_in ) {
-      DBG_ERR( "Invalid visual novel actor list detected." );
-      goto stvnla_cleanup;
-   }
-
-   /* Initialize what we need to. */
-   *pi_count_out = 0;
-
-   /* Load each command in order. */
-   ps_xml_actor = ezxml_child( ps_xml_actors_in, "actor" );
-   while( NULL != ps_xml_actor ) {
-      memset( &s_actor_tmp, 0, sizeof( SYSTYPE_VISNOV_ACTOR ) );
-
-      /* ATTRIB: SERIAL */
-      pc_attr = ezxml_attr( ps_xml_actor, "serial" );
-      if( NULL == pc_attr ) {
-         /* There's no serial, so this actor is useless. */
-         DBG_ERR( "Invalid actor serial detected." );
-         ps_xml_actor = ezxml_next( ps_xml_actor );
-         continue;
-      }
-      s_actor_tmp.serial = atoi( pc_attr );
-
-      /* ATTRIB: NAME */
-      pc_attr = ezxml_attr( ps_xml_actor, "name" );
-      if( NULL == pc_attr ) {
-         /* There's no name, so this actor is useless. */
-         DBG_ERR_INT(
-            "Invalid actor name detected for actor", s_actor_tmp.serial
-         );
-         ps_xml_actor = ezxml_next( ps_xml_actor );
-         continue;
-      }
-      s_actor_tmp.name = bformat( "%s", pc_attr );
-
-      /* Build the actor's list of emotions and their portraits. */
-      ps_xml_emotion = ezxml_child( ps_xml_actor, "emotion" );
-      while( NULL != ps_xml_emotion ) {
-         memset( &s_emotion_tmp, 0, sizeof( SYSTYPE_VISNOV_EMOTION ) );
-
-         /* ATTRIB: ID */
-         pc_attr = ezxml_attr( ps_xml_emotion, "id" );
-         if( NULL == pc_attr ) {
-            /* There's no ID, so this emotion is useless. */
-            DBG_ERR_INT(
-               "ID not found; invalid emotion for actor",
-               s_actor_tmp.serial
-            );
-            ps_xml_emotion = ezxml_next( ps_xml_emotion );
-            continue;
-         }
-         s_emotion_tmp.id = atoi( pc_attr );
-
-         /* ATTRIB: IMAGE */
-         pc_attr = ezxml_txt( ps_xml_emotion );
-         bassignformat(
-            ps_attr_temp,
-            "%svnprt_%s_%s.%s", PATH_SHARE, s_actor_tmp.name->data,
-               pc_attr, FILE_EXTENSION_IMAGE
-         );
-         btolower( ps_attr_temp );
-         s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
-         if( NULL == pc_attr || NULL == s_emotion_tmp.image ) {
-            /* There's no image, so this emotion is useless. */
-            DBG_ERR_INT(
-               "Portrait not found; invalid emotion for actor",
-               s_actor_tmp.serial
-            );
-            ps_xml_emotion = ezxml_next( ps_xml_emotion );
-            continue;
-         }
-
-         /* If we've made it this far, the emotion is probably valid, so add  *
-          * it to the current actor's list.                                   */
-         UTIL_ARRAY_ADD(
-            SYSTYPE_VISNOV_EMOTION, s_actor_tmp.emotions,
-            s_actor_tmp.emotions_count, stvnla_cleanup, &s_emotion_tmp
-         );
-
-         DBG_INFO_INT_INT(
-            "Loaded emotion (serial, emotion)",
-            s_actor_tmp.serial,
-            s_emotion_tmp.id
-         );
-
-         /* Go on to the next one. */
-         ps_xml_emotion = ezxml_next( ps_xml_emotion );
-      }
-
-      /* If we've made it this far, the emotion is probably valid, so add  *
-       * it to the current actor's list.                                   */
-      UTIL_ARRAY_ADD(
-         SYSTYPE_VISNOV_ACTOR, ps_actors_out, *pi_count_out, stvnla_cleanup,
-         &s_actor_tmp
-      );
-
-      DBG_INFO_STR_INT(
-         "Loaded actor (name, serial)",
-         s_actor_tmp.name->data,
-         s_actor_tmp.serial
-      );
-
-      /* Go on to the next one. */
-      ps_xml_actor = ezxml_next( ps_xml_actor );
-   }
-
-stvnla_cleanup:
-
-   bdestroy( ps_attr_temp );
-
-   return ps_actors_out;
 }
 
 /* Purpose: Load the array of scene commands.                                 */
@@ -491,14 +369,14 @@ stvnlc_cleanup:
 /* COMMAND: BACKGROUND */
 int systype_visnov_exec_background(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   GFX_SURFACE** pps_bg_in,
    int i_command_cursor_in
 ) {
    GFX_COLOR* ps_color_fade = NULL;
 
    ps_color_fade = graphics_create_color( 0, 0, 0 );
-   ps_scene_in->bg = ps_command_in->data->bg;
-   graphics_draw_blit_tile( ps_scene_in->bg, NULL, NULL );
+   *pps_bg_in = ps_command_in->data->bg;
+   graphics_draw_blit_tile( *pps_bg_in, NULL, NULL );
    graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
    free( ps_color_fade );
 
@@ -534,7 +412,8 @@ int systype_visnov_exec_cond(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    SYSTYPE_VISNOV_COMMAND* as_command_list_in,
    int i_command_list_count_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   CACHE_VARIABLE* as_locals_in,
+   int i_locals_count_in,
    CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
@@ -576,12 +455,12 @@ int systype_visnov_exec_cond(
          }
       }
    } else if( COND_SCOPE_LOCAL == ps_command_in->data[1].scope ) {
-      for( i = 0 ; i < ps_scene_in->locals_count ; i++ ) {
+      for( i = 0 ; i < i_locals_count_in ; i++ ) {
          if(
             0 == bstrcmp(
-               ps_command_in->data[2].key, ps_scene_in->locals[i].key ) &&
+               ps_command_in->data[2].key, as_locals_in[i].key ) &&
             0 == bstrcmp(
-               ps_command_in->data[3].equals, ps_scene_in->locals[i].value )
+               ps_command_in->data[3].equals, as_locals_in[i].value )
          ) {
             /* Conditions are matched, so jump to target. */
             return systype_visnov_exec_goto(
@@ -592,13 +471,13 @@ int systype_visnov_exec_cond(
             );
          } else if(
             0 == bstrcmp(
-               ps_command_in->data[2].key, ps_scene_in->locals[i].key )
+               ps_command_in->data[2].key, as_locals_in[i].key )
          ) {
             /* The key was found but the value was different. */
             DBG_INFO_STR_STR(
                "Key found with different value",
-               ps_scene_in->locals[i].key->data,
-               ps_scene_in->locals[i].value->data
+               as_locals_in[i].key->data,
+               as_locals_in[i].value->data
             );
          } else {
             DBG_INFO_STR( "Key not found", ps_command_in->data[2].key->data );
@@ -615,12 +494,13 @@ int systype_visnov_exec_talk(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    CACHE_CACHE* ps_cache_in,
    EVENT_EVENT* ps_event_in,
-   SYSTYPE_VISNOV_ACTOR* as_actors_in,
+   MOBILE_MOBILE* as_actors_in,
    int i_actors_count_in,
    int i_command_cursor_in
 ) {
    bstring ps_talk_text = NULL;
    static int ti_cleared_count = 0;
+   MOBILE_MOBILE* ps_mob_talk = NULL;
 
    /* If the window we're about to create is already on the stack, then just  *
     * reset the command cursor back one and quit.                             */
@@ -639,21 +519,34 @@ int systype_visnov_exec_talk(
       }
    }
 
-   ps_talk_text = bformat(
-      "%s: %s",
-      systype_visnov_get_actor(
-         ps_command_in->data[0].serial,
-         as_actors_in,
-         i_actors_count_in
-      )->name->data,
-      ps_command_in->data[1].talktext->data
+   ps_mob_talk = systype_visnov_get_actor(
+      ps_command_in->data[0].serial,
+      as_actors_in,
+      i_actors_count_in,
+      ps_cache_in
    );
+   if( NULL != ps_mob_talk ) {
+      ps_talk_text = bformat(
+         "%s: %s",
+         ps_mob_talk->mobile_type->data,
+         ps_command_in->data[1].talktext->data
+      );
+   } else {
+      /* Couldn't find the mobile to talk! */
+      DBG_ERR_INT(
+         "Invalid talk serial specified.", ps_command_in->data[0].serial
+      );
+      i_command_cursor_in++;
+      goto stvnet_cleanup;
+   }
 
    /* Actually display the text window. */
    ps_cache_in->text_log = window_create_text(
       ps_talk_text, ps_cache_in->text_log, &ps_cache_in->text_log_count
    );
    ps_cache_in->text_log_current = 0;
+
+stvnet_cleanup:
 
    /* Clean up. */
    bdestroy( ps_talk_text );
@@ -693,44 +586,58 @@ int systype_visnov_exec_goto(
 /* COMMAND: PORTRAIT */
 int systype_visnov_exec_portrait(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
-   SYSTYPE_VISNOV_ACTOR* as_actors_in,
+   MOBILE_MOBILE*** paps_actors_onscreen_in,
+   int* pi_actors_onscreen_count_in,
+   MOBILE_MOBILE* as_actors_in,
    int i_actors_count_in,
-   int i_command_cursor_in
+   int i_command_cursor_in,
+   CACHE_CACHE* ps_cache_in
 ) {
 
    int i, z; /* Loop iterators. */
 
+   /* Make sure an actor with the given serial really exists first. */
+   if( NULL == systype_visnov_get_actor(
+      ps_command_in->data[0].serial, as_actors_in, i_actors_count_in,
+      ps_cache_in
+   ) ) {
+      DBG_ERR_INT(
+         "Invalid portrait serial specified", ps_command_in->data[0].serial
+      );
+      goto stvnepr_cleanup;
+   }
+
    /* If the given actor is already in the scene, remove them. */
-   for( i = 0 ; i < ps_scene_in->actors_onscreen_count ; i++ ) {
+   for( i = 0 ; i < *pi_actors_onscreen_count_in ; i++ ) {
       if(
-         ps_scene_in->actors_onscreen[i]->serial ==
+         (*paps_actors_onscreen_in)[i]->serial ==
          ps_command_in->data[0].serial
       ) {
          UTIL_ARRAY_DEL(
-            SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
-            ps_scene_in->actors_onscreen_count, stvnepr_cleanup, i
+            MOBILE_MOBILE*, *paps_actors_onscreen_in,
+            *pi_actors_onscreen_count_in, stvnepr_cleanup, i
          );
       }
    }
 
    /* Add the given emotion portrait to the scene. */
    UTIL_ARRAY_ADD(
-      SYSTYPE_VISNOV_ACTOR*, ps_scene_in->actors_onscreen,
-      ps_scene_in->actors_onscreen_count, stvnepr_cleanup, NULL
+      MOBILE_MOBILE*, *paps_actors_onscreen_in,
+      *pi_actors_onscreen_count_in, stvnepr_cleanup, NULL
    );
-   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1] =
+   (*paps_actors_onscreen_in)[*pi_actors_onscreen_count_in - 1] =
       systype_visnov_get_actor(
          ps_command_in->data[0].serial,
          as_actors_in,
-         i_actors_count_in
+         i_actors_count_in,
+         ps_cache_in
       );
-   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
+   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
       emotion_current = ps_command_in->data[1].emotion;
-   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
-      x = ps_command_in->data[3].x;
-   ps_scene_in->actors_onscreen[ps_scene_in->actors_onscreen_count - 1]->
-            y = ps_command_in->data[4].y;
+   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
+      emotion_x = ps_command_in->data[3].x;
+   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
+      emotion_y = ps_command_in->data[4].y;
 
 stvnepr_cleanup:
 
@@ -757,7 +664,8 @@ int systype_visnov_exec_teleport(
 int systype_visnov_exec_menu(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
    WINDOW_MENU** pps_menu_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   CACHE_VARIABLE** pas_locals_in,
+   int* pi_locals_count_in,
    CACHE_CACHE* ps_cache_in,
    EVENT_EVENT* ps_event_in,
    int i_command_cursor_in
@@ -776,10 +684,10 @@ int systype_visnov_exec_menu(
             (*pps_menu_in)->options[(*pps_menu_in)->selected].key,
             (*pps_menu_in)->options[(*pps_menu_in)->selected].value,
             (*pps_menu_in)->scope,
-            ps_cache_in->globals,
+            &ps_cache_in->globals,
             &ps_cache_in->globals_count,
-            ps_scene_in->locals,
-            &ps_scene_in->locals_count
+            pas_locals_in,
+            pi_locals_count_in
          );
          window_free_menu( *pps_menu_in );
          *pps_menu_in = NULL;
@@ -834,7 +742,8 @@ stvnem_cleanup:
 /* COMMAND: SET */
 int systype_visnov_exec_set(
    SYSTYPE_VISNOV_COMMAND* ps_command_in,
-   SYSTYPE_VISNOV_SCENE* ps_scene_in,
+   CACHE_VARIABLE** pas_locals_in,
+   int* pi_locals_count_in,
    CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
@@ -842,20 +751,21 @@ int systype_visnov_exec_set(
       ps_command_in->data[2].key,
       ps_command_in->data[3].equals,
       ps_command_in->data[1].scope,
-      ps_cache_in->globals,
+      &ps_cache_in->globals,
       &ps_cache_in->globals_count,
-      ps_scene_in->locals,
-      &ps_scene_in->locals_count
+      pas_locals_in,
+      pi_locals_count_in
    );
 
    return ++i_command_cursor_in;
 }
 
 /* Purpose: Return a pointer to the first actor with a given serial number.   */
-SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
+MOBILE_MOBILE* systype_visnov_get_actor(
    int i_serial_in,
-   SYSTYPE_VISNOV_ACTOR* as_actors_in,
-   int i_actors_count_in
+   MOBILE_MOBILE* as_actors_in,
+   int i_actors_count_in,
+   CACHE_CACHE* ps_cache_in
 ) {
    int i; /* Loop iterator. */
 
@@ -865,26 +775,15 @@ SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
       }
    }
 
+   /* It wasn't in the normal mobile list so try the player team. */
+   for( i = 0 ; i < ps_cache_in->player_team_count ; i++ ) {
+      if( ps_cache_in->player_team[i].serial == i_serial_in ) {
+         return &ps_cache_in->player_team[i];
+      }
+   }
+
    /* Actor wasn't found. */
    return NULL;
-}
-
-/* Purpose: Free the memory held by the given actor's attributes.             *
- *          (But DON'T free the pointer to the struct itself!)                */
-/* Parameters: A pointer to the actor struct to free.                         */
-void systype_visnov_free_actor_arr( SYSTYPE_VISNOV_ACTOR* ps_actor_in ) {
-   int i; /* Loop iterator. */
-
-   if( NULL == ps_actor_in ) {
-      return;
-   }
-
-   for( i = 0 ; i < ps_actor_in->emotions_count ; i++ ) {
-      graphics_free_image( ps_actor_in->emotions[i].image );
-   }
-   free( ps_actor_in->emotions );
-
-   DBG_INFO_INT( "Actor freed", ps_actor_in->serial );
 }
 
 /* Purpose: Free the memory held by the given command struct's data elements  *
