@@ -40,6 +40,7 @@
 #include "event.h"
 #include "util.h"
 #include "window.h"
+#include "mobile.h"
 
 /* = Definitons = */
 
@@ -112,42 +113,15 @@ typedef struct {
    SYSTYPE_VISNOV_DATA* data;
 } SYSTYPE_VISNOV_COMMAND;
 
-/* == Actor Stuff == */
-
-typedef struct {
-   int id;
-   GFX_SURFACE* image;
-} SYSTYPE_VISNOV_EMOTION;
-
-typedef struct {
-   bstring name;
-   int serial,
-      x, y, /* Current on-screen location. */
-      emotion_current, /* Currently selected emotion. */
-      emotions_count; /* Number of available emotions. */
-   SYSTYPE_VISNOV_EMOTION* emotions; /* Dynamic array of available emotions. */
-} SYSTYPE_VISNOV_ACTOR;
-
-/* == Scene Stuff == */
-
-typedef struct {
-   CACHE_VARIABLE* locals;
-   BOOL dirty; /* Does the scene need to be redrawn? */
-   GFX_SURFACE* bg; /* Current scene background. */
-   int locals_count, /* Local variable count. */
-      actors_onscreen_count;
-   SYSTYPE_VISNOV_ACTOR** actors_onscreen; /* Dupe ptrs to actors on-screen. */
-} SYSTYPE_VISNOV_SCENE;
-
 /* = Macros = */
 
 /* Purpose: Select the appropriate cache for the given scope and set the      *
  *          given key to the given value within it.                           */
-#define STVN_CACHE_SET( key, value, scope, g_addr, gc_addr, l_addr, lc_addr ) \
+#define STVN_CACHE_SET( key, value, scope, pg_addr, gc_addr, pl_addr, lc_addr ) \
    if( COND_SCOPE_GLOBAL == scope ) { \
-      g_addr = cache_set_var( key, value, g_addr, gc_addr ); \
+      cache_set_var( key, value, pg_addr, gc_addr ); \
    } else if( COND_SCOPE_LOCAL == scope ) { \
-      l_addr = cache_set_var( key, value, l_addr, lc_addr ); \
+      cache_set_var( key, value, pl_addr, lc_addr ); \
    } else { \
       DBG_ERR_INT( "Unrecognized variable scope", scope ); \
    }
@@ -219,41 +193,39 @@ typedef struct {
 /* = Function Prototypes = */
 
 int systype_visnov_loop( CACHE_CACHE* );
-SYSTYPE_VISNOV_ACTOR* systype_visnov_load_actors( int*, ezxml_t );
 SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
 int systype_visnov_exec_background(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, int
+   SYSTYPE_VISNOV_COMMAND*, GFX_SURFACE**, int
 );
 int systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int );
 int systype_visnov_exec_cond(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, SYSTYPE_VISNOV_SCENE*,
-   CACHE_CACHE*, int
+   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, CACHE_VARIABLE*,
+   int, CACHE_CACHE*, int
 );
 int systype_visnov_exec_portrait(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, SYSTYPE_VISNOV_ACTOR*,
-   int, int
+   SYSTYPE_VISNOV_COMMAND*, MOBILE_MOBILE***, int*, MOBILE_MOBILE*,
+   int, int, CACHE_CACHE*
 );
 int systype_visnov_exec_teleport(
    SYSTYPE_VISNOV_COMMAND*, BOOL*, CACHE_CACHE*, int
 );
 int systype_visnov_exec_talk(
-   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, SYSTYPE_VISNOV_ACTOR*,
+   SYSTYPE_VISNOV_COMMAND*, CACHE_CACHE*, EVENT_EVENT*, MOBILE_MOBILE*,
    int, int
 );
 int systype_visnov_exec_goto(
    SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_COMMAND*, int, int
 );
 int systype_visnov_exec_menu(
-   SYSTYPE_VISNOV_COMMAND*, WINDOW_MENU**, SYSTYPE_VISNOV_SCENE*,
+   SYSTYPE_VISNOV_COMMAND*, WINDOW_MENU**, CACHE_VARIABLE**, int*,
    CACHE_CACHE*, EVENT_EVENT*, int
 );
 int systype_visnov_exec_set(
-   SYSTYPE_VISNOV_COMMAND*, SYSTYPE_VISNOV_SCENE*, CACHE_CACHE*, int
+   SYSTYPE_VISNOV_COMMAND*, CACHE_VARIABLE**, int*, CACHE_CACHE*, int
 );
-SYSTYPE_VISNOV_ACTOR* systype_visnov_get_actor(
-   int, SYSTYPE_VISNOV_ACTOR*, int
+MOBILE_MOBILE* systype_visnov_get_actor(
+   int, MOBILE_MOBILE*, int, CACHE_CACHE*
 );
-void systype_visnov_free_actor_arr( SYSTYPE_VISNOV_ACTOR* );
 void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* );
 
 #endif /* SYSTYPE_VISNOV_H */

@@ -193,6 +193,7 @@ GFX_SPRITESHEET* graphics_create_spritesheet( bstring ps_path_in ) {
    if( NULL == ps_spritesheet_out ) {
       /* graphics_create_image() should handle any error output. */
       free( ps_spritesheet_out );
+      ps_spritesheet_out = NULL;
       goto gcs_cleanup;
    }
 

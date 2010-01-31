@@ -80,6 +80,6 @@ typedef struct {
 
 BOOL cache_save( bstring );
 BOOL cache_load( bstring );
-CACHE_VARIABLE* cache_set_var( bstring, bstring, CACHE_VARIABLE*, int* );
+void cache_set_var( bstring, bstring, CACHE_VARIABLE**, int* );
 
 #endif /* CACHE_H */

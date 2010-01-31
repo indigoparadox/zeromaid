@@ -27,7 +27,9 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    int i_act_return = RETURN_ACTION_TITLE,
       i = 0, /* Loop iterator. */
       i_mobile_count = 0; /* Counter for the NPC array below. */
-   bstring ps_map_path = NULL;
+   bstring ps_path_map = NULL,
+      ps_path_mobiles = NULL;
+   ezxml_t ps_xml_mobiles = NULL;
    TILEMAP_TILEMAP* ps_map = NULL;
    GFX_COLOR* ps_color_fade = NULL;
    GFX_RECTANGLE s_viewport;
@@ -36,10 +38,10 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
 
    /* Initialize what we need to use functions to initialize. */
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
-   ps_map_path =
+   ps_path_map =
       bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_cache_in->map_name->data );
-   ps_map = tilemap_create_map( ps_cache_in->map_name, ps_map_path );
-   bdestroy( ps_map_path );
+   ps_map = tilemap_create_map( ps_cache_in->map_name, ps_path_map );
+   bdestroy( ps_path_map );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
 
    /* Setup structures we need to run. */
@@ -49,8 +51,16 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    s_viewport.h = GFX_SCREENHEIGHT;
 
    /* Load the mobiles for this map. */
+   ps_path_mobiles = bformat(
+      "%smap_%s_mobiles.xml",
+      PATH_SHARE,
+      ps_cache_in->map_name->data
+   );
+   ps_xml_mobiles = ezxml_parse_file( (const char*)ps_path_mobiles );
    as_mobile_list =
-      systype_adventure_load_mobiles( &i_mobile_count, ps_map );
+      mobile_load_mobiles( &i_mobile_count, ps_xml_mobiles, ps_map );
+   bdestroy( ps_path_mobiles );
+   ezxml_free( ps_xml_mobiles );
 
    /* Draw the initial playing map and fade the screen in. */
    tilemap_draw( ps_map, &s_viewport, TRUE );
@@ -432,77 +442,4 @@ void systype_adventure_viewport_draw(
    ); /* PCs */
 
    graphics_do_update();
-}
-
-/* Purpose: Load the mobiles for this map into the given dynamic array.       */
-/* Parameters: The address of number of mobiles in the output array.          */
-/* Return: The address of the output array.                                   */
-MOBILE_MOBILE* systype_adventure_load_mobiles(
-   int* i_count_out,
-   TILEMAP_TILEMAP* ps_map_in
-) {
-   ezxml_t ps_xml_mobiles = NULL, ps_xml_mob_iter = NULL;
-   MOBILE_MOBILE* ps_mobs_out = NULL;
-   bstring ps_mob_xml_path =
-      bformat( "%smap_%s_mobiles.xml", PATH_SHARE , ps_map_in->sys_name->data );
-   bstring ps_mob_iter_path = NULL; /* The path to load iter mob data. */
-
-   *i_count_out = 0;
-
-   /* Verify the XML file exists and open or abort accordingly. */
-   if( !file_exists( ps_mob_xml_path ) ) {
-      DBG_ERR_STR( "Unable to load mobile list", ps_mob_xml_path->data );
-      return NULL;
-   }
-   ps_xml_mobiles = ezxml_parse_file( (const char*)ps_mob_xml_path->data );
-
-   ps_xml_mob_iter = ezxml_child( ps_xml_mobiles, "mobile" );
-   while( NULL != ps_xml_mob_iter ) {
-      /* A tile was found in the XML, so prepare the array for it. */
-      *i_count_out += 1;
-      ps_mobs_out = (MOBILE_MOBILE*)realloc(
-         ps_mobs_out,
-         *i_count_out * sizeof( MOBILE_MOBILE )
-      );
-
-      /* Verify the last created map tile's allocation. */
-      if( NULL == ps_mobs_out ) {
-         DBG_ERR( "Unable to allocate mobile list." );
-         goto salm_cleanup;
-      }
-      memset( &ps_mobs_out[*i_count_out - 1], 0, sizeof( MOBILE_MOBILE ) );
-
-      /* Load the mobile's type. */
-      ps_mobs_out[*i_count_out - 1].mobile_type =
-         bformat( "%s", ezxml_attr( ps_xml_mob_iter, "type" ) );
-
-      /* Load the mobile's properties. */
-      ps_mob_iter_path = bformat(
-         "%smob_%s.xml",
-         PATH_SHARE,
-         ps_mobs_out[*i_count_out - 1].mobile_type->data
-      );
-      mobile_load_mobile(
-         &ps_mobs_out[*i_count_out - 1],
-         ps_mob_iter_path
-      );
-      bdestroy( ps_mob_iter_path );
-
-      /* Load the mobile's position. */
-      ps_mobs_out[*i_count_out - 1].pixel_x =
-         atoi( ezxml_attr( ps_xml_mob_iter, "startx" ) ) *
-         ps_map_in->tileset->pixel_size;
-      ps_mobs_out[*i_count_out - 1].pixel_y =
-         atoi( ezxml_attr( ps_xml_mob_iter, "starty" ) ) *
-         ps_map_in->tileset->pixel_size;
-
-      /* Go to the next one! */
-      ps_xml_mob_iter = ezxml_next( ps_xml_mob_iter );
-   }
-
-salm_cleanup:
-   /* Clean up. */
-   ezxml_free( ps_xml_mobiles );
-
-   return ps_mobs_out;
 }

@@ -360,6 +360,12 @@ stlt_cleanup:
    return ps_titlescreen_head;
 }
 
+/* Purpose: Get the starting team and load it into the given cache object.    */
+/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
+BOOL systype_title_load_team( CACHE_CACHE* ps_cache_in ) {
+
+}
+
 /* Purpose: Get the starting game and load it into the given cache object.    */
 /* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
 BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
