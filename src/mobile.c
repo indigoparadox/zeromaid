@@ -36,18 +36,34 @@ MOBILE_MOBILE* mobile_load_mobiles(
       * ps_mob_iter;
    bstring ps_mob_iter_type = NULL;
    char* pc_attr = NULL;
+
    ps_mob_iter_type = bfromcstr( "" );
 
    ps_xml_mob_iter = ezxml_child( ps_xml_mobiles_in, "mobile" );
    while( NULL != ps_xml_mob_iter ) {
       /* Try to load the mobile first to see if it's valid. */
-      ps_mob_iter_type =
-         bassignformat( "%s", ezxml_attr( ps_xml_mob_iter, "type" ) );
-      ps_mob_iter = mobile_load_mobile( ps_mob_iter_type );
+      pc_attr = ezxml_attr( ps_xml_mob_iter, "type" );
+      if( NULL == pc_attr ) {
+         DBG_ERR( "Unable to determine mobile type." );
+         continue;
+      } else {
+         bassignformat( ps_mob_iter_type, "%s", pc_attr );
+         ps_mob_iter = mobile_load_mobile( ps_mob_iter_type );
+      }
 
       /* Verify the loaded mobile. */
       if( NULL == ps_mob_iter ) {
          DBG_ERR_STR( "Unable to load mobile", ps_mob_iter_type->data );
+      }
+
+      /* Load the mobile's serial. */
+      pc_attr = ezxml_attr( ps_xml_mob_iter, "serial" );
+      if( NULL == pc_attr ) {
+         DBG_ERR( "Unable to determine mobile serial." );
+         mobile_free( ps_mob_iter );
+         continue;
+      } else {
+         ps_mob_iter->serial = atoi( pc_attr );
       }
 
       /* Load the mobile's position. */
@@ -95,7 +111,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    char* pc_attr = NULL;
    MOBILE_MOBILE* ps_mob_out = NULL;
 
-   ps_path_temp = bformat( "%smob_%s.xml", PATH_SHARE, ps_type_in );
+   ps_path_temp = bformat( "%smob_%s.xml", PATH_SHARE, ps_type_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_temp ) ) {
@@ -124,15 +140,6 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
          ps_mob_out->proper_name =
             bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
          DBG_INFO_STR( "Mobile proper name", ps_mob_out->proper_name->data );
-
-      } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "SERIAL" ) ) {
-         /* ATTRIB: SERIAL */
-         pc_attr = ezxml_attr( ps_xml_prop_iter, "value" );
-         if( NULL != pc_attr ) {
-            /* The mobile can still be loaded if there's no serial, but it    *
-             * just can't be addressed by scripting.                          */
-            ps_mob_out->serial = atoi( pc_attr );
-         }
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hp" ) ) {
          /* ATTRIB: HP */
@@ -170,7 +177,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    /* Load the mobile's emotions. */
    mobile_load_emotion(
       ps_mob_out,
-      ezxml_child( ps_xml_mob, "emotion" )
+      ezxml_child( ps_xml_mob, "emotions" )
    );
 
    /* Mobiles should have a image drawing information. */

@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#include "bstring\bstrlib.h"
+#include "bstring/bstrlib.h"
 #include "defines.h"
 
 #ifdef USEDIRECTX

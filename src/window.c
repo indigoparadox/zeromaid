@@ -169,10 +169,10 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       }
    }
 
-   DBG_INFO_INT( "index", i_index_in );
+   /*DBG_INFO_INT( "index", i_index_in );
    DBG_INFO_INT( "count", ps_cache_in->text_log_count );
    DBG_INFO_PTR( "ptr", ps_cache_in->text_log );
-   DBG_INFO_STR( "str0", ps_cache_in->text_log[0].text->data );
+   DBG_INFO_STR( "str0", ps_cache_in->text_log[0].text->data );*/
 
    /* Draw the actual window and text. */
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
