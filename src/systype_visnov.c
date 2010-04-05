@@ -24,9 +24,9 @@ DBG_ENABLE
 /* Parameters: The name of the scene to play.                                 */
 /* Return: The code for the next action to take.                              */
 int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
-   CACHE_VARIABLE* as_locals;
-   MOBILE_MOBILE** aps_actors_onscreen; /* Dupe ptrs to actors on-screen. */
-   MOBILE_MOBILE* as_actors;
+   CACHE_VARIABLE* as_locals = NULL;
+   MOBILE_MOBILE** aps_actors_onscreen = NULL; /* Dupe ptrs to actors on-screen. */
+   MOBILE_MOBILE* as_actors = NULL;
    SYSTYPE_VISNOV_COMMAND* as_commands = NULL;
    int i_actors_count = 0,
       i_commands_count = 0,
@@ -43,7 +43,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
    WINDOW_MENU* ps_menu = NULL;
    BOOL b_scene_dirty; /* Does the scene need to be redrawn? */
-   GFX_SURFACE* ps_bg; /* Current scene background. */
+   GFX_SURFACE* ps_bg = NULL; /* Current scene background. */
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
@@ -528,7 +528,7 @@ int systype_visnov_exec_talk(
    if( NULL != ps_mob_talk ) {
       ps_talk_text = bformat(
          "%s: %s",
-         ps_mob_talk->mobile_type->data,
+         ps_mob_talk->proper_name->data,
          ps_command_in->data[1].talktext->data
       );
    } else {
