@@ -427,6 +427,11 @@ int systype_visnov_exec_cond(
 
    if( COND_SCOPE_GLOBAL == ps_command_in->data[1].scope ) {
       for( i = 0 ; i < ps_cache_in->globals_count ; i++ ) {
+
+         CACHE_VARIABLE* svar = &ps_cache_in->globals[i];
+         bstring skey = svar->key;
+         DBG_INFO( skey->data );
+
          if(
             0 == bstrcmp(
                ps_command_in->data[2].key, ps_cache_in->globals[i].key ) &&

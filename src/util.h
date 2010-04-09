@@ -43,7 +43,7 @@
       goto cleanup; \
    } \
    if( NULL != item_addr ) { \
-      memcpy( &array_ptr[array_count - 1], item_addr, sizeof( type ) ); \
+      memcpy( &(array_ptr)[array_count - 1], item_addr, sizeof( type ) ); \
    }
 
 /* Purpose: Remove the item with the given index and shrink the array         *
