@@ -51,6 +51,7 @@ void cache_set_var(
          /* Found it! Now set the value. */
          bassign( (*as_varlist_in)[i].value, ps_value_in );
          b_found = TRUE;
+         DBG_INFO_STR_STR( "Key reset", ps_key_in->data, ps_value_in->data );
          break;
       }
    }
@@ -59,11 +60,14 @@ void cache_set_var(
    if( !b_found ) {
       memset( &s_var_tmp, 0, sizeof( CACHE_VARIABLE ) );
       s_var_tmp.key = bstrcpy( ps_key_in );
-      s_var_tmp.value = bstrcpy( ps_value_in );
+      s_var_tmp.value = bformat( "false" ); //bstrcpy( ps_value_in );
+
       UTIL_ARRAY_ADD(
          CACHE_VARIABLE, *as_varlist_in, *pi_varlist_count_in, csv_cleanup,
          &s_var_tmp
       );
+
+      DBG_INFO_STR_STR( "Key created", ps_key_in->data, ps_value_in->data );
    }
 
 csv_cleanup:
