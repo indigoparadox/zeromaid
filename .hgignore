@@ -1,4 +1,3 @@
-bin
 obj
 dist
 glob:share/gmon.out
@@ -15,3 +14,4 @@ glob:src/resource.aps
 glob:src/zeromaid_wii_data.h
 relre:ZeroMaid\.vcproj\..*\..*\.user
 glob:src/ZeroMaid.ncb
+relre:^bin.*
