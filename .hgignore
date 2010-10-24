@@ -15,3 +15,4 @@ glob:src/zeromaid_wii_data.h
 relre:ZeroMaid\.vcproj\..*\..*\.user
 glob:src/ZeroMaid.ncb
 relre:^bin.*
+glob:src/ZeroMaid.layout.cbTemp

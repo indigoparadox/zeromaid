@@ -56,16 +56,37 @@ unsigned char gac_keystate[256];
 int main( int argc, char* argv[] ) {
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0; /* The program error level returned to the shell. */
-   bstring ps_system_path;
-   bstring ps_title;
+   bstring ps_system_path,
+      ps_title,
+      ps_new_share_path /* The directory containing shared files. */;
+   FILE* ps_file_default;
    CACHE_CACHE* ps_cache = NULL;
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
 
-   /* Initialize what we need to use functions to initialize. */
+   /* Open the default.txt file and figure out the name of the game to load. */
+   ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
+   if( NULL == ps_file_default ) {
+      DBG_ERR( "Unable to open default system indicator file." );
+      goto main_cleanup;
+   }
+
+   /* Read the mod name and change into its directory. */
+   ps_new_share_path = bformat( "./" );
+   breada( ps_new_share_path, (bNread)fread, ps_file_default );
+   btrimws( ps_new_share_path );
+   fclose( ps_file_default );
+   if( chdir( ps_new_share_path->data ) ) {
+      DBG_ERR_STR( "Unable to change to directory", ps_new_share_path->data );
+      goto main_cleanup;
+   }
+   DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
+
+   /* Load the game data. */
    ps_title = bformat( "%s", SYSTEM_TITLE );
    ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   DBG_INFO_STR( "System selected", ps_title->data );
 
    /* Setup the random number generator. */
    srand( time( NULL ) );
@@ -173,6 +194,7 @@ main_cleanup:
 
    bdestroy( ps_system_path );
    bdestroy( ps_title );
+   bdestroy( ps_new_share_path );
 
    #ifdef OUTTOFILE
    fclose( gps_debug );
