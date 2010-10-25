@@ -42,7 +42,7 @@ MOBILE_MOBILE* mobile_load_mobiles(
    ps_xml_mob_iter = ezxml_child( ps_xml_mobiles_in, "mobile" );
    while( NULL != ps_xml_mob_iter ) {
       /* Try to load the mobile first to see if it's valid. */
-      pc_attr = ezxml_attr( ps_xml_mob_iter, "type" );
+      pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "type" );
       if( NULL == pc_attr ) {
          DBG_ERR( "Unable to determine mobile type." );
          continue;
@@ -57,7 +57,7 @@ MOBILE_MOBILE* mobile_load_mobiles(
       }
 
       /* Load the mobile's serial. */
-      pc_attr = ezxml_attr( ps_xml_mob_iter, "serial" );
+      pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "serial" );
       if( NULL == pc_attr ) {
          DBG_ERR( "Unable to determine mobile serial." );
          mobile_free( ps_mob_iter );
@@ -68,12 +68,12 @@ MOBILE_MOBILE* mobile_load_mobiles(
 
       /* Load the mobile's position. */
       if( NULL != ps_map_in ) {
-         pc_attr = ezxml_attr( ps_xml_mob_iter, "startx" );
+         pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "startx" );
          if( NULL != pc_attr ) {
             ps_mob_iter->pixel_x = atoi( pc_attr ) *
                ps_map_in->tileset->pixel_size;
          }
-         pc_attr = ezxml_attr( ps_xml_mob_iter, "starty" );
+         pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "starty" );
          if( NULL != pc_attr ) {
             ps_mob_iter->pixel_y = atoi( pc_attr ) *
                ps_map_in->tileset->pixel_size;
@@ -108,7 +108,6 @@ salm_cleanup:
 MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    ezxml_t ps_xml_mob = NULL, ps_xml_props = NULL, ps_xml_prop_iter = NULL;
    bstring ps_path_temp = NULL;
-   char* pc_attr = NULL;
    MOBILE_MOBILE* ps_mob_out = NULL;
 
    ps_path_temp = bformat( "%smob_%s.xml", PATH_SHARE, ps_type_in->data );
@@ -221,7 +220,7 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
       memset( &s_emotion_tmp, 0, sizeof( MOBILE_EMOTION ) );
 
       /* ATTRIB: ID */
-      pc_attr = ezxml_attr( ps_xml_emote_iter, "id" );
+      pc_attr = (char*)ezxml_attr( ps_xml_emote_iter, "id" );
       if( NULL == pc_attr ) {
          /* There's no ID, so this emotion is useless. */
          DBG_ERR( "ID not found; invalid emotion." );
