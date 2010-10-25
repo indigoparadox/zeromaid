@@ -26,16 +26,17 @@ DBG_ENABLE
  *             place them on. If the tilemap is NULL, the mobiles will not be *
  *             given a starting position.                                     */
 /* Return: The address of the output array.                                   */
-MOBILE_MOBILE* mobile_load_mobiles(
+BOOL mobile_load_mobiles(
+   MOBILE_MOBILE** aps_mobiles_in,
    int* i_count_out,
    ezxml_t ps_xml_mobiles_in,
    TILEMAP_TILEMAP* ps_map_in
 ) {
    ezxml_t ps_xml_mobiles = NULL, ps_xml_mob_iter = NULL;
-   MOBILE_MOBILE* ps_mobs_out = NULL,
-      * ps_mob_iter;
+   MOBILE_MOBILE* ps_mob_iter;
    bstring ps_mob_iter_type = NULL;
    char* pc_attr = NULL;
+   BOOL b_success = TRUE;
 
    ps_mob_iter_type = bfromcstr( "" );
 
@@ -44,8 +45,7 @@ MOBILE_MOBILE* mobile_load_mobiles(
       /* Try to load the mobile first to see if it's valid. */
       pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "type" );
       if( NULL == pc_attr ) {
-         DBG_ERR( "Unable to determine mobile type." );
-         continue;
+         MOBILE_MOBILES_LOAD_FAIL( "Unable to determine mobile type." );
       } else {
          bassignformat( ps_mob_iter_type, "%s", pc_attr );
          ps_mob_iter = mobile_load_mobile( ps_mob_iter_type );
@@ -53,15 +53,15 @@ MOBILE_MOBILE* mobile_load_mobiles(
 
       /* Verify the loaded mobile. */
       if( NULL == ps_mob_iter ) {
-         DBG_ERR_STR( "Unable to load mobile", ps_mob_iter_type->data );
+         MOBILE_MOBILES_LOAD_FAIL(
+            "Unable to load mobile."
+         );
       }
 
       /* Load the mobile's serial. */
       pc_attr = (char*)ezxml_attr( ps_xml_mob_iter, "serial" );
       if( NULL == pc_attr ) {
-         DBG_ERR( "Unable to determine mobile serial." );
-         mobile_free( ps_mob_iter );
-         continue;
+         MOBILE_MOBILES_LOAD_FAIL( "Unable to determine mobile serial." );
       } else {
          ps_mob_iter->serial = atoi( pc_attr );
       }
@@ -82,7 +82,7 @@ MOBILE_MOBILE* mobile_load_mobiles(
 
       /* A mobile was successfully loaded, so prepare the array for it. */
       UTIL_ARRAY_ADD(
-         MOBILE_MOBILE, ps_mobs_out, *i_count_out, salm_cleanup, ps_mob_iter
+         MOBILE_MOBILE, *aps_mobiles_in, *i_count_out, salm_cleanup, ps_mob_iter
       );
 
       /* Free the temporary mobile iterator now that it's been copied into    *
@@ -99,7 +99,7 @@ salm_cleanup:
    ezxml_free( ps_xml_mobiles );
    bdestroy( ps_mob_iter_type );
 
-   return ps_mobs_out;
+   return b_success;
 }
 
 /* Purpose: Create a MOBILE struct from the mobile data at the given path.    */
@@ -173,11 +173,15 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
       ps_xml_prop_iter = ezxml_next( ps_xml_prop_iter );
    }
 
-   /* Load the mobile's emotions. */
-   mobile_load_emotion(
+   /* Load the mobile's emotions and make sure it was successful. */
+   if( !mobile_load_emotion(
       ps_mob_out,
       ezxml_child( ps_xml_mob, "emotions" )
-   );
+   ) ) {
+      mobile_free( ps_mob_out );
+      ps_mob_out = NULL;
+      goto mlm_cleanup;
+   }
 
    /* Mobiles should have a image drawing information. */
    if( 0 >= ps_mob_out->pixel_size ) {
@@ -242,6 +246,7 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
          /* There's no image, so this emotion is useless. */
          DBG_ERR( "Portrait not found; invalid emotion." );
          ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
+         b_success = FALSE;
          continue;
       }
 
@@ -347,6 +352,11 @@ void mobile_execute_ai( MOBILE_MOBILE* ps_mob_in, MOBILE_AI i_list_in ) {
 /* Parameters: The mobile pointer to clean out.                               */
 void mobile_free_arr( MOBILE_MOBILE* ps_mob_in ) {
    int i; /* Loop iterator. */
+
+   /* No double-frees! */
+   if( NULL == ps_mob_in ) {
+      return;
+   }
 
    for( i = 0 ; i < ps_mob_in->emotions_count ; i++ ) {
       graphics_free_image( ps_mob_in->emotions[i].image );

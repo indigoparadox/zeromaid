@@ -85,6 +85,8 @@ typedef int COND_SCOPE;
 
 #define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */
 
+#define TITLE_ERROR_ENABLE extern bstring gps_title_error;
+
 #ifdef OUTTOFILE
 #ifdef USEWII
 #define DEBUG_OUT_PATH "sd:/zeromaid_out.txt"

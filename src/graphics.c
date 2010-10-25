@@ -558,6 +558,11 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
 /* Purpose: Fade the screen in or out.                                        */
 /* Parameters: Whether to fade in or out, the color from/to which to fade.    */
 void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
+   if( NULL == ps_color_in ) {
+      DBG_ERR( "Invalid color passed." );
+      return;
+   }
+
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    GFX_SURFACE* ps_surface_screen_copy = NULL;

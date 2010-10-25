@@ -193,7 +193,7 @@ typedef struct {
 /* = Function Prototypes = */
 
 int systype_visnov_loop( CACHE_CACHE* );
-SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( int*, ezxml_t );
+BOOL systype_visnov_load_commands( SYSTYPE_VISNOV_COMMAND**, int*, ezxml_t );
 int systype_visnov_exec_background(
    SYSTYPE_VISNOV_COMMAND*, GFX_SURFACE**, int
 );

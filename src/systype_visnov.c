@@ -17,6 +17,7 @@
 #include "systype_visnov.h"
 
 DBG_ENABLE
+TITLE_ERROR_ENABLE
 
 /* = Functions = */
 
@@ -40,13 +41,15 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
    EVENT_EVENT s_event;
-   BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
+   BOOL b_teleport = FALSE, /* Was the last teleport command successful? */
+      b_commands_loaded,
+      b_actors_loaded;
    WINDOW_MENU* ps_menu = NULL;
    GFX_SURFACE* ps_bg = NULL; /* Current scene background. */
 
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
-      bformat( "%sscene_%s.xml", PATH_SHARE , ps_cache_in->map_name->data );
+      bformat( "%s%s.xml", PATH_SHARE , ps_cache_in->map_name->data );
    if( !file_exists( ps_scene_path ) ) {
       DBG_ERR_STR( "Unable to load scene data", ps_scene_path->data );
       i_act_return = RETURN_ACTION_TITLE;
@@ -58,15 +61,22 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    memset( &s_rect_actor, 0, sizeof( GFX_RECTANGLE ) );
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
-   as_commands = systype_visnov_load_commands(
+   b_commands_loaded = systype_visnov_load_commands(
+      &as_commands,
       &i_commands_count,
       ezxml_child( ps_xml_scene, "script" )
    );
-   as_actors = mobile_load_mobiles(
+   b_actors_loaded = mobile_load_mobiles(
+      &as_actors,
       &i_actors_count,
       ezxml_child( ps_xml_scene, "mobiles" ),
       NULL
    );
+
+   if( !b_commands_loaded || !b_actors_loaded ) {
+      DBG_ERR( "Unable to completely load scene. Aborting." );
+      goto stvnl_cleanup;
+   }
 
    while( 1 ) {
       GFX_DRAW_LOOP_START
@@ -216,16 +226,17 @@ stvnl_cleanup:
 /* Purpose: Load the array of scene commands.                                 */
 /* Parameters: The address of the command array size indicator.               */
 /* Return: A pointer to the command array.                                    */
-SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
+BOOL systype_visnov_load_commands(
+   SYSTYPE_VISNOV_COMMAND** aps_commands_in,
    int* pi_count_out,
    ezxml_t ps_xml_script_in
 ) {
-   SYSTYPE_VISNOV_COMMAND* ps_commands_out = NULL;
    ezxml_t ps_xml_command = NULL;
    const char* pc_command_action = NULL; /* Pointer to ezxml action result. */
    bstring ps_command_attr = bfromcstr( "" ), /* String holding what to add to cmd data. */
       ps_command_action = bfromcstr( "" ); /* Copy of the command's action for later. */
    SYSTYPE_VISNOV_COMMAND s_command_tmp;
+   BOOL b_success = TRUE;
 
    /* Verify that the script exists. */
    if( NULL == ps_xml_script_in ) {
@@ -260,6 +271,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
        * update it accordingly when adding new items.                            */
       if( 0 == strcmp( pc_command_action, "background" ) ) {
          /* COMMAND: BACKGROUND */
+         /* TODO: Standardize the loading of an image command into a macro. */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_BACKGROUND, SYSTYPE_VISNOV_CMD_BACKGROUND_DC );
          bassignformat(
@@ -347,7 +359,7 @@ SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands(
 
       /* Allocate the new command item at the end of the list. */
       UTIL_ARRAY_ADD(
-         SYSTYPE_VISNOV_COMMAND, ps_commands_out, *pi_count_out, stvnlc_cleanup,
+         SYSTYPE_VISNOV_COMMAND, *aps_commands_in, *pi_count_out, stvnlc_cleanup,
          &s_command_tmp
       );
 
@@ -362,7 +374,7 @@ stvnlc_cleanup:
    bdestroy( ps_command_action );
    bdestroy( ps_command_attr );
 
-   return ps_commands_out;
+   return b_success;
 }
 
 /* COMMAND: BACKGROUND */
