@@ -55,6 +55,8 @@ unsigned char gac_keystate[256];
 extern GFX_FONT* gps_default_text_font;
 extern GFX_FONT* gps_default_menu_font;
 
+bstring gps_title_error;
+
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {

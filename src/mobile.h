@@ -82,7 +82,7 @@ typedef struct {
 
 /* = Function Prototypes = */
 
-MOBILE_MOBILE* mobile_load_mobiles( int*, ezxml_t, TILEMAP_TILEMAP* );
+BOOL mobile_load_mobiles( MOBILE_MOBILE**, int*, ezxml_t, TILEMAP_TILEMAP* );
 MOBILE_MOBILE* mobile_load_mobile( bstring );
 BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
 void mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
@@ -90,6 +90,15 @@ void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );
 void mobile_free( MOBILE_MOBILE* );
+
+/* = Macros = */
+
+#define MOBILE_MOBILES_LOAD_FAIL( fail_msg ) \
+   DBG_ERR( fail_msg ); \
+   mobile_free( ps_mob_iter ); \
+   b_success = FALSE; \
+   ps_xml_mob_iter = ezxml_next( ps_xml_mob_iter ); \
+   continue;
 
 /* = Additional Includes = */
 

@@ -57,8 +57,10 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ps_cache_in->map_name->data
    );
    ps_xml_mobiles = ezxml_parse_file( (const char*)ps_path_mobiles );
-   as_mobile_list =
-      mobile_load_mobiles( &i_mobile_count, ps_xml_mobiles, ps_map );
+   /* TODO: Make sure mobiles loaded correctly. */
+   mobile_load_mobiles(
+      &as_mobile_list, &i_mobile_count, ps_xml_mobiles, ps_map
+   );
    bdestroy( ps_path_mobiles );
    ezxml_free( ps_xml_mobiles );
 

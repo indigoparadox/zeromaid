@@ -148,6 +148,13 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       tps_text_window_bg = graphics_create_image( ps_bg_path );
       bdestroy( ps_bg_path );
 
+      /* Make sure the background was able to load. */
+      if( NULL == tps_text_window_bg ) {
+         DBG_ERR( "Unable to setup text window background." );
+         tb_success = FALSE;
+         goto wdt_cleanup;
+      }
+
       /* Setup the color. */
       memset( &ts_color_text, 0, sizeof( GFX_COLOR ) );
 
@@ -157,13 +164,6 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       ts_rect_window.h = tps_text_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;
       ts_rect_window.y = (GFX_GET_SCREEN_HEIGHT - ts_rect_window.h) - 10;
-
-      /* If something's still empty then there's no helping it. */
-      if( NULL == tps_text_window_bg ) {
-         DBG_ERR( "Unable to setup text window background." );
-         tb_success = FALSE;
-         goto wdt_cleanup;
-      }
    }
 
    /* Figure out the font height. */
@@ -244,19 +244,19 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
       tps_menu_window_bg = graphics_create_image( ps_bg_path );
       bdestroy( ps_bg_path );
 
+      /* Make sure the window background was properly loaded. */
+      if( NULL == tps_menu_window_bg ) {
+         DBG_ERR( "Unable to setup menu window background." );
+         tb_success = FALSE;
+         goto wdm_cleanup;
+      }
+
       /* Setup the window rectangle. */
       memset( &ts_rect_window, 0, sizeof( GFX_RECTANGLE ) );
       ts_rect_window.w = tps_menu_window_bg->w;
       ts_rect_window.h = tps_menu_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;
       ts_rect_window.y = (GFX_GET_SCREEN_HEIGHT - ts_rect_window.h) / 2;
-
-      /* If something's still empty then there's no helping it. */
-      if( NULL == tps_menu_window_bg ) {
-         DBG_ERR( "Unable to setup menu window background." );
-         tb_success = FALSE;
-         goto wdm_cleanup;
-      }
    }
 
    /* TODO: Process menu item's font if it has one. */
