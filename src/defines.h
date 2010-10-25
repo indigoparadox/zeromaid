@@ -81,6 +81,7 @@ typedef int COND_SCOPE;
 
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
 #define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
+#define ERROR_LEVEL_FONTS 3 /* Unable to setup default fonts. */
 
 #define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */
 

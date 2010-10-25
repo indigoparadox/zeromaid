@@ -118,8 +118,7 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
                ps_text_iter->x,
                ps_text_iter->y,
                ps_text_iter->text,
-               ps_text_iter->font_name,
-               ps_text_iter->size,
+               ps_text_iter->font,
                ps_text_iter->fg_color
             );
 
@@ -151,12 +150,7 @@ slt_cleanup:
    while( NULL != ps_title_screens ) {
       ps_title_iter = ps_title_screens;
       ps_title_screens = ps_title_screens->next;
-      graphics_free_image( ps_title_iter->bg_image );
-      bdestroy( ps_title_iter->menu_font );
-      free( ps_title_iter->bg_color );
-      free( ps_title_iter->fg_color );
-      free( ps_title_iter->fg_highlight );
-      free( ps_title_iter );
+      systype_title_free_titlescreen( ps_title_iter );
    }
    GFX_DRAW_LOOP_FREE
    free( ps_color_fade );
@@ -173,11 +167,14 @@ slt_cleanup:
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    ezxml_t ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM ),
       ps_xml_title = NULL, ps_xml_titlescreen_iter = NULL, ps_xml_text_iter = NULL;
-   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_head = NULL;
-   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_iter = NULL;
+   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_head = NULL,
+      * ps_titlescreen_iter = NULL,
+      * ps_titlescreen_iter_prev = NULL;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
-   bstring ps_string_attrib = NULL;
+   bstring ps_string_attrib = NULL,
+      ps_font_path_iter = NULL;
    const char* pc_ezxml_attr;
+   int i_text_size_iter = 0;
 
    /* Load and verify down to the level of the title data. */
    if( NULL == ps_xml_system ) {
@@ -195,6 +192,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    ps_xml_titlescreen_iter = ezxml_child( ps_xml_title, "titlescreen" );
    while( NULL != ps_xml_titlescreen_iter ) {
       /* Create a new title screen structure to fill. */
+      ps_titlescreen_iter_prev = ps_titlescreen_iter;
       if( NULL == ps_titlescreen_iter ) {
          ps_titlescreen_iter = (SYSTYPE_TITLE_TITLESCREEN*)malloc(
             sizeof( SYSTYPE_TITLE_TITLESCREEN ) );
@@ -249,14 +247,15 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
 
       /* ATTRIB: MENUFONT */
       if( NULL != ezxml_attr( ps_xml_titlescreen_iter, "menufont" ) ) {
-         ps_titlescreen_iter->menu_font = bformat(
+         ps_font_path_iter = bformat(
             PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
-         DBG_INFO_STR(
-            "Title screen: Set menu font",
-            ps_titlescreen_iter->menu_font->data
+         ps_titlescreen_iter->menu_font = graphics_create_font(
+            // TODO: XML should control menu size.
+            ps_font_path_iter, SYSTYPE_TITLE_MENU_SIZE_DEFAULT
          );
+         bdestroy( ps_font_path_iter );
       }
 
       /* ATTRIB: FG COLOR */
@@ -305,7 +304,9 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          }
          pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "size" );
          if( NULL != pc_ezxml_attr ) {
-            ps_text_iter->size = atoi( pc_ezxml_attr );
+            i_text_size_iter = atoi( pc_ezxml_attr );
+         } else {
+            i_text_size_iter = SYSTYPE_TITLE_TEXT_SIZE_DEFAULT;
          }
 
          /* ATTRIB: FG COLOR */
@@ -315,11 +316,14 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          }
          bdestroy( ps_string_attrib );
 
-         /* ATTRIB: FONT NAME */
-         ps_text_iter->font_name = bformat(
+         /* ATTRIB: FONT */
+         ps_font_path_iter = bformat(
             PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_text_iter, "font" )
          );
+         ps_text_iter->font =
+            graphics_create_font( ps_font_path_iter, i_text_size_iter );
+         bdestroy( ps_font_path_iter );
 
          /* ATTRIB: TEXT */
          ps_text_iter->text = bformat( "%s", ps_xml_text_iter->txt );
@@ -341,7 +345,13 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       }
 
       /* Verify title screen integrity against missing attributes. */
-
+      if( NULL == ps_titlescreen_iter->bg_image ) {
+         /* TODO */
+         /* If we delete the screen here, it's not very helpful. */
+         /* systype_title_free_titlescreen( ps_titlescreen_iter );
+         ps_titlescreen_iter = ps_titlescreen_iter_prev;
+         ps_titlescreen_iter->next = NULL; */
+      }
 
       DBG_INFO( "Finished loading title screen." );
 
@@ -443,34 +453,46 @@ stls_cleanup:
 void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],
-   bstring ps_font_name_in,
+   GFX_FONT* ps_font_in,
    GFX_COLOR* ps_color_in,
    GFX_COLOR* ps_highlight_in
 ) {
-   static int i = 0, i_x = 100, i_y = 300, i_size = 18;
+   static int i = 0,
+      i_x = SYSTYPE_TITLE_MENU_X_START,
+      i_y = SYSTYPE_TITLE_MENU_Y_START;
 
    for( i = 0 ; SYSTYPE_TITLE_MENU_LEN > i ; i++ ) {
       if( i == i_index_in ) {
          /* The item is selected. */
          graphics_draw_text(
             i_x,
-            i_y + (30 * i),
+            i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
-            ps_font_name_in,
-            i_size,
+            ps_font_in,
             ps_highlight_in
          );
       } else {
          /* The item is not selected. */
          graphics_draw_text(
             i_x,
-            i_y + (30 * i),
+            i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
-            ps_font_name_in,
-            i_size,
+            ps_font_in,
             ps_color_in
          );
       }
    }
+}
+
+/* Purpose: Free the memory held by the given title screen. */
+void systype_title_free_titlescreen(
+   SYSTYPE_TITLE_TITLESCREEN* ps_tilescreen_in
+) {
+   graphics_free_image(  ps_tilescreen_in->bg_image );
+   graphics_free_font( ps_tilescreen_in->menu_font );
+   free( ps_tilescreen_in->bg_color );
+   free( ps_tilescreen_in->fg_color );
+   free( ps_tilescreen_in->fg_highlight );
+   free( ps_tilescreen_in );
 }
 

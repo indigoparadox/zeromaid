@@ -42,7 +42,6 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    EVENT_EVENT s_event;
    BOOL b_teleport = FALSE; /* Was the last teleport command successful? */
    WINDOW_MENU* ps_menu = NULL;
-   BOOL b_scene_dirty; /* Does the scene need to be redrawn? */
    GFX_SURFACE* ps_bg = NULL; /* Current scene background. */
 
    /* Verify the XML file exists and open or abort accordingly. */
