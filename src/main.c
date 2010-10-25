@@ -17,6 +17,7 @@
 /* = Includes = */
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifdef USESDL
 #ifdef __APPLE__
@@ -51,6 +52,9 @@ LPDIRECTINPUTDEVICE gs_keyboard;
 unsigned char gac_keystate[256];
 #endif /* USEDIRECTX */
 
+extern GFX_FONT* gps_default_text_font;
+extern GFX_FONT* gps_default_menu_font;
+
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
@@ -58,7 +62,8 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path,
       ps_title,
-      ps_new_share_path /* The directory containing shared files. */;
+      ps_new_share_path, /* The directory containing shared files. */
+      ps_default_font_path;
    FILE* ps_file_default;
    CACHE_CACHE* ps_cache = NULL;
    #ifdef USEDIRECTX
@@ -73,6 +78,7 @@ int main( int argc, char* argv[] ) {
    }
 
    /* Read the mod name and change into its directory. */
+   /* TODO: Use the current directory if no default.txt is present. */
    ps_new_share_path = bformat( "./" );
    breada( ps_new_share_path, (bNread)fread, ps_file_default );
    btrimws( ps_new_share_path );
@@ -154,6 +160,27 @@ int main( int argc, char* argv[] ) {
    if( !file_exists( ps_system_path ) ) {
       DBG_ERR( "Unable to find system.xml." );
       i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
+
+   /* Try to set the default window fonts. */
+   ps_default_font_path = bfromcstr( WINDOW_TEXT_DEFAULT_FONT );
+   window_set_text_font(
+      ps_default_font_path,
+      WINDOW_TEXT_DEFAULT_SIZE
+   );
+   bdestroy( ps_default_font_path );
+   ps_default_font_path = bfromcstr( WINDOW_MENU_DEFAULT_FONT );
+   window_set_menu_font(
+      ps_default_font_path,
+      WINDOW_MENU_DEFAULT_SIZE
+   );
+   bdestroy( ps_default_font_path );
+
+   /* Make sure the fonts were loaded properly. */
+   if( NULL == gps_default_text_font || NULL == gps_default_menu_font ) {
+      DBG_ERR( "Unable to load default fonts." );
+      i_error_level = ERROR_LEVEL_FONTS;
       goto main_cleanup;
    }
 

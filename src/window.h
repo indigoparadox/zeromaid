@@ -37,13 +37,13 @@
 
 #define WINDOW_BUFFER_LENGTH 38
 
-#define WINDOW_TEXT_FONT "font_manaspc"
-#define WINDOW_TEXT_SIZE 22
-#define WINDOW_TEXT_HEIGHT 25
+#define WINDOW_TEXT_DEFAULT_FONT "font_manaspc"
+#define WINDOW_TEXT_DEFAULT_SIZE 22
+#define WINDOW_TEXT_DEFAULT_HEIGHT 25
 
-#define WINDOW_MENU_TEXT_FONT "font_manaspc"
-#define WINDOW_MENU_TEXT_SIZE 22
-#define WINDOW_MENU_TEXT_HEIGHT 30
+#define WINDOW_MENU_DEFAULT_FONT "font_manaspc"
+#define WINDOW_MENU_DEFAULT_SIZE 22
+#define WINDOW_MENU_DEFAULT_HEIGHT 30
 
 /* = Type and Struct Definitions = */
 
@@ -55,6 +55,7 @@ typedef struct {
    bstring desc, /* The description to display on-screen for this item. */
       key, /* The key to set if this item is selected. */
       value; /* The value to set it to if this item is selected. */
+   GFX_FONT* font;
 } WINDOW_MENU_ITEM;
 
 typedef struct {
@@ -72,6 +73,9 @@ CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
 WINDOW_MENU* window_create_menu( bstring, COND_SCOPE, WINDOW_MENU_COLORS* );
 void window_draw_text( int, CACHE_CACHE* );
 void window_draw_menu( WINDOW_MENU* );
+void window_set_text_font( bstring, int );
+void window_set_menu_font( bstring, int );
+
 void window_free_menu( WINDOW_MENU* );
 
 #endif /* WINDOW_H */

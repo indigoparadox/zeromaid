@@ -21,6 +21,8 @@ DBG_ENABLE
 /* = Global Variables = */
 
 WINDOW_MENU* gps_menu = NULL;
+GFX_FONT* gps_default_text_font = NULL,
+   * gps_default_menu_font = NULL;
 
 /* = Functions = */
 
@@ -124,9 +126,9 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    static GFX_COLOR ts_color_text;
    static GFX_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
-   static bstring tps_font_name = NULL;
    int i_lines_printed = 0,
-      i_buffer_result = BSTR_OK;
+      i_buffer_result = BSTR_OK,
+      i_font_height;
    size_t i_buffer_start = 0, /* Offset to print from current input buffer. */
       i_buffer_end = WINDOW_BUFFER_LENGTH,
       i_buffer_len = 0; /* The length of the input buffer. */
@@ -141,11 +143,6 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    /* If we passed the success check above and the window background is       *
     * empty, assume everything still needs to be setup.                       */
    if( NULL == tps_text_window_bg ) {
-      /* Setup the font name. */
-      tps_font_name = bformat(
-         "%s%s.%s", PATH_SHARE, WINDOW_TEXT_FONT, FILE_EXTENSION_FONT
-      );
-
       /* Setup the background. */
       ps_bg_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_WINDOW_WIDE );
       tps_text_window_bg = graphics_create_image( ps_bg_path );
@@ -162,12 +159,15 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       ts_rect_window.y = (GFX_GET_SCREEN_HEIGHT - ts_rect_window.h) - 10;
 
       /* If something's still empty then there's no helping it. */
-      if( NULL == tps_text_window_bg || NULL == tps_font_name ) {
-         DBG_ERR( "Unable to setup text window drawing facilities." );
+      if( NULL == tps_text_window_bg ) {
+         DBG_ERR( "Unable to setup text window background." );
          tb_success = FALSE;
          goto wdt_cleanup;
       }
    }
+
+   /* Figure out the font height. */
+   i_font_height = graphics_get_font_height( gps_default_text_font );
 
    /*DBG_INFO_INT( "index", i_index_in );
    DBG_INFO_INT( "count", ps_cache_in->text_log_count );
@@ -207,10 +207,10 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
          graphics_draw_text(
             ts_rect_window.x + 20,
             ts_rect_window.y +
-               (i_lines_printed * WINDOW_TEXT_HEIGHT) +  20,
+               (i_lines_printed * (i_font_height + 5 )) +  20,
             ps_line_buffer,
-            tps_font_name,
-            WINDOW_TEXT_SIZE,
+            gps_default_text_font,
+            // WINDOW_TEXT_SIZE,
             &ts_color_text
          );
          i_buffer_start += i_buffer_end + 1; /* Add 1 for trailing space. */
@@ -231,19 +231,14 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
    static GFX_SURFACE* tps_menu_window_bg = NULL;
    static GFX_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
-   static bstring tps_font_path = NULL;
    GFX_COLOR* ps_color = NULL;
    bstring ps_bg_path = NULL;
-   int i; /* Loop iterators. */
+   int i, /* Loop iterator. */
+      i_menuitem_height;
 
    /* If we passed the success check above and the window background is       *
     * empty, assume everything still needs to be setup.                       */
    if( NULL == tps_menu_window_bg ) {
-      /* Setup the font name. */
-      tps_font_path = bformat(
-         "%s%s.%s", PATH_SHARE, WINDOW_MENU_TEXT_FONT, FILE_EXTENSION_FONT
-      );
-
       /* Setup the background. */
       ps_bg_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_WINDOW_RECT );
       tps_menu_window_bg = graphics_create_image( ps_bg_path );
@@ -257,12 +252,15 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
       ts_rect_window.y = (GFX_GET_SCREEN_HEIGHT - ts_rect_window.h) / 2;
 
       /* If something's still empty then there's no helping it. */
-      if( NULL == tps_menu_window_bg || NULL == tps_font_path ) {
-         DBG_ERR( "Unable to setup menu window drawing facilities." );
+      if( NULL == tps_menu_window_bg ) {
+         DBG_ERR( "Unable to setup menu window background." );
          tb_success = FALSE;
          goto wdm_cleanup;
       }
    }
+
+   /* TODO: Process menu item's font if it has one. */
+   i_menuitem_height = graphics_get_font_height( gps_default_menu_font );
 
    graphics_draw_blit_tile( tps_menu_window_bg, NULL, &ts_rect_window );
 
@@ -276,10 +274,9 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
 
       graphics_draw_text(
          ts_rect_window.x + 30,
-         ts_rect_window.y + 30 + (WINDOW_MENU_TEXT_HEIGHT * i),
+         ts_rect_window.y + 30 + ((i_menuitem_height + 5) * i),
          ps_menu_in->options[i].desc,
-         tps_font_path,
-         WINDOW_MENU_TEXT_SIZE,
+         gps_default_menu_font,
          ps_color
       );
    }
@@ -287,6 +284,44 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
 wdm_cleanup:
 
    return;
+}
+
+/* Purpose: Set the font to use for drawing window text instead of the        *
+ * default font.                                                              */
+void window_set_text_font(
+   bstring ps_font_name_in,
+   int i_size_in
+) {
+   bstring ps_font_path = NULL;
+
+   ps_font_path = bformat(
+      PATH_SHARE "%s." FILE_EXTENSION_FONT,
+      ps_font_name_in->data
+   );
+   gps_default_text_font = graphics_create_font(
+      // TODO: XML should control menu size.
+      ps_font_path, i_size_in
+   );
+   bdestroy( ps_font_path );
+}
+
+/* Purpose: Set the font to use for drawing menu itemsinstead of the default  *
+ * font.                                                                      */
+void window_set_menu_font(
+   bstring ps_font_name_in,
+   int i_size_in
+) {
+   bstring ps_font_path = NULL;
+
+   ps_font_path = bformat(
+      PATH_SHARE "%s." FILE_EXTENSION_FONT,
+      ps_font_name_in->data
+   );
+   gps_default_menu_font = graphics_create_font(
+      // TODO: XML should control menu size.
+      ps_font_path, i_size_in
+   );
+   bdestroy( ps_font_path );
 }
 
 /* Purpose: Free the top-most menu from the given menu stack.                 */

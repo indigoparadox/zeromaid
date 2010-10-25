@@ -197,7 +197,7 @@ GFX_SPRITESHEET* graphics_create_spritesheet( bstring ps_path_in ) {
       goto gcs_cleanup;
    }
 
-   /* XXX: Figure out the pixel size automatically. */
+   /* TODO: Figure out the pixel size automatically. */
    ps_spritesheet_out->pixel_size = 32;
 
 gcs_cleanup:
@@ -398,40 +398,47 @@ GFX_COLOR* graphics_create_color_html( bstring ps_color_in ) {
    return graphics_create_color( i_red, i_green, i_blue );
 }
 
+GFX_FONT* graphics_create_font( bstring ps_font_path_in, int i_size_in ) {
+   GFX_FONT* ps_font_out;
+
+   #ifdef USESDL
+   ps_font_out = TTF_OpenFont( ps_font_path_in->data, i_size_in );
+
+   if( NULL == ps_font_out ) {
+      DBG_ERR_STR( "Unable to load font", ps_font_path_in->data );
+         DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
+   } else {
+      DBG_INFO_STR( "Font loaded", ps_font_path_in->data );
+   }
+   #else
+   #error "No font loading mechanism defined for this platform!"
+   #endif /* USESDL */
+
+   return ps_font_out;
+}
+
 /* Purpose: Render a given text string to the screen.                         */
-/* Parameters: Coordinates to render to, string to render, font file system   *
- * path, point size, render color.                                            */
+/* Parameters: Coordinates to render to, string to render, font object, point *
+ * size, render color.                                                        */
 void graphics_draw_text(
    int i_x_in,
    int i_y_in,
    bstring ps_string_in,
-   bstring ps_path_in,
-   int i_size_in,
+   GFX_FONT* ps_font_in,
    GFX_COLOR* ps_color_in
 ) {
    #ifdef USESDL
    GFX_SURFACE* ps_type_render_out = NULL;
-   TTF_Font* ps_font = NULL;
    SDL_Color ps_color_sdl;
    SDL_Rect ps_destreg;
-   int i; /* Loop iterator. */
-
-   static TTF_Font** tas_font_list = NULL; /* List of loaded fonts. */
-   static bstring* tas_font_list_names = NULL; /* Parallel, loaded fnt names. */
-   static int* tai_font_list_sizes = NULL;
-   static int ti_font_list_count = 0; /* Number of loaded fonts. */
    #endif /* USESDL */
 
-   if( NULL == ps_string_in ) {
-      DBG_ERR( "Attempted to blit NULL string!" );
-      return;
-   }
-   if( NULL == ps_path_in ) {
-      DBG_ERR( "Attempted to blit string with NULL font!" );
-      return;
-   }
-   if( NULL == ps_color_in ) {
-      DBG_ERR( "Attempted to blit string with NULL color!" );
+   /* Sanity check before we begin. */
+   if(
+      NULL == ps_string_in ||
+      NULL == ps_font_in ||
+      NULL == ps_color_in
+   ) {
       return;
    }
 
@@ -439,74 +446,11 @@ void graphics_draw_text(
    /* Handle format conversions. */
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
 
-   /* See if we've already loaded the font. */
-   for( i = 0 ; i < ti_font_list_count ; i++ ) {
-      if(
-         0 == strcmp( ps_path_in->data, tas_font_list_names[i]->data ) &&
-         i_size_in == tai_font_list_sizes[i]
-      ) {
-         /* The requested font/size was found, so use it. */
-         ps_font = tas_font_list[i];
-         break;
-      }
-   }
-
-   /* If the font was not found, then load it into the list. */
-   if( NULL == ps_font ) {
-      /* Resize and append to the fonts array. */
-      ti_font_list_count++;
-      tas_font_list = realloc(
-         tas_font_list,
-         ti_font_list_count * sizeof( TTF_Font* )
-      );
-      tas_font_list[ti_font_list_count - 1] =
-         TTF_OpenFont( ps_path_in->data, i_size_in );
-
-      /* Resize and append to the names array. */
-      tas_font_list_names = realloc(
-         tas_font_list_names,
-         ti_font_list_count * sizeof( bstring )
-      );
-      tas_font_list_names[ti_font_list_count - 1] =
-         bformat( "%s", ps_path_in->data );
-
-      /* Resize and append to the sizes array. */
-      tai_font_list_sizes = realloc(
-         tai_font_list_sizes,
-         ti_font_list_count * sizeof( int )
-      );
-      tai_font_list_sizes[ti_font_list_count - 1] = i_size_in;
-
-      DBG_INFO_STR_INT(
-         "Font added to static cache", ps_path_in->data, i_size_in
-      );
-
-      /* Finally, select the font. */
-      ps_font = tas_font_list[ti_font_list_count - 1];
-   }
-
-   #if 0
-   /* XXX: Work this error handling into the loading mechanism above. Prevent *
-    *      allocation if the font is bad.                                     */
-   /* Open the font and render the text. */
-   if( NULL == ps_font ) {
-      /* Only log the error once. */
-      if( 0 != bstrcmp( ps_last_font, ps_path_in ) ) {
-         DBG_ERR_STR( "Unable to load font", ps_path_in->data );
-         DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
-         bdestroy( ps_last_font );
-         ps_last_font = bstrcpy( ps_path_in );
-      }
-      return;
-   }
-   #endif
-
    ps_type_render_out = TTF_RenderText_Solid(
-      ps_font, ps_string_in->data, ps_color_sdl
+      ps_font_in, ps_string_in->data, ps_color_sdl
    );
 
    if( NULL == ps_type_render_out ) {
-      DBG_ERR_STR( "Unable to render text", ps_string_in->data );
       goto gdt_cleanup;
    }
 
@@ -521,8 +465,6 @@ gdt_cleanup:
 
    /* Clean up. */
    SDL_FreeSurface( ps_type_render_out );
-   #elif defined USEDIRECTX
-   // TODO
    #else
    #error "No text rendering mechanism defined for this platform!"
    #endif /* USESDL */
@@ -537,7 +479,6 @@ void graphics_draw_blit_tile(
    GFX_RECTANGLE* ps_destreg_in
 ) {
    if( NULL == ps_src_in ) {
-      DBG_ERR( "Attempted to blit from NULL source!" );
       return;
    }
 
@@ -685,8 +626,6 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    /* Clean up. */
    SDL_FreeSurface( ps_surface_screen_copy );
    SDL_FreeSurface( ps_surface_fader );
-   #elif defined USEDIRECTX
-   // TODO
    #else
    #error "No in-fading mechanism defined for this platform!"
    #endif /* USESDL, USEDIRECTX */
@@ -711,9 +650,26 @@ GFX_TILEDATA* graphics_get_tiledata( int i_gid_in, GFX_TILESET* ps_tileset_in ) 
    return &ps_tileset_in->tile_list[i_gid_in - 1];
 }
 
+/* Return: The height in pixels of the given font.                            */
+int graphics_get_font_height( GFX_FONT* ps_font_in ) {
+   int i_height_out;
+
+   #ifdef USESDL
+   i_height_out = TTF_FontHeight( ps_font_in );
+   #else
+   #error "No font measuring mechanism defined for this platform!"
+   #endif /* USESDL */
+
+   return i_height_out;
+}
+
 /* Purpose: Free the given surface buffer.                                    */
 /* Parameters: The surface to free.                                           */
 void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
+   if( NULL == ps_surface_in ) {
+      return;
+   }
+
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
    DBG_INFO_PTR( "Freed image", ps_surface_in );
@@ -753,4 +709,18 @@ void graphics_free_tileset( GFX_TILESET* ps_tileset_in ) {
    #endif /* USESDL, USEDIRECTX */
 
    free( ps_tileset_in );
+}
+
+/* Purpose: Free the given font object.                                       */
+/* Parameters: The font to free.                                              */
+void graphics_free_font( GFX_FONT* ps_font_in ) {
+   if( NULL == ps_font_in ) {
+      return;
+   }
+
+   #ifdef USESDL
+   TTF_CloseFont( ps_font_in );
+   #else
+   #error "No font freeing mechanism defined for this platform!"
+   #endif /* USESDL */
 }

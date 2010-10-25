@@ -63,6 +63,7 @@
 typedef SDL_Surface GFX_SURFACE;
 typedef SDL_Rect GFX_RECTANGLE;
 typedef SDL_Color GFX_COLOR;
+typedef TTF_Font GFX_FONT;
 #elif defined USEDIRECTX
 typedef struct {
    LPDIRECTDRAWSURFACE7 surface;
@@ -139,15 +140,18 @@ GFX_SPRITESHEET* graphics_create_spritesheet( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
 GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
 GFX_COLOR* graphics_create_color_html( bstring );
-void graphics_draw_text( int, int, bstring, bstring, int, GFX_COLOR* );
+GFX_FONT* graphics_create_font( bstring, int );
+void graphics_draw_text( int, int, bstring, GFX_FONT*, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blank( GFX_COLOR* );
 void graphics_draw_transition( int, GFX_COLOR* );
 void graphics_do_update( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
+int graphics_get_font_height( GFX_FONT* );
 void graphics_free_image( GFX_SURFACE* );
 void graphics_free_spritesheet( GFX_SPRITESHEET* );
 void graphics_free_tileset( GFX_TILESET* );
+void graphics_free_font( GFX_FONT* );
 
 #endif /* GRAPHICS_H */

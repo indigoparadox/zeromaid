@@ -36,20 +36,28 @@
 #define SYSTYPE_TITLE_MENU_INDEX_LOAD 1
 #define SYSTYPE_TITLE_MENU_INDEX_QUIT 2
 
+#define SYSTYPE_TITLE_MENU_SIZE_DEFAULT 18
+#define SYSTYPE_TITLE_MENU_X_START 100
+#define SYSTYPE_TITLE_MENU_Y_START 300
+#define SYSTYPE_TITLE_MENU_Y_INC 30
+
+#define SYSTYPE_TITLE_TEXT_SIZE_DEFAULT 10
+
 /* The following must be the length of the list above. */
 #define SYSTYPE_TITLE_MENU_LEN 3
 
 /* = Type and Struct Definitions = */
 
 typedef struct _SYSTYPE_TITLE_TEXT {
-   bstring text, font_name;
+   bstring text;
+   GFX_FONT* font;
    GFX_COLOR* fg_color;
-   int x, y, size;
+   int x, y;
    struct _SYSTYPE_TITLE_TEXT* next;
 } SYSTYPE_TITLE_TEXT;
 
 typedef struct _SYSTYPE_TITLE_TITLESCREEN {
-   bstring menu_font;
+   GFX_FONT* menu_font;
    GFX_SURFACE* bg_image;
    GFX_COLOR* bg_color, * fg_color, * fg_highlight;
    int i_trans, o_trans, delay;
@@ -64,6 +72,7 @@ int systype_title_loop( CACHE_CACHE* );
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
 BOOL systype_title_load_team( CACHE_CACHE* );
 BOOL systype_title_load_start( CACHE_CACHE* );
-void systype_title_show_menu( int, bstring[], bstring, GFX_COLOR*, GFX_COLOR* );
+void systype_title_show_menu( int, bstring[], GFX_FONT*, GFX_COLOR*, GFX_COLOR* );
+void systype_title_free_titlescreen( SYSTYPE_TITLE_TITLESCREEN* );
 
 #endif /* SYSLOOP_TITLE_H */
