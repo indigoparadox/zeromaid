@@ -70,9 +70,24 @@ typedef struct _SYSTYPE_TITLE_TITLESCREEN {
 
 int systype_title_loop( CACHE_CACHE* );
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
+BOOL systype_title_load_titlescreen_text( SYSTYPE_TITLE_TEXT**, ezxml_t );
 BOOL systype_title_load_team( CACHE_CACHE* );
 BOOL systype_title_load_start( CACHE_CACHE* );
 void systype_title_show_menu( int, bstring[], GFX_FONT*, GFX_COLOR*, GFX_COLOR* );
 void systype_title_free_titlescreen( SYSTYPE_TITLE_TITLESCREEN* );
+
+/* = Macros = */
+
+#define SYSTYPE_TITLE_REPLACE_TOKENS( token, replace ) \
+   ps_token_find = bformat( "%s", "%" token "%" ); \
+   ps_token_replace = bformat( "%s", replace ); \
+   bfindreplacecaseless( \
+      ps_text_iter->text, \
+      ps_token_find, \
+      ps_token_replace, \
+      0 \
+   ); \
+   bdestroy( ps_token_find ); \
+   bdestroy( ps_token_replace );
 
 #endif /* SYSLOOP_TITLE_H */

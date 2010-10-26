@@ -75,6 +75,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 
    if( !b_commands_loaded || !b_actors_loaded ) {
       DBG_ERR( "Unable to completely load scene. Aborting." );
+      TITLE_ERROR_SET( "Unable to load selected visual novel." );
       goto stvnl_cleanup;
    }
 

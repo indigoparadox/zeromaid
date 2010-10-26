@@ -179,6 +179,14 @@ typedef int COND_SCOPE;
    fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
    fflush( DEBUG_HANDLE_INFO );
 
+/* Set a new error to display on the title screen. */
+#define TITLE_ERROR_SET( message ) \
+   if( NULL != gps_title_error ) { \
+      bdestroy( gps_title_error ); \
+   } else { \
+      gps_title_error = bformat( "%s", message ); \
+   }
+
 #ifdef USESDL
 /* Convert a standard color to SDL color. */
 #define CONV_COLOR_SDL( color_sdl, color_std ) \

@@ -19,6 +19,10 @@
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
 
+/* = Global Variables = */
+
+extern bstring gps_title_error;
+
 /* = Functions = */
 
 /* Purpose: Title screen loop.                                                */
@@ -165,18 +169,18 @@ slt_cleanup:
 /* Purpose: Load the title screen chain from the system.xml data file.        */
 /* Return: The first screen in the chain.                                     */
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
-   ezxml_t ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM ),
-      ps_xml_title = NULL, ps_xml_titlescreen_iter = NULL, ps_xml_text_iter = NULL;
+   ezxml_t ps_xml_system,
+      ps_xml_title = NULL,
+      ps_xml_titlescreen_iter = NULL;
    SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_head = NULL,
       * ps_titlescreen_iter = NULL,
       * ps_titlescreen_iter_prev = NULL;
-   SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
    bstring ps_string_attrib = NULL,
       ps_font_path_iter = NULL;
    const char* pc_ezxml_attr;
-   int i_text_size_iter = 0;
 
    /* Load and verify down to the level of the title data. */
+   ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM );
    if( NULL == ps_xml_system ) {
       DBG_ERR_STR( "Unable to parse system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
       goto stlt_cleanup;
@@ -273,76 +277,9 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       bdestroy( ps_string_attrib );
 
       /* Load the text elements for each title screen. */
-      ps_xml_text_iter = ezxml_child( ps_xml_titlescreen_iter, "text" );
-      while( NULL != ps_xml_text_iter ) {
-         if( NULL == ps_titlescreen_iter->text_node ) {
-            /* Create the first text node. */
-            ps_titlescreen_iter->text_node =
-               (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
-            ps_text_iter = ps_titlescreen_iter->text_node;
-         } else {
-            /* Append a new text node. */
-            ps_text_iter->next =
-               (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
-            ps_text_iter = ps_text_iter->next;
-         }
-         if( NULL == ps_text_iter ) {
-            DBG_ERR( "Unable to allocate title screen text node!" );
-            break;
-         }
-         memset( ps_text_iter, 0, sizeof( SYSTYPE_TITLE_TEXT ) );
-
-         /* Load the text node attributes. */
-         /* ATTRIB: LOCATION/SIZE */
-         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "x" );
-         if( NULL != pc_ezxml_attr ) {
-            ps_text_iter->x = atoi( pc_ezxml_attr );
-         }
-         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "y" );
-         if( NULL != pc_ezxml_attr ) {
-            ps_text_iter->y = atoi( pc_ezxml_attr );
-         }
-         pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "size" );
-         if( NULL != pc_ezxml_attr ) {
-            i_text_size_iter = atoi( pc_ezxml_attr );
-         } else {
-            i_text_size_iter = SYSTYPE_TITLE_TEXT_SIZE_DEFAULT;
-         }
-
-         /* ATTRIB: FG COLOR */
-         ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );
-         if( NULL != ps_string_attrib ) {
-            ps_text_iter->fg_color = graphics_create_color_html( ps_string_attrib );
-         }
-         bdestroy( ps_string_attrib );
-
-         /* ATTRIB: FONT */
-         ps_font_path_iter = bformat(
-            PATH_SHARE "%s." FILE_EXTENSION_FONT,
-            ezxml_attr( ps_xml_text_iter, "font" )
-         );
-         ps_text_iter->font =
-            graphics_create_font( ps_font_path_iter, i_text_size_iter );
-         bdestroy( ps_font_path_iter );
-
-         /* ATTRIB: TEXT */
-         ps_text_iter->text = bformat( "%s", ps_xml_text_iter->txt );
-         if( NULL == ps_text_iter->text ) {
-            DBG_ERR( "Created empty text node!" );
-            /* We're not really gonna do anything about this, but it's not    *
-             * valid.                                                         */
-         }
-
-         /* Report. */
-         DBG_INFO_INT_INT(
-            "Loaded text node (x, y)",
-            ps_text_iter->x,
-            ps_text_iter->y
-         );
-
-         /* Go to the next one! */
-         ps_xml_text_iter = ps_xml_text_iter->next;
-      }
+      systype_title_load_titlescreen_text(
+         &ps_titlescreen_iter->text_node, ps_xml_titlescreen_iter
+      );
 
       /* Verify title screen integrity against missing attributes. */
       if( NULL == ps_titlescreen_iter->bg_image ) {
@@ -368,6 +305,101 @@ stlt_cleanup:
    /* bdestroy( ps_string_attrib ); */
 
    return ps_titlescreen_head;
+}
+
+BOOL systype_title_load_titlescreen_text(
+   SYSTYPE_TITLE_TEXT** pps_text_head_in,
+   ezxml_t ps_xml_titlescreem_in
+) {
+   BOOL b_success = TRUE;
+   SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
+   ezxml_t ps_xml_text_iter;
+   const char* pc_ezxml_attr;
+   int i_text_size_iter = 0;
+   bstring ps_string_attrib = NULL,
+      ps_font_path_iter = NULL,
+      ps_token_find = NULL,
+      ps_token_replace = NULL;
+
+   ps_xml_text_iter = ezxml_child( ps_xml_titlescreem_in, "text" );
+   while( NULL != ps_xml_text_iter ) {
+      if( NULL == *pps_text_head_in ) {
+         /* Create the first text node. */
+         *pps_text_head_in =
+            (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+         ps_text_iter = *pps_text_head_in;
+      } else {
+         /* Append a new text node. */
+         ps_text_iter->next =
+            (SYSTYPE_TITLE_TEXT*)malloc( sizeof( SYSTYPE_TITLE_TEXT ) );
+         ps_text_iter = ps_text_iter->next;
+      }
+      if( NULL == ps_text_iter ) {
+         DBG_ERR( "Unable to allocate title screen text node!" );
+         break;
+      }
+      memset( ps_text_iter, 0, sizeof( SYSTYPE_TITLE_TEXT ) );
+
+      /* Load the text node attributes. */
+      /* ATTRIB: LOCATION/SIZE */
+      pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "x" );
+      if( NULL != pc_ezxml_attr ) {
+         ps_text_iter->x = atoi( pc_ezxml_attr );
+      }
+      pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "y" );
+      if( NULL != pc_ezxml_attr ) {
+         ps_text_iter->y = atoi( pc_ezxml_attr );
+      }
+      pc_ezxml_attr = ezxml_attr( ps_xml_text_iter, "size" );
+      if( NULL != pc_ezxml_attr ) {
+         i_text_size_iter = atoi( pc_ezxml_attr );
+      } else {
+         i_text_size_iter = SYSTYPE_TITLE_TEXT_SIZE_DEFAULT;
+      }
+
+      /* ATTRIB: FG COLOR */
+      ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );
+      if( NULL != ps_string_attrib ) {
+         ps_text_iter->fg_color = graphics_create_color_html( ps_string_attrib );
+      }
+      bdestroy( ps_string_attrib );
+
+      /* ATTRIB: FONT */
+      ps_font_path_iter = bformat(
+         PATH_SHARE "%s." FILE_EXTENSION_FONT,
+         ezxml_attr( ps_xml_text_iter, "font" )
+      );
+      ps_text_iter->font =
+         graphics_create_font( ps_font_path_iter, i_text_size_iter );
+      bdestroy( ps_font_path_iter );
+
+      /* ATTRIB: TEXT */
+      ps_text_iter->text = bformat( "%s", ps_xml_text_iter->txt );
+      if( NULL == ps_text_iter->text ) {
+         DBG_ERR( "Created empty text node!" );
+         /* We're not really gonna do anything about this, but it's not    *
+          * valid.                                                         */
+      }
+
+      /* Replace all system tokens in the output text. */
+      if( NULL == gps_title_error ) {
+         SYSTYPE_TITLE_REPLACE_TOKENS( "error", "" );
+      } else {
+         SYSTYPE_TITLE_REPLACE_TOKENS( "error", gps_title_error->data );
+      }
+
+      /* Report. */
+      DBG_INFO_INT_INT(
+         "Loaded text node (x, y)",
+         ps_text_iter->x,
+         ps_text_iter->y
+      );
+
+      /* Go to the next one! */
+      ps_xml_text_iter = ps_xml_text_iter->next;
+   }
+
+   return b_success;
 }
 
 /* Purpose: Get the starting team and load it into the given cache object.    */
