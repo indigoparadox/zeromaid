@@ -68,9 +68,18 @@ int main( int argc, char* argv[] ) {
       ps_default_font_path;
    FILE* ps_file_default;
    CACHE_CACHE* ps_cache = NULL;
+   ezxml_t ps_xml_system;
+   const char* pc_title;
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
+
+   /* Do an initial check for a system file. */
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   if( file_exists( ps_system_path ) ) {
+      /* We sound a system file right here, so skip looking for one. */
+      goto main_system_ok;
+   }
 
    /* Open the default.txt file and figure out the name of the game to load. */
    ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
@@ -91,10 +100,21 @@ int main( int argc, char* argv[] ) {
    }
    DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
 
-   /* Load the game data. */
-   ps_title = bformat( "%s", SYSTEM_TITLE );
-   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-   DBG_INFO_STR( "System selected", ps_title->data );
+   /* If the system file doesn't exist in this directory, we're hosed. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR( "Unable to find " PATH_FILE_SYSTEM "." );
+      i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
+
+   main_system_ok:
+
+   /* Load the game title. */
+   ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
+   pc_title = ezxml_attr( ps_xml_system, "name" );
+   ps_title = bformat( "%s", pc_title );
+   DBG_INFO_STR( "System selected", pc_title );
+   ezxml_free( ps_xml_system );
 
    /* Setup the random number generator. */
    srand( time( NULL ) );
@@ -157,13 +177,6 @@ int main( int argc, char* argv[] ) {
       GFX_SCREENDEPTH,
       ps_title
    );
-
-   /* Verify the integrity of the system data file. */
-   if( !file_exists( ps_system_path ) ) {
-      DBG_ERR( "Unable to find system.xml." );
-      i_error_level = ERROR_LEVEL_NOSYS;
-      goto main_cleanup;
-   }
 
    /* Try to set the default window fonts. */
    ps_default_font_path = bfromcstr( WINDOW_TEXT_DEFAULT_FONT );

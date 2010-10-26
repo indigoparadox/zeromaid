@@ -34,8 +34,6 @@
 #define FILE_EXTENSION_FONT "ttf"
 #define FILE_EXTENSION_AI "aib"
 
-#define SYSTEM_TITLE "ZeroMaid"
-
 /* System loop types. */
 typedef int SYSTEM_TYPE;
 #define SYSTEM_TYPE_TITLE 0
