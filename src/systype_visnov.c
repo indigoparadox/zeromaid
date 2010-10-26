@@ -171,6 +171,12 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       }
       for( i = 0 ; i < i_actors_onscreen_count ; i++ ) {
          j = aps_actors_onscreen[i]->emotion_current;
+
+         if( j >= aps_actors_onscreen[i]->emotions_count ) {
+            /* A emotion index was used for an emotion that does not exist. */
+            continue;
+         }
+
          s_rect_actor.x = aps_actors_onscreen[i]->emotion_x;
          s_rect_actor.y = aps_actors_onscreen[i]->emotion_y;
          s_rect_actor.w = aps_actors_onscreen[i]->emotions[j].image->w;
@@ -279,7 +285,7 @@ BOOL systype_visnov_load_commands(
             SYSTYPE_VISNOV_CMD_BACKGROUND, SYSTYPE_VISNOV_CMD_BACKGROUND_DC );
          bassignformat(
             ps_command_attr,
-            "%svnbg_%s.%s", PATH_SHARE, ezxml_attr( ps_xml_command, "bg" ),
+            "%s%s.%s", PATH_SHARE, ezxml_attr( ps_xml_command, "bg" ),
             FILE_EXTENSION_IMAGE
          );
          s_command_tmp.data[0].bg = graphics_create_image( ps_command_attr );
