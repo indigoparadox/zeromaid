@@ -96,9 +96,9 @@ WINDOW_MENU* window_create_menu(
       }
 
       /* Add the menu item to the new menu. */
-      UTIL_ARRAY_ADD(
+      UTIL_ARRAY_REALLOC(
          WINDOW_MENU_ITEM, ps_menu_out->options,
-         ps_menu_out->options_count, wcm_cleanup, NULL
+         ps_menu_out->options_count, wcm_cleanup
       );
       ps_menu_out->options[ps_menu_out->options_count - 1].desc =
          bstrcpy( ps_item_iter->entry[0] );
@@ -338,8 +338,6 @@ void window_free_menu( WINDOW_MENU* ps_menu_in ) {
 
    /* The index has had 1 subtracted from it by the macro above. */
    DBG_INFO( "Menu freed" );
-
-wfm_cleanup:
 
    return;
 }

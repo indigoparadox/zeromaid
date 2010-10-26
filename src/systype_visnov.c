@@ -47,6 +47,8 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    WINDOW_MENU* ps_menu = NULL;
    GFX_SURFACE* ps_bg = NULL; /* Current scene background. */
 
+   TITLE_ERROR_CLEAR();
+
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
       bformat( "%s%s.xml", PATH_SHARE , ps_cache_in->map_name->data );
@@ -638,9 +640,9 @@ int systype_visnov_exec_portrait(
    }
 
    /* Add the given emotion portrait to the scene. */
-   UTIL_ARRAY_ADD(
+   UTIL_ARRAY_REALLOC(
       MOBILE_MOBILE*, *paps_actors_onscreen_in,
-      *pi_actors_onscreen_count_in, stvnepr_cleanup, NULL
+      *pi_actors_onscreen_count_in, stvnepr_cleanup
    );
    (*paps_actors_onscreen_in)[*pi_actors_onscreen_count_in - 1] =
       systype_visnov_get_actor(
