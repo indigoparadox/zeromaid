@@ -183,8 +183,15 @@ typedef int COND_SCOPE;
 #define TITLE_ERROR_SET( message ) \
    if( NULL != gps_title_error ) { \
       bdestroy( gps_title_error ); \
-   } else { \
-      gps_title_error = bformat( "%s", message ); \
+      gps_title_error = NULL; \
+   } \
+   gps_title_error = bformat( "%s", message );
+
+/* Clear any existing title screen errors. */
+#define TITLE_ERROR_CLEAR() \
+   if( NULL != gps_title_error ) { \
+      bdestroy( gps_title_error ); \
+      gps_title_error = NULL; \
    }
 
 #ifdef USESDL

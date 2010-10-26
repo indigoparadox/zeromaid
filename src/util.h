@@ -35,13 +35,21 @@
 /* Parameters: The type of the array items, a pointer to the array, the       *
  *             number of items in the array, the label to jump to on failure, *
  *             a pointer to the item to add (NULL if none).                   */
-#define UTIL_ARRAY_ADD( type, array_ptr, array_count, cleanup, item_addr ) \
+#define UTIL_ARRAY_REALLOC( type, array_ptr, array_count, cleanup ) \
    (array_count)++; \
    array_ptr = (type*)realloc( array_ptr, array_count * sizeof( type ) ); \
    if( NULL == array_ptr ) { \
       DBG_ERR( "Unable to allocate array: " #array_ptr ); \
       goto cleanup; \
-   } \
+   }
+
+/* Purpose: Allocate space for the additional item and then append it to the  *
+ *          array.                                                            */
+/* Parameters: The type of the array items, a pointer to the array, the       *
+ *             number of items in the array, the label to jump to on failure, *
+ *             a pointer to the item to add (NULL if none).                   */
+#define UTIL_ARRAY_ADD( type, array_ptr, array_count, cleanup, item_addr ) \
+   UTIL_ARRAY_REALLOC( type, array_ptr, array_count, cleanup ); \
    if( NULL != item_addr ) { \
       memcpy( &(array_ptr)[array_count - 1], item_addr, sizeof( type ) ); \
    }
