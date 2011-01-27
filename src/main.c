@@ -74,6 +74,13 @@ int main( int argc, char* argv[] ) {
    HWND s_window;
    #endif /* USEDIRECTX */
 
+   /* char pwd[255];
+   FILE* pwdfile;
+   pwdfile = fopen( "/home/alexanderfb/foo.txt", "w" );
+   fwrite( getcwd( pwd, 254 ), sizeof( char ), 254, pwdfile );
+   fclose( pwdfile );
+   return 0; */
+
    /* Do an initial check for a system file. */
    ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
    if( file_exists( ps_system_path ) ) {
