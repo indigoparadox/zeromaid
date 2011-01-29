@@ -96,7 +96,7 @@ typedef struct {
 BOOL mobile_load_mobiles( MOBILE_MOBILE**, int*, ezxml_t, TILEMAP_TILEMAP* );
 MOBILE_MOBILE* mobile_load_mobile( bstring );
 BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
-void mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
+BOOL mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );

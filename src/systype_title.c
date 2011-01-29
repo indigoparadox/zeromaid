@@ -402,7 +402,8 @@ BOOL systype_title_load_titlescreen_text(
 /* Purpose: Get the starting team and load it into the given cache object.    */
 /* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
 BOOL systype_title_load_team( CACHE_CACHE* ps_cache_in ) {
-
+   /* TODO: Write this function. */
+   return TRUE;
 }
 
 /* Purpose: Get the starting game and load it into the given cache object.    */
