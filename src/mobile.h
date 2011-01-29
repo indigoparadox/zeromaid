@@ -47,6 +47,13 @@ typedef int MOBILE_AI;
 
 #define MOBILE_CROP_SIZE 110 /* The width and height of an image crop rect. */
 
+/* These moveset IDs should be used anywhere in the code where behavior for   *
+ * the player mobile will differ based on the member currently active.        */
+#define MOBILE_MOVESET_HILDA 1
+#define MOBILE_MOVESET_ROSETTE 2
+#define MOBILE_MOVESET_ALICE 3
+#define MOBILE_MOVESET_SHIRLEY 4
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
@@ -85,13 +92,17 @@ typedef struct {
 BOOL mobile_load_mobiles( MOBILE_MOBILE**, int*, ezxml_t, TILEMAP_TILEMAP* );
 MOBILE_MOBILE* mobile_load_mobile( bstring );
 BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
-void mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
+BOOL mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
+BOOL mobile_create_player_team( CACHE_CACHE* );
 void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );
 void mobile_free( MOBILE_MOBILE* );
 
 /* = Macros = */
+
+#define MOBILE_CREATE_ALICE( mobile_ptr ) \
+   continue;
 
 #define MOBILE_MOBILES_LOAD_FAIL( fail_msg ) \
    DBG_ERR( fail_msg ); \
