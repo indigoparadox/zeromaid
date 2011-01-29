@@ -18,10 +18,7 @@
 
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
-
-/* = Global Variables = */
-
-extern bstring gps_title_error;
+TITLE_ERROR_ENABLE
 
 /* = Functions = */
 
