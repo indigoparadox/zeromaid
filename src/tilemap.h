@@ -51,6 +51,7 @@ typedef struct {
       music_path,
       sys_name;
    short int time_moves;
+   BYTE light_str;
    int tile_w, tile_h,
       tiles_count; /* Number of tiles in the tile list. */
 } TILEMAP_TILEMAP;
