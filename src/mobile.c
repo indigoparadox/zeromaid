@@ -34,21 +34,21 @@ BOOL mobile_load_mobiles(
 ) {
    ezxml_t ps_xml_mobiles = NULL, ps_xml_mob_iter = NULL;
    MOBILE_MOBILE* ps_mob_iter;
-   bstring ps_mob_iter_type = NULL;
+   bstring ps_mob_iter_src = NULL;
    const char* pc_attr = NULL;
    BOOL b_success = TRUE;
 
-   ps_mob_iter_type = bfromcstr( "" );
+   ps_mob_iter_src = bfromcstr( "" );
 
    ps_xml_mob_iter = ezxml_child( ps_xml_mobiles_in, "mobile" );
    while( NULL != ps_xml_mob_iter ) {
       /* Try to load the mobile first to see if it's valid. */
-      pc_attr = ezxml_attr( ps_xml_mob_iter, "type" );
+      pc_attr = ezxml_attr( ps_xml_mob_iter, "src" );
       if( NULL == pc_attr ) {
          MOBILE_MOBILES_LOAD_FAIL( "Unable to determine mobile type." );
       } else {
-         bassignformat( ps_mob_iter_type, "%s", pc_attr );
-         ps_mob_iter = mobile_load_mobile( ps_mob_iter_type );
+         bassignformat( ps_mob_iter_src, "%s", pc_attr );
+         ps_mob_iter = mobile_load_mobile( ps_mob_iter_src );
       }
 
       /* Verify the loaded mobile. */
@@ -97,7 +97,7 @@ salm_cleanup:
 
    /* Clean up. */
    ezxml_free( ps_xml_mobiles );
-   bdestroy( ps_mob_iter_type );
+   bdestroy( ps_mob_iter_src );
 
    return b_success;
 }
@@ -110,7 +110,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    bstring ps_path_temp = NULL;
    MOBILE_MOBILE* ps_mob_out = NULL;
 
-   ps_path_temp = bformat( "%smob_%s.xml", PATH_SHARE, ps_type_in->data );
+   ps_path_temp = bformat( "%s%s.xml", PATH_SHARE, ps_type_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !file_exists( ps_path_temp ) ) {
@@ -134,7 +134,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
    while( NULL != ps_xml_prop_iter ) {
       /* Load the current property into the struct. */
-      if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "propername" ) ) {
+      if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "proper_name" ) ) {
          /* ATTRIB: PROPER NAME */
          ps_mob_out->proper_name =
             bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
@@ -145,7 +145,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
          ps_mob_out->hp = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
          DBG_INFO_INT( "Mobile HP", ps_mob_out->hp );
 
-      } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "spritesheet" ) ) {
+      } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "sprite_sheet" ) ) {
          /* ATTRIB: SPRITESHEET */
          ps_path_temp = bformat(
             "%s%s.%s",

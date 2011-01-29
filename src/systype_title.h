@@ -71,6 +71,7 @@ typedef struct _SYSTYPE_TITLE_TITLESCREEN {
 int systype_title_loop( CACHE_CACHE* );
 SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void );
 BOOL systype_title_load_titlescreen_text( SYSTYPE_TITLE_TEXT**, ezxml_t );
+ezxml_t systype_title_load_system( void );
 BOOL systype_title_load_team( CACHE_CACHE* );
 BOOL systype_title_load_start( CACHE_CACHE* );
 void systype_title_show_menu( int, bstring[], GFX_FONT*, GFX_COLOR*, GFX_COLOR* );
