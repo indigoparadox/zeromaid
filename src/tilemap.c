@@ -230,7 +230,8 @@ void tilemap_draw(
 ) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0,     /* which to draw.              */
-      x_tile, y_tile; /* Loop iterators. */
+      x_tile, y_tile, /* Loop iterators. */
+      i_tiledata_index;
    GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
@@ -271,14 +272,20 @@ void tilemap_draw(
          x_tile < i_tile_start_x + i_tile_width;
          x_tile++
       ) {
+         i_tiledata_index = (y_tile * ps_map_in->tile_w) + x_tile;
+         if( i_tiledata_index >= ps_map_in->tiles_count ) {
+            /* Invalid tile attempted. */
+            continue;
+         }
+
          ps_tiledata = graphics_get_tiledata(
-            ps_map_in->tiles[(y_tile * ps_map_in->tile_w) + x_tile].gid,
+            ps_map_in->tiles[i_tiledata_index].gid,
             ps_map_in->tileset
          );
          if(
             !b_force_in &&
             (!ps_tiledata->animated &&
-            !ps_map_in->tiles[(y_tile * ps_map_in->tile_w) + x_tile].dirty)
+            !ps_map_in->tiles[i_tiledata_index].dirty)
          ) {
             /* This tile hasn't changed, so don't bother redrawing it. */
             continue;

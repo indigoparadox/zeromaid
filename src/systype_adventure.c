@@ -77,12 +77,12 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
-   ps_cache_in->player_team_front = 0;
+   /* ps_cache_in->player_team_front = 0;
    ps_cache_in->player_team_count = 0;
    ps_cache_in->player_team = calloc( 1, sizeof( MOBILE_MOBILE ) );
    memcpy( &ps_cache_in->player_team[0], &as_mobile_list[0], sizeof( MOBILE_MOBILE ) );
    ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x +=
-      ps_map->tileset->pixel_size;
+      ps_map->tileset->pixel_size; */
 
    while( 1 ) {
       GFX_DRAW_LOOP_START
