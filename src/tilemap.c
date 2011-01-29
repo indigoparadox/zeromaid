@@ -57,19 +57,21 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
       ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
       while( NULL != ps_xml_prop_iter ) {
          /* Load the current property into the struct. */
-         if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "mapname" ) ) {
+         if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "map_name" ) ) {
             ps_map_out->proper_name = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
 
-         } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "musicpath" ) ) {
+         } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "light_str" ) ) {
+            ps_map_out->light_str = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
+
+         } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "music_path" ) ) {
             ps_map_out->music_path = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
 
-         } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "timegoes" ) ) {
+         } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "time_moves" ) ) {
             if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "value" ), "true" ) ) {
                ps_map_out->time_moves = TRUE;
             } else {
                ps_map_out->time_moves = FALSE;
             }
-
          }
 
          /* Go to the next one! */
@@ -309,6 +311,10 @@ void tilemap_draw(
 /* Purpose: Free the given tile map pointer.                                  */
 /* Parameters: The tile map pointer to free.                                  */
 void tilemap_free( TILEMAP_TILEMAP* ps_map_in ) {
+   if( NULL == ps_map_in ) {
+      return;
+   }
+
    free( ps_map_in->tiles );
    bdestroy( ps_map_in->proper_name );
    bdestroy( ps_map_in->sys_name );

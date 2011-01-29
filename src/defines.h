@@ -52,6 +52,8 @@ typedef unsigned int BOOL;
 #endif /* USEDIRECTX */
 #endif /* USEWII */
 
+typedef unsigned char BYTE;
+
 /* CONDs are used in mobiles and visual novel scenes right now. */
 typedef int COND_SCOPE;
 #define COND_SCOPE_LOCAL 0
