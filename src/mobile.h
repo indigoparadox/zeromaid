@@ -59,7 +59,7 @@ typedef int MOBILE_AI;
 typedef int MOBILE_MOVE;
 
 typedef struct {
-   int id;
+   bstring id;
    GFX_SURFACE* image;
    GFX_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
 } MOBILE_EMOTION;
