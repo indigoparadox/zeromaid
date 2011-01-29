@@ -269,12 +269,13 @@ mle_cleanup:
 /* Purpose: Load the given script into the given mobile's selected AI.        */
 /* Parameters: The mobile to load into, the ID of the list to load into, and  *
  *             the path to the file from which to load the ai.                */
-void mobile_load_ai(
+BOOL mobile_load_ai(
    MOBILE_MOBILE* ps_mob_in,
    MOBILE_AI i_list_in,
    bstring ps_path_in
 ) {
-
+   /* TODO: Write this function. */
+   return TRUE;
 }
 
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
