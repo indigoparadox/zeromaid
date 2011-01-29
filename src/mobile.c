@@ -359,6 +359,7 @@ void mobile_free_arr( MOBILE_MOBILE* ps_mob_in ) {
 
    for( i = 0 ; i < ps_mob_in->emotions_count ; i++ ) {
       graphics_free_image( ps_mob_in->emotions[i].image );
+      bdestroy( ps_mob_in->emotions[i].id );
    }
    free( ps_mob_in->emotions );
    bdestroy( ps_mob_in->proper_name );
