@@ -2,5 +2,6 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="ZeroMaid.cbp" active="1" />
+		<Project filename="../../../Maid/maidex/Maid Example.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
