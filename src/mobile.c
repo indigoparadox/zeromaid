@@ -148,7 +148,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "spritesheet" ) ) {
          /* ATTRIB: SPRITESHEET */
          ps_path_temp = bformat(
-            "%smob_sprites_%s.%s",
+            "%s%s.%s",
             PATH_SHARE,
             ezxml_attr( ps_xml_prop_iter, "value" ),
             FILE_EXTENSION_IMAGE
@@ -159,7 +159,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "ai_adv_normal" ) ) {
          /* AI: ADVENTURE NORMAL */
          ps_path_temp = bformat(
-            "%sai_%s.%s",
+            "%s%s.%s",
             PATH_SHARE,
             ezxml_attr( ps_xml_prop_iter, "value" ),
             FILE_EXTENSION_AI
@@ -224,23 +224,21 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
       memset( &s_emotion_tmp, 0, sizeof( MOBILE_EMOTION ) );
 
       /* ATTRIB: ID */
-      pc_attr = ezxml_attr( ps_xml_emote_iter, "id" );
+      pc_attr = ezxml_txt( ps_xml_emote_iter );
       if( NULL == pc_attr ) {
          /* There's no ID, so this emotion is useless. */
          DBG_ERR( "ID not found; invalid emotion." );
          ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
          continue;
       }
-      s_emotion_tmp.id = atoi( pc_attr );
+      s_emotion_tmp.id = bformat( "%s", pc_attr );
 
       /* ATTRIB: IMAGE */
-      pc_attr = ezxml_txt( ps_xml_emote_iter );
+      pc_attr = ezxml_attr( ps_xml_emote_iter, "src" );
       bassignformat(
          ps_attr_temp,
-         "%svnprt_%s_%s.%s", PATH_SHARE, ps_mob_in->mobile_type->data,
-            pc_attr, FILE_EXTENSION_IMAGE
+         "%s%s.%s", PATH_SHARE, pc_attr, FILE_EXTENSION_IMAGE
       );
-      btolower( ps_attr_temp );
       s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
       if( NULL == pc_attr || NULL == s_emotion_tmp.image ) {
          /* There's no image, so this emotion is useless. */
@@ -257,7 +255,7 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
          ps_mob_in->emotions_count, mle_cleanup, &s_emotion_tmp
       );
 
-      DBG_INFO_INT( "Loaded emotion", s_emotion_tmp.id );
+      DBG_INFO_STR( "Loaded emotion", s_emotion_tmp.id->data );
 
       /* Go on to the next one. */
       ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );

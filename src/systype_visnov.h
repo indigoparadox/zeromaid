@@ -85,6 +85,7 @@ typedef union {
       * color_sfg,   /* DI 4 - MENU */
       * color_sbg;   /* DI 5 - MENU */
    bstring name,     /* DI 0 - LABEL */
+      emotion,       /* DI 1 - PORTRAIT */
       key,           /* DI 2 - COND, SET */
       equals,        /* DI 3 - COND, SET */
       destmap,       /* DI 0 - TELEPORT */
@@ -94,7 +95,6 @@ typedef union {
    COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
-      emotion,       /* DI 1 - PORTRAIT */
       x,             /* DI 3 - PORTRAIT */
       y,             /* DI 4 - PORTRAIT */
       delay,         /* DI 0 - PAUSE*/

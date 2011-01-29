@@ -172,7 +172,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       for( i = 0 ; i < i_actors_onscreen_count ; i++ ) {
          j = aps_actors_onscreen[i]->emotion_current;
 
-         if( j >= aps_actors_onscreen[i]->emotions_count ) {
+         if( j >= aps_actors_onscreen[i]->emotions_count || j < 0 ) {
             /* A emotion index was used for an emotion that does not exist. */
             continue;
          }
@@ -330,7 +330,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_PORTRAIT, SYSTYPE_VISNOV_CMD_PORTRAIT_DC );
          STVN_PARSE_CMD_DAT_INT( serial, 0 );
-         STVN_PARSE_CMD_DAT_INT( emotion, 1 );
+         STVN_PARSE_CMD_DAT_STR( emotion, 1 );
          STVN_PARSE_CMD_DAT_FLT( zoom, 2 );
          STVN_PARSE_CMD_DAT_INT( x, 3 );
          STVN_PARSE_CMD_DAT_INT( y, 4 );
@@ -619,7 +619,9 @@ int systype_visnov_exec_portrait(
    CACHE_CACHE* ps_cache_in
 ) {
 
-   int i, z; /* Loop iterators. */
+   int i, z, /* Loop iterators. */
+      emotion_selected;
+   MOBILE_MOBILE* ps_actor_current;
 
    /* Make sure an actor with the given serial really exists first. */
    if( NULL == systype_visnov_get_actor(
@@ -645,7 +647,7 @@ int systype_visnov_exec_portrait(
       }
    }
 
-   /* Add the given emotion portrait to the scene. */
+   /* Add the actor to the on-screen list. */
    UTIL_ARRAY_REALLOC(
       MOBILE_MOBILE*, *paps_actors_onscreen_in,
       *pi_actors_onscreen_count_in, stvnepr_cleanup
@@ -657,12 +659,27 @@ int systype_visnov_exec_portrait(
          i_actors_count_in,
          ps_cache_in
       );
-   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
-      emotion_current = ps_command_in->data[1].emotion;
-   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
-      emotion_x = ps_command_in->data[3].x;
-   (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1]->
-      emotion_y = ps_command_in->data[4].y;
+   ps_actor_current =
+      (*paps_actors_onscreen_in)[(*pi_actors_onscreen_count_in) - 1];
+
+   /* Set the actor's current emotion. */
+   emotion_selected = -1;
+   for( i = 0 ; i < ps_actor_current->emotions_count ; i++ ) {
+      if( 0 != bstricmp (
+         ps_command_in->data[1].emotion,
+         ps_actor_current->emotions[i].id
+      ) ) {
+         continue;
+      } else {
+         /* The emotions match so select this one. */
+         emotion_selected = i;
+         break;
+      }
+   }
+
+   ps_actor_current->emotion_current = emotion_selected;
+   ps_actor_current->emotion_x = ps_command_in->data[3].x;
+   ps_actor_current->emotion_y = ps_command_in->data[4].y;
 
 stvnepr_cleanup:
 
