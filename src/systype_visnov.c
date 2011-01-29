@@ -864,6 +864,7 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_PORTRAIT:
+         bdestroy( ps_command_in->data[1].emotion );
          break;
 
       case SYSTYPE_VISNOV_CMD_TELEPORT:
