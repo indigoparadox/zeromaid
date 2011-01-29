@@ -271,10 +271,30 @@ mle_cleanup:
 /* Purpose: Load the given script into the given mobile's selected AI.        */
 /* Parameters: The mobile to load into, the ID of the list to load into, and  *
  *             the path to the file from which to load the ai.                */
-void mobile_load_ai(
+BOOL mobile_load_ai(
    MOBILE_MOBILE* ps_mob_in,
    MOBILE_AI i_list_in,
    bstring ps_path_in
+) {
+   /* TODO: Write the AI loader. */
+   return false;
+}
+
+/* Purpose: Create the mobile team controlled by the player. The team created *
+ *          should be balanced in order to make gameplay interesting but not  *
+ *          overpowered.                                                      */
+BOOL mobile_create_player_team( CACHE_CACHE* ) {
+   MOBILE_MOBILE* ps_player_iter;
+
+   MOBILE_CREATE_ALICE( ps_player_iter );
+}
+
+/* Purpose: Create a mobile. This function should be called either by the     *
+ *          macros defining each default player mobile in the team creation   *
+ *          function above, or by a script or something that wants to create  *
+ *          a mobile. Other uses may occur as well in the future.             */
+BOOL mobile_create_mobile(
+
 ) {
 
 }
