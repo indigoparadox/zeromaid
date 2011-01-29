@@ -18,6 +18,7 @@
 
 DBG_ENABLE
 GFX_DRAW_LOOP_ENABLE
+TITLE_ERROR_ENABLE
 
 /* = Functions = */
 
@@ -39,10 +40,16 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    /* Initialize what we need to use functions to initialize. */
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
    ps_path_map =
-      bformat( "%smap_%s_map.tmx", PATH_SHARE , ps_cache_in->map_name->data );
+      bformat( "%s%s.tmx", PATH_SHARE , ps_cache_in->map_name->data );
    ps_map = tilemap_create_map( ps_cache_in->map_name, ps_path_map );
    bdestroy( ps_path_map );
    ps_color_fade = graphics_create_color( 0, 0, 0 );
+
+   /* Verify the sanity of loaded data. */
+   if( NULL == ps_map ) {
+      TITLE_ERROR_SET( "Unable to load adventure map." );
+      goto sal_cleanup;
+   }
 
    /* Setup structures we need to run. */
    s_viewport.x = 0;
