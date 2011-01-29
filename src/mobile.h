@@ -47,7 +47,16 @@ typedef int MOBILE_AI;
 
 #define MOBILE_CROP_SIZE 110 /* The width and height of an image crop rect. */
 
+/* These moveset IDs should be used anywhere in the code where behavior for   *
+ * the player mobile will differ based on the member currently active.        */
+/* #define MOBILE_MOVESET_HILDA 1
+#define MOBILE_MOVESET_ROSETTE 2
+#define MOBILE_MOVESET_ALICE 3
+#define MOBILE_MOVESET_SHIRLEY 4 */
+
 /* = Type and Struct Definitions = */
+
+typedef int MOBILE_MOVE;
 
 typedef struct {
    int id;
@@ -68,13 +77,15 @@ typedef struct {
    unsigned int hp,
       serial;
    MOBILE_EMOTION* emotions;
+   MOBILE_MOVE* moves; /* Specialized actions performable on the field. */
    int pixel_x, pixel_y,
       pixel_size, /* The size of the mobile's sprite. */
       emotions_count,
       emotion_current,
       emotion_x, emotion_y, /* Location on-screen of emotion portrait in VN. */
-      current_animation; /* Vertical offset of current frame on spritesheet. */
-   float pixel_multiplier; /* The size to expand the mobile to when blitted. */
+      current_animation, /* Vertical offset of current frame on spritesheet. */
+      moves_count;
+   int pixel_mult_percent; /* The size to expand the mobile to when blitted. */
    bstring proper_name, /* The name to display for this mobile. */
       mobile_type; /* The system mobile type of this mobile. */
    GFX_SPRITESHEET* spritesheet;

@@ -187,8 +187,8 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    if( 0 >= ps_mob_out->pixel_size ) {
       ps_mob_out->pixel_size = GFX_TILE_DEFAULT_SIZE;
    }
-   if( 0 >= ps_mob_out->pixel_multiplier ) {
-      ps_mob_out->pixel_multiplier = 1.0f;
+   if( 0 >= ps_mob_out->pixel_mult_percent ) {
+      ps_mob_out->pixel_mult_percent = 100;
    }
 
    /* Mobiles must always have a proper name. */
