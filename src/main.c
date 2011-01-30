@@ -56,7 +56,9 @@ GFX_DRAW_LOOP_DECLARE
 LPDIRECTINPUT gs_lpdi;
 LPDIRECTINPUTDEVICE gs_keyboard;
 unsigned char gac_keystate[256];
-#endif /* USEDIRECTX */
+#elif defined( USESDL )
+SDL_Joystick* gps_joystick_current;
+#endif /* USEDIRECTX, USESDL */
 
 extern GFX_FONT* gps_default_text_font;
 extern GFX_FONT* gps_default_menu_font;
@@ -181,11 +183,12 @@ int main( int argc, char* argv[] ) {
    SDL_Init( SDL_INIT_JOYSTICK );
    /* TODO: Figure out the joystick number from a configuration file. */
    for( i = 0 ; i < 10 ; i++ ) {
-      if( NULL != SDL_JoystickOpen( i ) ) {
-         DBG_INFO_INT( "Opened joystick", i );
+      gps_joystick_current = SDL_JoystickOpen( i );
+      if( NULL != gps_joystick_current ) {
+         DBG_INFO_INT( "Opened SDL joystick", i );
          break;
       } else {
-         DBG_ERR_INT( "Failed to open joystick", i );
+         DBG_ERR_INT( "Failed to open SDL joystick", i );
       }
    }
    TTF_Init();
@@ -304,6 +307,7 @@ main_cleanup:
    #endif /* OUTTOFILE */
 
    #ifdef USESDL
+   SDL_JoystickClose( gps_joystick_current );
    TTF_Quit();
    #endif /* USESDL */
 

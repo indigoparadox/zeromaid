@@ -64,7 +64,9 @@ typedef struct _lwpnode {
 #define EVENT_ID_MAX 9
 
 #ifdef USESDL
-#define SDL_JOYBUTTONS_MAX 19
+/* TODO: Autodetect the number of joystick buttons. */
+#define SDL_JOYBUTTONS_MAX 10
+#define SDL_JOYHATPOS_MAX 13
 #endif /* USESDL */
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
@@ -95,6 +97,7 @@ void event_timer_unpause( EVENT_TIMER* );
 void event_do_poll( EVENT_EVENT*, BOOL );
 #ifdef USESDL
 void event_do_poll_sdl_joystick_buttons( SDL_Event*, Uint8* );
+void event_do_poll_sdl_joystick_hats( SDL_Event*, Uint8* );
 #endif /* USESDL */
 
 #endif /* EVENT_H */
