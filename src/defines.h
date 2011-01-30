@@ -123,16 +123,11 @@ typedef int COND_SCOPE;
 
 /* = Macros = */
 
-/* The path separator is different on Windows! */
-#ifdef VISUALSTUDIO
-#define FILE_SHORT __FILE__
-#else
-#ifdef WIN32
-#define FILE_SHORT ((strrchr(__FILE__, '\\') ? : __FILE__- 1) + 1)
-#else
-#define FILE_SHORT ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
-#endif /* WIN32 */
-#endif /* VISUALSTUDIO */
+/* The path separator can be a slash or a backslash, so deal with it. */
+#define FILE_SHORT_B \
+   ((strrchr(__FILE__, '\\') ? : __FILE__- 1) + 1)
+#define FILE_SHORT \
+   ((strrchr(FILE_SHORT_B, '/') ? : FILE_SHORT_B- 1) + 1)
 
 /* The debug macros use normal C strings instead of bstrings since they'll    *
  * usually be printing literals and there are some tricky deallocation issues *
