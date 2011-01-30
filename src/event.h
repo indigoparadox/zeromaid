@@ -63,6 +63,10 @@ typedef struct _lwpnode {
 
 #define EVENT_ID_MAX 9
 
+#ifdef USESDL
+#define SDL_JOYBUTTONS_MAX 19
+#endif /* USESDL */
+
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */
 #define EVENT_TIMER_TICKS time( NULL )
@@ -89,5 +93,8 @@ void event_timer_start( EVENT_TIMER* );
 void event_timer_pause( EVENT_TIMER* );
 void event_timer_unpause( EVENT_TIMER* );
 void event_do_poll( EVENT_EVENT*, BOOL );
+#ifdef USESDL
+void event_do_poll_sdl_joystick_buttons( SDL_Event*, Uint8* );
+#endif /* USESDL */
 
 #endif /* EVENT_H */
