@@ -67,7 +67,8 @@ bstring gps_title_error;
 
 int main( int argc, char* argv[] ) {
    int i_last_return, /* Contains the last loop-returned value. */
-      i_error_level = 0; /* The program error level returned to the shell. */
+      i_error_level = 0, /* The program error level returned to the shell. */
+      i; /* Loop counter. */
    bstring ps_system_path,
       ps_title,
       ps_default_font_path;
@@ -104,45 +105,7 @@ int main( int argc, char* argv[] ) {
    /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
    dolfsInit( &zeromaid_wii_data );
-   SDL_Init( SDL_INIT_JOYSTICK );
-   SDL_JoystickOpen( 0 );
    #endif /* USEWII */
-
-   #ifdef USESDL
-   TTF_Init();
-   SDL_EnableKeyRepeat( 0, 0 );
-   #endif /* USESDL */
-
-   /* Initialize DirectX input stuff. */
-   #ifdef USEDIRECTX
-   s_window = GetActiveWindow();
-   if( FAILED( DirectInput8Create(
-      GetModuleHandle( NULL ),
-      DIRECTINPUT_VERSION,
-      IID_IDirectInput8,
-      (void**)&gs_lpdi,
-      NULL
-   ) ) ) {
-      // error code
-   }
-   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
-      /* error code */
-   }
-   if( FAILED(
-      gs_keyboard->SetCooperativeLevel(
-         s_window,
-         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
-      )
-   ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->Acquire() ) ) {
-      /* error code */
-   }
-   #endif /* USEDIRECTX */
 
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
@@ -212,6 +175,51 @@ int main( int argc, char* argv[] ) {
 
    //DEBUG_Init( 100, 5656 );
    #endif /* USEWII && USEDEBUG && USENET */
+
+   /* Try to setup the screen and input systems. */
+   #ifdef USESDL
+   SDL_Init( SDL_INIT_JOYSTICK );
+   /* TODO: Figure out the joystick number from a configuration file. */
+   for( i = 0 ; i < 10 ; i++ ) {
+      if( NULL != SDL_JoystickOpen( i ) ) {
+         DBG_INFO_INT( "Opened joystick", i );
+         break;
+      } else {
+         DBG_ERR_INT( "Failed to open joystick", i );
+      }
+   }
+   TTF_Init();
+   SDL_EnableKeyRepeat( 0, 0 );
+   #elif defined USEDIRECTX
+   /* Initialize DirectX input stuff. */
+   s_window = GetActiveWindow();
+   if( FAILED( DirectInput8Create(
+      GetModuleHandle( NULL ),
+      DIRECTINPUT_VERSION,
+      IID_IDirectInput8,
+      (void**)&gs_lpdi,
+      NULL
+   ) ) ) {
+      // error code
+   }
+   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
+      /* error code */
+   }
+   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
+      /* error code */
+   }
+   if( FAILED(
+      gs_keyboard->SetCooperativeLevel(
+         s_window,
+         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
+      )
+   ) ) {
+      /* error code */
+   }
+   if( FAILED( gs_keyboard->Acquire() ) ) {
+      /* error code */
+   }
+   #endif /* USESDL, USEDIRECTX */
 
    /* Load the game title. */
    ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
