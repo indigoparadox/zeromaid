@@ -75,7 +75,9 @@ int main( int argc, char* argv[] ) {
    ezxml_t ps_xml_system;
    const char* pc_title;
    #ifdef USEWII
-   char ac_ipaddress_text[16];
+   char ac_ipaddr_text[16],
+      ac_gateway_text[16],
+      ac_netmask_text[16];
    #else
    bstring ps_new_share_path; /* The directory containing shared files. */
    FILE* ps_file_default;
@@ -84,71 +86,14 @@ int main( int argc, char* argv[] ) {
    HWND s_window;
    #endif /* USEDIRECTX */
 
-   /* char pwd[255];
-   FILE* pwdfile;
-   pwdfile = fopen( "/home/alexanderfb/foo.txt", "w" );
-   fwrite( getcwd( pwd, 254 ), sizeof( char ), 254, pwdfile );
-   fclose( pwdfile );
-   return 0; */
+   /* == Pre-System Init == */
+   /* This is stuff that should be taken care of before we start accessing    *
+    * files and stuff.                                                        */
 
-   /* Do an initial check for a system file. */
-   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-   if( file_exists( ps_system_path ) ) {
-      /* We sound a system file right here, so skip looking for one. */
-      goto main_system_ok;
-   }
-
-   #ifndef USEWII
-   /* Open the default.txt file and figure out the name of the game to load. */
-   ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
-   if( NULL == ps_file_default ) {
-      DBG_ERR( "Unable to open default system indicator file." );
-      goto main_cleanup;
-   }
-
-   /* Read the mod name and change into its directory. */
-   /* TODO: Use the current directory if no default.txt is present. */
-   ps_new_share_path = bformat( "./" );
-   breada( ps_new_share_path, (bNread)fread, ps_file_default );
-   btrimws( ps_new_share_path );
-   fclose( ps_file_default );
-   if( chdir( ps_new_share_path->data ) ) {
-      DBG_ERR_STR( "Unable to change to directory", ps_new_share_path->data );
-      goto main_cleanup;
-   }
-   DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
-   #else
-   #ifdef USEDEBUG
-   /* Setup the Wii network debugging infrastructure. */
-
-	if( if_config( ac_ipaddress_text, NULL, NULL, TRUE ) ) {
-	   printf( "\n\n\n\nUnable to setup network." );
-	   sleep( 5 );
-		goto main_cleanup;
-	} else {
-	   net_print_init( DBG_NET_HOST, DBG_NET_PORT );
-      DBG_INFO( "Remote debugger connection established." );
-	}
-
-   //DEBUG_Init( 100, 5656 );
-   #endif /* USEDEBUG */
+   #ifdef USEWII
+   /* Push output down where it can be seen on a TV screen. */
+   printf( "\n\n\n\n" );
    #endif /* USEWII */
-
-   /* If the system file doesn't exist in this directory, we're hosed. */
-   if( !file_exists( ps_system_path ) ) {
-      DBG_ERR_STR( "Unable to find system file", ps_system_path->data );
-      i_error_level = ERROR_LEVEL_NOSYS;
-      goto main_cleanup;
-   }
-
-   main_system_ok:
-
-   /* Load the game title. */
-   ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
-   pc_title = ezxml_attr( ps_xml_system, "name" );
-   ps_title = bformat( "%s", pc_title );
-   DBG_INFO_STR( "System selected", pc_title );
-   ezxml_free( ps_xml_system );
 
    /* Setup the random number generator. */
    srand( time( NULL ) );
@@ -162,6 +107,11 @@ int main( int argc, char* argv[] ) {
    SDL_Init( SDL_INIT_JOYSTICK );
    SDL_JoystickOpen( 0 );
    #endif /* USEWII */
+
+   #ifdef USESDL
+   TTF_Init();
+   SDL_EnableKeyRepeat( 0, 0 );
+   #endif /* USESDL */
 
    /* Initialize DirectX input stuff. */
    #ifdef USEDIRECTX
@@ -198,11 +148,77 @@ int main( int argc, char* argv[] ) {
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
    #endif /* OUTTOFILE */
 
-   /* Platform-dependent miscellaneous initialization. */
-   #ifdef USESDL
-   TTF_Init();
-   SDL_EnableKeyRepeat( 0, 0 );
-   #endif /* USESDL */
+   /* == End Pre-System Init == */
+
+   /* == System Init == */
+   /* This is stuff that pokes and prods at the game data files to start the  *
+    * game.                                                                   */
+
+   /* Do an initial check for a system file. Note that there's an inverse of  *
+    * this test after the multimods init section. That's not in an else up    *
+    * so that we can give the multimods system a chance to check for a        *
+    * designated mod to load.                                                 */
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   if( file_exists( ps_system_path ) ) {
+      /* We sound a system file right here, so skip looking for one. */
+      goto main_system_ok;
+   }
+
+   #ifdef USEMULTIMODS
+   /* The first system check didn't work, so open the default.txt file and    *
+    * figure out the name of the game to load.                                */
+   ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
+   if( NULL == ps_file_default ) {
+      DBG_ERR( "Unable to open default system indicator file." );
+      goto main_cleanup;
+   }
+
+   /* Read the mod name and change into its directory. */
+   /* TODO: Use the current directory if no default.txt is present. */
+   ps_new_share_path = bformat( "./" );
+   breada( ps_new_share_path, (bNread)fread, ps_file_default );
+   btrimws( ps_new_share_path );
+   fclose( ps_file_default );
+   if( chdir( ps_new_share_path->data ) ) {
+      DBG_ERR_STR( "Unable to change to directory", ps_new_share_path->data );
+      goto main_cleanup;
+   }
+   DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
+   #endif /* USEMULTIMODS */
+
+   /* If the system file doesn't exist in this directory, we're hosed. */
+   if( !file_exists( ps_system_path ) ) {
+      DBG_ERR_STR( "Unable to find system file", ps_system_path->data );
+      i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
+
+   /* == End System Init == */
+
+   main_system_ok:
+
+   #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
+   /* Setup the Wii network debugging infrastructure. */
+	if( if_config( ac_ipaddr_text, ac_netmask_text, ac_gateway_text, TRUE ) ) {
+	   printf( "Unable to setup network." );
+	   sleep( 5 );
+		goto main_cleanup;
+	} else {
+	   net_print_init( DBG_NET_HOST, DBG_NET_PORT );
+      DBG_INFO( "Remote debugger connection established." );
+      /* printf( "network configured, ip: %s, gw: %s, mask %s\n", ac_ipaddr_text, ac_gateway_text, ac_netmask_text );
+      sleep( 5 ); */
+   }
+
+   //DEBUG_Init( 100, 5656 );
+   #endif /* USEWII && USEDEBUG && USENET */
+
+   /* Load the game title. */
+   ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
+   pc_title = ezxml_attr( ps_xml_system, "name" );
+   ps_title = bformat( "%s", pc_title );
+   DBG_INFO_STR( "System selected", pc_title );
+   ezxml_free( ps_xml_system );
 
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
