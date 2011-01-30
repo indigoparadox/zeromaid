@@ -141,58 +141,58 @@ typedef int COND_SCOPE;
 
 /* Print an info message. */
 #define DBG_INFO( msg ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
-   fflush( DEBUG_HANDLE_INFO );
+   gps_output_buffer = bformat( "%s\n", msg ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving a pointer. */
 #define DBG_INFO_PTR( msg, ptr ) \
-   gps_output_buffer = bformat( "%s: %p", msg, ptr ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %p\n", msg, ptr ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving a string. */
 #define DBG_INFO_STR( msg, string ) \
-   gps_output_buffer = bformat( "%s: %s", msg, string ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %s\n", msg, string ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving two strings. */
 #define DBG_INFO_STR_STR( msg, string1, string2 ) \
-   gps_output_buffer = bformat( "%s: %s, %s", msg, string1, string2 ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %s, %s\n", msg, string1, string2 ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving a string and a pointer. */
 #define DBG_INFO_STR_PTR( msg, string, ptr ) \
-   gps_output_buffer = bformat( "%s: %s, %p", msg, string, ptr ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %s, %p\n", msg, string, ptr ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving a string and a number. */
 #define DBG_INFO_STR_INT( msg, string, number ) \
-   gps_output_buffer = bformat( "%s: %s, %d", msg, string, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %s, %d\n", msg, string, number ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving a number. */
 #define DBG_INFO_INT( msg, number ) \
-   gps_output_buffer = bformat( "%s: %d", msg, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %d\n", msg, number ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an info message involving two numbers. */
 #define DBG_INFO_INT_INT( msg, number1, number2 ) \
-   gps_output_buffer = bformat( "%s: %d", msg, number1, number2 ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "%s: %d\n", msg, number1, number2 ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an error message. */
 #define DBG_ERR( msg ) \
-   gps_output_buffer = bformat( "ERROR: %s", msg ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "ERROR: %s\n", msg ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an error message involving a string. */
 #define DBG_ERR_STR( msg, string ) \
-   gps_output_buffer = bformat( "ERROR: %s: %s", msg, string ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "ERROR: %s: %s\n", msg, string ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 /* Print an error message involving a number. */
 #define DBG_ERR_INT( msg, number ) \
-   gps_output_buffer = bformat( "ERROR: %s: %d", msg, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data, DBG_NET_HOST, DBG_NET_PORT );
+   gps_output_buffer = bformat( "ERROR: %s: %d\n", msg, number ); \
+   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
 #else
 
