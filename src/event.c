@@ -23,7 +23,9 @@ DBG_ENABLE
 #ifdef USEDIRECTX
 extern LPDIRECTINPUTDEVICE gs_keyboard;
 extern unsigned char gac_keystate[256];
-#endif /* USEDIRECTX */
+#elif defined( USESDL )
+SDL_Joystick* gps_joystick_current;
+#endif /* USEDIRECTX, USESDL */
 
 /* = Functions = */
 
@@ -87,17 +89,20 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
 
 /* Purpose: Poll user input devices.                                          */
 void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
-   static BOOL tab_poll_last_key[EVENT_ID_MAX] = { FALSE };
-   static BOOL tab_poll_last_joybutton[EVENT_ID_MAX] = { FALSE };
+   static BOOL tab_poll_last_key[EVENT_ID_MAX] = { FALSE },
+      tab_poll_last_joybutton[EVENT_ID_MAX] = { FALSE },
+      tab_poll_last_joyhat[EVENT_ID_MAX] = { FALSE };
    int i_key_test = 0, /* A translation placeholder for pressed keys. */
       i_joybutton_test = 0,
       i_joyaxis_test = 0,
+      i_joyhat_test = 0,
       i; /* Loop iterator. */
 
    /* Platform-specific method of setting up. */
    #ifdef USESDL
    Uint8* as_keys = NULL,
-      as_joybuttons[SDL_JOYBUTTONS_MAX] = { FALSE };
+      as_joybuttons[SDL_JOYBUTTONS_MAX] = { FALSE },
+      as_joyhat[SDL_JOYHATPOS_MAX] = { FALSE };
    static SDL_Event* tps_event_temp = NULL;
 
    /* Create the event object if it doesn't exist yet. */
@@ -120,12 +125,22 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    SDL_JoystickUpdate();
    SDL_PollEvent( tps_event_temp );
    as_keys = SDL_GetKeyState( NULL );
+   memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
 
-   if( SDL_JOYBUTTONDOWN == tps_event_temp->type ) {
+   if( SDL_KEYDOWN == tps_event_temp->type ) {
+      DBG_INFO( "" );
+
+   } else if( SDL_JOYHATMOTION == tps_event_temp->type ) {
+      event_do_poll_sdl_joystick_hats( tps_event_temp, as_joyhat );
+
+   } else if( SDL_JOYAXISMOTION == tps_event_temp->type ) {
+      /* event_do_poll_sdl_joystick_axis( tps_event_temp, as_joybuttons ); */
+
+   } else if( SDL_JOYBUTTONDOWN == tps_event_temp->type ) {
       event_do_poll_sdl_joystick_buttons( tps_event_temp, as_joybuttons );
+
    } else if( SDL_QUIT == tps_event_temp->type ) {
       /* A quit event can be processed right away without refinement. */
-      memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
       ps_event_out->state[EVENT_ID_QUIT] = TRUE;
       return;
    }
@@ -149,37 +164,44 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          case EVENT_ID_UP:
             i_key_test = -1;
             i_joybutton_test = -1;
-            i_joyaxis_test = SDL_HAT_UP;
+            i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_UP;
             break;
          case EVENT_ID_DOWN:
             i_key_test = -1;
             i_joybutton_test = -1;
-            i_joyaxis_test = SDL_HAT_DOWN;
+            i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_DOWN;
             break;
          case EVENT_ID_RIGHT:
             i_key_test = -1;
             i_joybutton_test = -1;
-            i_joyaxis_test = SDL_HAT_RIGHT;
+            i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_RIGHT;
             break;
          case EVENT_ID_LEFT:
             i_key_test = -1;
             i_joybutton_test = -1;
-            i_joyaxis_test = SDL_HAT_LEFT;
+            i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_LEFT;
             break;
          case EVENT_ID_FIRE:
             i_key_test = -1;
             i_joybutton_test = 2;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          case EVENT_ID_JUMP:
             i_key_test = -1;
             i_joybutton_test = 3;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          case EVENT_ID_ESC:
             i_key_test = -1;
             i_joybutton_test = 6;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          default:
             continue;
@@ -191,36 +213,43 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
             i_key_test = SDLK_UP;
             i_joybutton_test = -1;
             i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_UP;
             break;
          case EVENT_ID_DOWN:
             i_key_test = SDLK_DOWN;
             i_joybutton_test = -1;
             i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_DOWN;
             break;
          case EVENT_ID_RIGHT:
             i_key_test = SDLK_RIGHT;
             i_joybutton_test = -1;
             i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_RIGHT;
             break;
          case EVENT_ID_LEFT:
             i_key_test = SDLK_LEFT;
             i_joybutton_test = -1;
             i_joyaxis_test = -1;
+            i_joyhat_test = SDL_HAT_LEFT;
             break;
          case EVENT_ID_FIRE:
             i_key_test = SDLK_z;
             i_joybutton_test = 0;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          case EVENT_ID_JUMP:
             i_key_test = SDLK_x;
             i_joybutton_test = 1;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          case EVENT_ID_ESC:
             i_key_test = SDLK_ESCAPE;
             i_joybutton_test = 2;
             i_joyaxis_test = -1;
+            i_joyhat_test = -1;
             break;
          default:
             continue;
@@ -267,45 +296,78 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       }
       #endif /* USEWII, USESDL, USEDIRECTX */
 
-      /* Perform the actual input test. i_key_test, i_joybutton_test, and     *
-       * i_joyaxis_test all contain their native constants.                   */
+      /* Perform the actual input test. i_key_test, i_joybutton_test,         *
+       * i_joyaxis_test, and i_joyhat_test all contain their native           *
+       * constants.                                                           */
+      /* TODO: Test joy axis. */
+
+      /* Test the keyboard keys. */
       if(
+         /* Avoid a negative index issue for unassigned events! Heh... */
+         -1 != i_key_test &&
+
          /* Repeat is off and the key is down and it wasn't down before. */
-         (!b_repeat_in &&
+         ((!b_repeat_in &&
          as_keys[i_key_test] &&
          !tab_poll_last_key[i]) ||
 
          /* Repeat is on and the key is down. */
          (b_repeat_in &&
-         as_keys[i_key_test]) ||
-
-         /* Repeat is off and the joybutton is down and it wasn't down        *
-          * before.                                                           */
-         (!b_repeat_in &&
-         as_joybuttons[i_joybutton_test] &&
-         !tab_poll_last_joybutton[i]) ||
-
-         /* Repeat is on and the joybutton is down. */
-         (!b_repeat_in &&
-         as_joybuttons[i_joybutton_test])
-
-         /* TODO: Test joy axis. */
+         as_keys[i_key_test]))
       ) {
+         /* A key was presset. */
          tab_poll_last_key[i] = TRUE;
          ps_event_out->state[i] = TRUE;
 
       } else if( !as_keys[i_key_test] ) {
          /* The key isn't down. */
          tab_poll_last_key[i] = FALSE;
-         ps_event_out->state[i] = FALSE;
+      }
+
+      /* Test the joystick buttons. */
+      if(
+         -1 != i_joybutton_test &&
+
+         /* Repeat is off and the joybutton is down and it wasn't down        *
+          * before.                                                           */
+         ((!b_repeat_in &&
+         as_joybuttons[i_joybutton_test] &&
+         !tab_poll_last_joybutton[i]) ||
+
+         /* Repeat is on and the joybutton is down. */
+         (b_repeat_in &&
+         as_joybuttons[i_joybutton_test]))
+      ) {
+         /* A joybutton was presset. */
+         tab_poll_last_joybutton[i] = TRUE;
+         ps_event_out->state[i] = TRUE;
 
       } else if( !as_joybuttons[i_joybutton_test] ) {
-         /* The key isn't down. */
+         /* The joybutton isn't down. */
          tab_poll_last_joybutton[i] = FALSE;
-         ps_event_out->state[i] = FALSE;
+      }
 
-      } else {
-         ps_event_out->state[i] = FALSE;
+      /* Test the joystick hat. */
+      if(
+         -1 != i_joyhat_test &&
+
+         /* Repeat is off and the joyhat is down and it wasn't down before. */
+         ((!b_repeat_in &&
+         as_joyhat[i_joyhat_test] &&
+         !tab_poll_last_joyhat[i]) ||
+
+         /* Repeat is on and the joyhat is down. */
+         (b_repeat_in &&
+         as_joyhat[i_joyhat_test]))
+      ) {
+         /* A joyhat was presset. */
+         tab_poll_last_joyhat[i] = TRUE;
+         ps_event_out->state[i] = TRUE;
+
+      } else if( !as_joyhat[i_joyhat_test] ) {
+         /* The joyhat isn't down. */
+         tab_poll_last_joyhat[i] = FALSE;
+
       }
    }
 }
@@ -326,6 +388,21 @@ void event_do_poll_sdl_joystick_buttons(
       }
       /* DBG_INFO_INT( "Button", ps_event_in->jbutton.button ); */
    }
+}
+
+void event_do_poll_sdl_joystick_hats(
+   SDL_Event* ps_event_in, Uint8* as_joyhat_in
+) {
+   int i_joyhat_state = 0;
+
+   /* Get the joyhat state from SDL. */
+   i_joyhat_state = SDL_JoystickGetHat( gps_joystick_current, 0 );
+
+   DBG_INFO_INT( "Joyhat", i_joyhat_state );
+
+   /* Set all positions to zero and light up the one that's being pressed. */
+   memset( as_joyhat_in, FALSE, sizeof( Uint8 ) * SDL_JOYHATPOS_MAX );
+   as_joyhat_in[i_joyhat_state] = TRUE;
 }
 
 #endif /* USESDL */
