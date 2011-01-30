@@ -26,10 +26,13 @@
 #elif defined __unix__
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
+#elif defined USEWII
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 #else
 #include <SDL.h>
 #include <SDL_ttf.h>
-#endif /* __APPLE__, __unix__ */
+#endif /* __APPLE__, __unix__, USEWII */
 #elif defined USEDIRECTX
 #include <windows.h>
 #include <ddraw.h>

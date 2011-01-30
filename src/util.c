@@ -22,6 +22,11 @@
 /* Parameters: The path of the file to test.                                  */
 /* Return: TRUE if the file exists and can be read, otherwise FALSE.          */
 int file_exists( bstring ps_path_in ) {
+   #ifdef USEWII
+   /* TODO: For some reason, the test below can't detect files on the Wii. */
+   return TRUE;
+   #endif /* USEWII */
+
    FILE* ps_file_test = fopen( (const char*)ps_path_in->data, "r" );
    if( NULL != ps_file_test ) {
       fclose( ps_file_test );

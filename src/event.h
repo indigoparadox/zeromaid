@@ -26,9 +26,11 @@
    #include <SDL/SDL.h>
 #elif defined __unix__
    #include <SDL/SDL.h>
+#elif defined USEWII
+   #include <SDL/SDL.h>
 #else
    #include <SDL.h>
-#endif /* __APPLE__, __unix__ */
+#endif /* __APPLE__, __unix__, USEWII */
 #endif /* USESDL */
 
 #ifdef USEWII
