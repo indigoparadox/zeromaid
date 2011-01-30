@@ -16,6 +16,8 @@
 
 #include "cache.h"
 
+DBG_ENABLE
+
 /* = Functions = */
 
 /* Purpose: Save the system cache to the specified file.                      */
@@ -51,7 +53,7 @@ void cache_set_var(
          /* Found it! Now set the value. */
          bassign( (*as_varlist_in)[i].value, ps_value_in );
          b_found = TRUE;
-         DBG_INFO_STR_STR( "Key reset", ps_key_in->data, ps_value_in->data );
+         DBG_INFO_STR_STR( "Key reset", (const char*)ps_key_in->data, ps_value_in->data );
          break;
       }
    }
@@ -67,7 +69,7 @@ void cache_set_var(
          &s_var_tmp
       );
 
-      DBG_INFO_STR_STR( "Key created", ps_key_in->data, ps_value_in->data );
+      DBG_INFO_STR_STR( "Key created", (const char*)ps_key_in->data, (const char*)ps_value_in->data );
    }
 
 csv_cleanup:

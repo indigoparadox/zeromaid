@@ -24,9 +24,11 @@
 #include <SDL/SDL.h>
 #elif defined __unix__
 #include <SDL/SDL.h>
+#elif defined USEWII
+#include <SDL/SDL.h>
 #else
 #include <SDL.h>
-#endif /* __APPLE__, __unix__ */
+#endif /* __APPLE__, __unix__, USEWII */
 #endif /* USESDL */
 
 #include "defines.h"
@@ -38,7 +40,11 @@
 #include "systype_platform.h"
 
 #ifdef USEWII
+#include <network.h>
 #include "zeromaid_wii_data.h"
+#ifdef USEDEBUG
+#include <debug.h>
+#endif
 #endif /* USEWII */
 
 DBG_MAIN
@@ -64,12 +70,16 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0; /* The program error level returned to the shell. */
    bstring ps_system_path,
       ps_title,
-      ps_new_share_path, /* The directory containing shared files. */
       ps_default_font_path;
-   FILE* ps_file_default;
    CACHE_CACHE* ps_cache = NULL;
    ezxml_t ps_xml_system;
    const char* pc_title;
+   #ifdef USEWII
+   char ac_ipaddress_text[16];
+   #else
+   bstring ps_new_share_path; /* The directory containing shared files. */
+   FILE* ps_file_default;
+   #endif /* USEWII */
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
@@ -88,6 +98,7 @@ int main( int argc, char* argv[] ) {
       goto main_system_ok;
    }
 
+   #ifndef USEWII
    /* Open the default.txt file and figure out the name of the game to load. */
    ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
    if( NULL == ps_file_default ) {
@@ -106,10 +117,26 @@ int main( int argc, char* argv[] ) {
       goto main_cleanup;
    }
    DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
+   #else
+   #ifdef USEDEBUG
+   /* Setup the Wii network debugging infrastructure. */
+
+	if( if_config( ac_ipaddress_text, NULL, NULL, TRUE ) ) {
+	   printf( "\n\n\n\nUnable to setup network." );
+	   sleep( 5 );
+		goto main_cleanup;
+	} else {
+	   net_print_init( DBG_NET_HOST, DBG_NET_PORT );
+      DBG_INFO( "Remote debugger connection established." );
+	}
+
+   //DEBUG_Init( 100, 5656 );
+   #endif /* USEDEBUG */
+   #endif /* USEWII */
 
    /* If the system file doesn't exist in this directory, we're hosed. */
    if( !file_exists( ps_system_path ) ) {
-      DBG_ERR( "Unable to find " PATH_FILE_SYSTEM "." );
+      DBG_ERR_STR( "Unable to find system file", ps_system_path->data );
       i_error_level = ERROR_LEVEL_NOSYS;
       goto main_cleanup;
    }
@@ -132,7 +159,8 @@ int main( int argc, char* argv[] ) {
    /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
    #ifdef USEWII
    dolfsInit( &zeromaid_wii_data );
-   WPAD_Init();
+   SDL_Init( SDL_INIT_JOYSTICK );
+   SDL_JoystickOpen( 0 );
    #endif /* USEWII */
 
    /* Initialize DirectX input stuff. */
@@ -243,7 +271,9 @@ main_cleanup:
 
    bdestroy( ps_system_path );
    bdestroy( ps_title );
+   #ifndef USEWII
    bdestroy( ps_new_share_path );
+   #endif /* USEWII */
 
    #ifdef OUTTOFILE
    fclose( gps_debug );

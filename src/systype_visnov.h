@@ -139,7 +139,7 @@ typedef struct {
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
    s_command_tmp.data[di].dtype = \
-      atoi( ps_command_attr->data );
+      atoi( (const char*)ps_command_attr->data );
 
 /* Purpose: Parse a float attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
@@ -147,7 +147,7 @@ typedef struct {
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
    s_command_tmp.data[di].dtype = \
-      atof( ps_command_attr->data );
+      atof( (const char*)ps_command_attr->data );
 
 /* Purpose: Parse a string attribute into the property specified by dtype.    */
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
@@ -162,10 +162,10 @@ typedef struct {
    bassignformat( \
       ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
    ); \
-   if( 0 == strcmp( ps_command_attr->data, "local" ) ) { \
+   if( 0 == strcmp( (const char*)ps_command_attr->data, "local" ) ) { \
       s_command_tmp.data[di].dtype = COND_SCOPE_LOCAL; \
       DBG_INFO( "Setting scope: local" ); \
-   } else if( 0 == strcmp( ps_command_attr->data, "global" ) ) { \
+   } else if( 0 == strcmp( (const char*)ps_command_attr->data, "global" ) ) { \
       s_command_tmp.data[di].dtype = COND_SCOPE_GLOBAL; \
       DBG_INFO( "Setting scope: global" ); \
    } else { \

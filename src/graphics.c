@@ -50,7 +50,9 @@ BOOL graphics_create_screen(
       goto gcs_cleanup;
    } else {
       /* The screen was opened. */
-      SDL_WM_SetCaption( ps_title_in->data, ps_title_in->data );
+      SDL_WM_SetCaption(
+         (const char *)ps_title_in->data, (const char *)ps_title_in->data
+      );
    }
    #elif defined USEDIRECTX
 
@@ -106,7 +108,7 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    GFX_SURFACE* ps_temp = NULL; /* Image before transparency. */
 
    /* Load the temporary image. */
-   ps_temp = SDL_LoadBMP( ps_path_in->data );
+   ps_temp = SDL_LoadBMP( (const char*)ps_path_in->data );
 
    if( NULL != ps_temp ) {
       ps_image = SDL_DisplayFormat( ps_temp );
@@ -115,7 +117,7 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
       i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
       SDL_SetColorKey( ps_image, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
 
-      DBG_INFO_STR_PTR( "Loaded image", ps_path_in->data, ps_image );
+      DBG_INFO_STR_PTR( "Loaded image", (const char*)ps_path_in->data, ps_image );
    } else {
       DBG_ERR_STR( "Failed to load image", ps_path_in->data );
       goto gci_cleanup;
@@ -402,7 +404,9 @@ GFX_FONT* graphics_create_font( bstring ps_font_path_in, int i_size_in ) {
    GFX_FONT* ps_font_out;
 
    #ifdef USESDL
-   ps_font_out = TTF_OpenFont( ps_font_path_in->data, i_size_in );
+   ps_font_out = TTF_OpenFont(
+      (const char *)ps_font_path_in->data, i_size_in
+   );
 
    if( NULL == ps_font_out ) {
       DBG_ERR_STR( "Unable to load font", ps_font_path_in->data );
@@ -447,7 +451,7 @@ void graphics_draw_text(
    CONV_COLOR_SDL( ps_color_sdl, ps_color_in );
 
    ps_type_render_out = TTF_RenderText_Solid(
-      ps_font_in, ps_string_in->data, ps_color_sdl
+      ps_font_in, (const char*)ps_string_in->data, ps_color_sdl
    );
 
    if( NULL == ps_type_render_out ) {

@@ -8,9 +8,9 @@
 		<Build>
 			<Target title="Debug-Windows-i686-SDL">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Debug-Windows-i686-SDL/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-Windows-i686-SDL" />
+				<Option output="..\bin\Debug-Windows-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Windows-i686-SDL" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -20,7 +20,7 @@
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#sdl)/include" />
+					<Add directory="$(#sdl)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -34,14 +34,14 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
-					<Add directory="$(#sdl)/lib" />
+					<Add directory="$(#sdl)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-SDL">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Release-Windows-i686-SDL/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Release-Windows-i686-SDL" />
+				<Option output="..\bin\Release-Windows-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Release-Windows-i686-SDL" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -49,7 +49,7 @@
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#sdl)/include" />
+					<Add directory="$(#sdl)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -63,14 +63,14 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
-					<Add directory="$(#sdl)/lib" />
+					<Add directory="$(#sdl)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-Allegro">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Debug-Windows-i686-Allegro/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-Windows-i686-Allegro" />
+				<Option output="..\bin\Debug-Windows-i686-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Windows-i686-Allegro" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -79,21 +79,21 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSEALLEGRO" />
 					<Add option="-DUSEMUSIC" />
-					<Add directory="$(#allegro)/include" />
+					<Add directory="$(#allegro)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
 					<Add option="-pg -lgmon" />
 					<Add library="alleg" />
 					<Add library="mingw32" />
-					<Add directory="$(#allegro)/lib" />
+					<Add directory="$(#allegro)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-Allegro">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Release-Windows-i686-Allegro/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Release-Windows-i686-Allegro" />
+				<Option output="..\bin\Release-Windows-i686-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Release-Windows-i686-Allegro" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -101,20 +101,20 @@
 					<Add option="-DUSEALLEGRO" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#allegro)/include" />
+					<Add directory="$(#allegro)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="alleg" />
 					<Add library="mingw32" />
-					<Add directory="$(#allegro)/lib" />
+					<Add directory="$(#allegro)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Linux-i686-SDL">
 				<Option platforms="Unix;" />
-				<Option output="../bin/Debug-Linux-i686-SDL/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-Linux-i686SDL" />
+				<Option output="..\bin\Debug-Linux-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Linux-i686SDL" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -134,9 +134,9 @@
 				</Linker>
 			</Target>
 			<Target title="Debug-DOS-i386-Allegro">
-				<Option output="../bin/Debug-DOS-i386-Allegro/ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-DOS-i386-Allegro" />
+				<Option output="..\bin\Debug-DOS-i386-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-DOS-i386-Allegro" />
 				<Option type="1" />
 				<Option compiler="djgpp_msdos_compiler" />
 				<Compiler>
@@ -153,9 +153,9 @@
 			</Target>
 			<Target title="Debug-Wii-PPC-DKPWin">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Debug-Wii-PPC-DKPWin/boot.dol" prefix_auto="1" extension_auto="0" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-Wii-PPC-DKPWin" />
+				<Option output="..\bin\Debug-Wii-PPC-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Wii-PPC-DKPWin" />
 				<Option type="1" />
 				<Option compiler="devkitpro_wii_ppc" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -163,13 +163,14 @@
 					<Add option="-g" />
 					<Add option="-DNOGUFIX" />
 					<Add option="-DUSESDL" />
+					<Add option="-DUSENET" />
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSEWII" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="C:/lib/devkitPro/sdlwii/include" />
-					<Add directory="C:/lib/devkitPro/libdolfs/include" />
+					<Add directory="C:\lib\devkitPro\sdlwii\include" />
+					<Add directory="C:\lib\devkitPro\libdolfs\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-mrvl" />
@@ -192,24 +193,27 @@
 					<Add library="ogc" />
 					<Add library="m" />
 					<Add library="wiikeyboard" />
-					<Add directory="C:/lib/devkitPro/libogc/lib/wii" />
-					<Add directory="C:/lib/devkitPro/sdlwii/lib" />
-					<Add directory="C:/lib/devkitPro/grrlib/lib" />
-					<Add directory="C:/lib/devkitPro/libdolfs/lib/wii" />
+					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+					<Add directory="C:\lib\devkitPro\sdlwii\lib\wii" />
+					<Add directory="C:\lib\devkitPro\grrlib\lib" />
+					<Add directory="C:\lib\devkitPro\libdolfs\lib\wii" />
+					<Add directory="C:\lib\devkitPro\portlibs\lib" />
 				</Linker>
 				<ExtraCommands>
-					<Add before="$(dfspack) ../share zeromaid_wii_data" />
+					<Add before="$(dfspack) ../../../Maid/maidex zeromaid_wii_data" />
+					<Add after="#$(wiiload) ..\bin\Debug-Wii-PPC-DKPWin\boot.dol" />
 					<Mode after="always" />
 				</ExtraCommands>
 				<Environment>
-					<Variable name="dfspack" value="C:/lib/devkitPro/libdolfs/bin/dfspack.exe" />
+					<Variable name="wiiload" value="C:\lib\devkitPro\devkitPPC\bin\wiiload.bat" />
+					<Variable name="dfspack" value="C:\lib\devkitPro\libdolfs\bin\dfspack.exe" />
 				</Environment>
 			</Target>
 			<Target title="Release-Wii-PPC-DKPWin">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Release-Wii-PPC-DKPWin/boot.dol" prefix_auto="1" extension_auto="0" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Release-Wii-PPC-DKPWin" />
+				<Option output="..\bin\Release-Wii-PPC-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Release-Wii-PPC-DKPWin" />
 				<Option type="1" />
 				<Option compiler="devkitpro_wii_ppc" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -220,7 +224,7 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="C:/lib/devkitPro/sdl/include" />
+					<Add directory="C:\lib\devkitPro\sdl\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -242,16 +246,17 @@
 					<Add library="ogc" />
 					<Add library="m" />
 					<Add library="wiikeyboard" />
-					<Add directory="C:/lib/devkitPro/libogc/lib/wii" />
-					<Add directory="C:/lib/devkitPro/sdl/lib" />
-					<Add directory="C:/lib/devkitPro/grrlib/lib" />
+					<Add directory="C:\lib\devkitPro\libogc\lib\wii" />
+					<Add directory="C:\lib\devkitPro\sdlwii\lib\wii" />
+					<Add directory="C:\lib\devkitPro\grrlib\lib" />
+					<Add directory="C:\lib\devkitPro\portlibs\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-NDS-ARM-DKPWin">
 				<Option platforms="Windows;" />
-				<Option output="../bin/Debug-NDS-ARM-DKPWin/boot.dol" prefix_auto="1" extension_auto="0" />
-				<Option working_dir="../../../Maid" />
-				<Option object_output="../obj/Debug-NDS-ARM-DKPWin" />
+				<Option output="..\bin\Debug-NDS-ARM-DKPWin\boot.dol" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-NDS-ARM-DKPWin" />
 				<Option type="1" />
 				<Option compiler="devkitpro_nds_arm" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -264,18 +269,18 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-Dmain=SDL_main" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="C:/lib/devkitPro/sdlnds/include" />
+					<Add directory="C:\lib\devkitPro\sdlnds\include" />
 				</Compiler>
 				<Linker>
 					<Add library="nds9" />
 					<Add library="SDL_ttf" />
 					<Add library="SDL" />
-					<Add directory="C:/lib/devkitPro/sdlnds/lib" />
+					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-DirectX">
 				<Option output="ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../Maid" />
+				<Option working_dir="..\..\..\Maid" />
 				<Option type="0" />
 				<Option compiler="microsoft_visual_c_2008" />
 				<Compiler>
@@ -286,7 +291,7 @@
 					<Add option="/DUSEDIRECTX" />
 					<Add option="/DUSEMUSIC" />
 					<Add option="/DEZXML_NOMMAP" />
-					<Add directory="C:/Program Files/Microsoft DirectX SDK (August 2009)/Include" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
 				</Compiler>
 				<Linker>
 					<Add option="/DEBUG" />
@@ -299,17 +304,17 @@
 					<Add library="advapi32.lib" />
 					<Add library="comdlg32.lib" />
 					<Add library="shell32.lib" />
-					<Add directory="C:/Program Files/Microsoft DirectX SDK (August 2009)/Lib/x86" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="bstring/bstrlib.c">
+		<Unit filename="bstring\bstrlib.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="bstring/bstrlib.h" />
+		<Unit filename="bstring\bstrlib.h" />
 		<Unit filename="cache.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -325,10 +330,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="event.h" />
-		<Unit filename="ezxml/ezxml.c">
+		<Unit filename="ezxml\ezxml.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ezxml/ezxml.h" />
+		<Unit filename="ezxml\ezxml.h" />
 		<Unit filename="graphics.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -340,6 +345,15 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mobile.h" />
+		<Unit filename="net_print\net_print.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+		</Unit>
+		<Unit filename="net_print\net_print.h">
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+		</Unit>
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Debug-Windows-i686-SDL" />

@@ -176,7 +176,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
 
    /* Draw the actual window and text. */
    graphics_draw_blit_tile( tps_text_window_bg, NULL, &ts_rect_window );
-   i_buffer_len = strlen( ps_cache_in->text_log[i_index_in].text->data );
+   i_buffer_len = strlen( (const char*)ps_cache_in->text_log[i_index_in].text->data );
    while( i_buffer_start < i_buffer_len && BSTR_ERR != i_buffer_result ) {
       /* If the nominal buffer length would be beyond the end of the string,  *
        * then print to the end of the string. Otherwise, print to the nominal *
