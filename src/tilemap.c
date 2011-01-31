@@ -39,7 +39,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
    ps_map_out->sys_name = bformat( "%s", ps_name_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
-   if( !file_exists( ps_path_in ) ) {
+   if( !zm_file_exists( ps_path_in ) ) {
       DBG_ERR_STR( "Unable to load map", ps_path_in->data );
       return NULL;
    }
@@ -51,7 +51,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
    ps_tiledata_path = bfromcstr( PATH_SHARE );
    ps_tiledata_filename = bfromcstr( ezxml_attr( ps_xml_tiledata, "source" ) );
    bconcat( ps_tiledata_path, ps_tiledata_filename );
-   if( file_exists( ps_tiledata_path ) ) {
+   if( zm_file_exists( ps_tiledata_path ) ) {
       /* Load the map property data. */
       ps_xml_props = ezxml_child( ps_xml_map, "properties" );
       ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );

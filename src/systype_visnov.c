@@ -18,6 +18,7 @@
 
 DBG_ENABLE
 TITLE_ERROR_ENABLE
+GFX_DRAW_LOOP_ENABLE
 
 /* = Functions = */
 
@@ -52,7 +53,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    /* Verify the XML file exists and open or abort accordingly. */
    ps_scene_path =
       bformat( "%s%s.xml", PATH_SHARE , ps_cache_in->map_name->data );
-   if( !file_exists( ps_scene_path ) ) {
+   if( !zm_file_exists( ps_scene_path ) ) {
       DBG_ERR_STR( "Unable to load scene data", ps_scene_path->data );
       i_act_return = RETURN_ACTION_TITLE;
       goto stvnl_cleanup;

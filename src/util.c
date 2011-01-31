@@ -21,7 +21,7 @@
  *          platforms.                                                        */
 /* Parameters: The path of the file to test.                                  */
 /* Return: TRUE if the file exists and can be read, otherwise FALSE.          */
-int file_exists( bstring ps_path_in ) {
+int zm_file_exists( bstring ps_path_in ) {
    #ifdef USEWII
    /* TODO: For some reason, the test below can't detect files on the Wii. */
    return TRUE;
@@ -40,7 +40,7 @@ int file_exists( bstring ps_path_in ) {
  *          evaluate to a boolean TRUE or not.                                */
 /* Parameters: The string to test.                                            */
 /* Return: A boolean indicator of the string's truth.                         */
-BOOL string_is_true( bstring ps_test_in ) {
+BOOL zm_string_is_true( bstring ps_test_in ) {
    if(
       0 == strcmp( (const char*)ps_test_in->data, "true" ) ||
       0 == strcmp( (const char*)ps_test_in->data, "TRUE" ) ||
@@ -52,7 +52,7 @@ BOOL string_is_true( bstring ps_test_in ) {
    }
 }
 
-int string_in_array(
+int zm_string_in_array(
    bstring ps_needle_in,
    int i_start_in,
    bstring* ps_haystack_in,

@@ -31,20 +31,21 @@
 #else
    #include <SDL.h>
 #endif /* __APPLE__, __unix__, USEWII */
-#endif /* USESDL */
+#elif defined USEDIRECTX
+#include <dinput.h>
+#elif defined USEALLEGRO
+#include <allegro.h>
+#endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
-#ifdef USEWII
+/* XXX: Delete this if the Wii can compile without it. */
+/* #ifdef USEWII
 typedef struct _lwpnode {
 	struct _lwpnode *next;
 	struct _lwpnode *prev;
 } lwp_node;
 
 #include <wiiuse/wpad.h>
-#endif /* USEWII */
-
-#ifdef USEDIRECTX
-#include <dinput.h>
-#endif /* USEDIRECTX */
+#endif */ /* USEWII */
 
 #include "defines.h"
 

@@ -37,7 +37,9 @@
 #include <windows.h>
 #include <ddraw.h>
 #include "ddutil.h"
-#endif /* USESDL, USEDIRECTX */
+#elif defined USEALLEGRO
+#include <allegro.h>
+#endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
 #include "defines.h"
 #include "util.h"
@@ -75,9 +77,14 @@ typedef struct {
 } GFX_SURFACE;
 typedef struct { int x, y, w, h; } GFX_RECTANGLE;
 typedef struct { int r, g, b; } GFX_COLOR;
+#elif defined USEALLEGRO
+typedef BITMAP GFX_SURFACE;
+typedef struct { int x, y, w, h; } GFX_RECTANGLE;
+typedef struct { int r, g, b; } GFX_COLOR;
+typedef FONT GFX_FONT;
 #else
 #error "No graphics types defined for this platform!"
-#endif /* USESDL */
+#endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
 /* We might be able to speed up operations using TILEDATA structs by making   *
  * them tree-able, but there probably won't be very many tiles for a map and  *
@@ -104,30 +111,31 @@ typedef struct {
 
 /* If possible, try to delay without busy-spinning. */
 
-#ifdef USESDL
-
-#define GFX_DRAW_LOOP_DECLARE
-#define GFX_DRAW_LOOP_INIT
-#define GFX_DRAW_LOOP_ENABLE
-#define GFX_DRAW_LOOP_START
-#define GFX_DRAW_LOOP_END SDL_Delay( 1000 / GFX_FPS );
-#define GFX_DRAW_LOOP_FREE
-
-#define GFX_GET_SCREEN_WIDTH SDL_GetVideoSurface()->w
-#define GFX_GET_SCREEN_HEIGHT SDL_GetVideoSurface()->h
-
 #define GFX_SPRITESHEET_WIDTH 96
 #define GFX_SPRITESHEET_HEIGHT 256
 
+#ifdef USESDL
+   #define GFX_GET_SCREEN_WIDTH SDL_GetVideoSurface()->w
+   #define GFX_GET_SCREEN_HEIGHT SDL_GetVideoSurface()->h
+#elif defined USEALLEGRO
+   #define GFX_GET_SCREEN_WIDTH SCREEN_W
+   #define GFX_GET_SCREEN_HEIGHT SCREEN_W
+#endif /* USESDL, USEALLEGRO */
+
+#ifdef USESDL
+   #define GFX_DRAW_LOOP_DECLARE
+   #define GFX_DRAW_LOOP_INIT
+   #define GFX_DRAW_LOOP_ENABLE
+   #define GFX_DRAW_LOOP_START
+   #define GFX_DRAW_LOOP_END SDL_Delay( 1000 / GFX_FPS );
+   #define GFX_DRAW_LOOP_FREE
 #else
-
-#define GFX_DRAW_LOOP_DECLARE EVENT_TIMER* gps_fps;
-#define GFX_DRAW_LOOP_INIT gps_fps = event_timer_create();
-#define GFX_DRAW_LOOP_ENABLE extern EVENT_TIMER* gps_fps;
-#define GFX_DRAW_LOOP_START event_timer_start( gps_fps );
-#define GFX_DRAW_LOOP_END while( GFX_FPS > gps_fps->i_ticks_start );
-#define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
-
+   #define GFX_DRAW_LOOP_DECLARE EVENT_TIMER* gps_fps;
+   #define GFX_DRAW_LOOP_INIT gps_fps = event_timer_create();
+   #define GFX_DRAW_LOOP_ENABLE extern EVENT_TIMER* gps_fps;
+   #define GFX_DRAW_LOOP_START event_timer_start( gps_fps );
+   #define GFX_DRAW_LOOP_END while( GFX_FPS > gps_fps->i_ticks_start );
+   #define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
 #endif /* USESDL */
 
 #ifdef USEDIRECTX

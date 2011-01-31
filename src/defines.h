@@ -48,13 +48,15 @@ typedef int SYSTEM_TYPE;
 #define SYSTEM_TYPE_PLATFORM 5
 
 /* Some platforms don't need BOOL defined. */
-#ifndef USEWII
-#ifndef USEDIRECTX
+#if ! defined USEWII && ! defined USEDIRECTX
 typedef unsigned int BOOL;
+#endif /* USEWII, USEDIRECTX */
+
+/* Some platforms don't have BOOL, but do have TRUE and FALSE. */
+#if ! defined USEWII && ! defined USEDIRECTX && ! defined USEALLEGRO
 #define FALSE 0
 #define TRUE 1
-#endif /* USEDIRECTX */
-#endif /* USEWII */
+#endif /* USEWII, USEDIRECTX, USEALLEGRO */
 
 typedef unsigned char BYTE;
 
@@ -86,6 +88,7 @@ typedef int COND_SCOPE;
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
 #define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
 #define ERROR_LEVEL_FONTS 3 /* Unable to setup default fonts. */
+#define ERROR_LEVEL_INITFAIL 4 /* Unable to initialize abstraction. */
 
 #define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */
 

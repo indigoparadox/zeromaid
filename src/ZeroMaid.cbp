@@ -19,6 +19,7 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#sdl)\include" />
 				</Compiler>
@@ -48,6 +49,7 @@
 					<Add option="-O2" />
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#sdl)\include" />
 				</Compiler>
@@ -78,12 +80,14 @@
 					<Add option="-g" />
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSEALLEGRO" />
+					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#allegro)\include" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
 					<Add option="-pg -lgmon" />
+					<Add option="-pg" />
 					<Add library="alleg" />
 					<Add library="mingw32" />
 					<Add directory="$(#allegro)\lib" />
@@ -100,6 +104,7 @@
 					<Add option="-O2" />
 					<Add option="-DUSEALLEGRO" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#allegro)\include" />
 				</Compiler>
@@ -110,11 +115,40 @@
 					<Add directory="$(#allegro)\lib" />
 				</Linker>
 			</Target>
+			<Target title="Debug-Windows-i686-DirectX">
+				<Option output="ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option type="0" />
+				<Option compiler="microsoft_visual_c_2008" />
+				<Compiler>
+					<Add option="/TP" />
+					<Add option="/W1" />
+					<Add option="/Zi /D_DEBUG" />
+					<Add option="/DVISUALSTUDIO" />
+					<Add option="/DUSEDIRECTX" />
+					<Add option="/DUSEMUSIC" />
+					<Add option="/DEZXML_NOMMAP" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
+				</Compiler>
+				<Linker>
+					<Add option="/DEBUG" />
+					<Add library="dinput8.lib" />
+					<Add library="ddraw.lib" />
+					<Add library="dxguid.lib" />
+					<Add library="User32.lib" />
+					<Add library="Gdi32.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="shell32.lib" />
+					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
+				</Linker>
+			</Target>
 			<Target title="Debug-Linux-i686-SDL">
 				<Option platforms="Unix;" />
 				<Option output="..\bin\Debug-Linux-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="..\..\..\Maid" />
-				<Option object_output="..\obj\Debug-Linux-i686SDL" />
+				<Option object_output="..\obj\Debug-Linux-i686-SDL" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -124,6 +158,8 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSESDL" />
 					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
+					<Add option="-DOUTTOFILE" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
@@ -131,6 +167,28 @@
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
 					<Add library="SDL_image" />
+				</Linker>
+			</Target>
+			<Target title="Debug-Linux-i686-Allegro">
+				<Option platforms="Unix;" />
+				<Option output="..\bin\Debug-Linux-i686-Allegro\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Linux-i686-Allegro" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="`allegro-config --cflags`" />
+					<Add option="-DUSEDEBUG" />
+					<Add option="-DUSEALLEGRO" />
+					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
+					<Add option="-DOUTTOFILE" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg" />
+					<Add option="`allegro-config --libs`" />
 				</Linker>
 			</Target>
 			<Target title="Debug-DOS-i386-Allegro">
@@ -278,35 +336,6 @@
 					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
-			<Target title="Debug-Windows-i686-DirectX">
-				<Option output="ZeroMaid" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="..\..\..\Maid" />
-				<Option type="0" />
-				<Option compiler="microsoft_visual_c_2008" />
-				<Compiler>
-					<Add option="/TP" />
-					<Add option="/W1" />
-					<Add option="/Zi /D_DEBUG" />
-					<Add option="/DVISUALSTUDIO" />
-					<Add option="/DUSEDIRECTX" />
-					<Add option="/DUSEMUSIC" />
-					<Add option="/DEZXML_NOMMAP" />
-					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Include" />
-				</Compiler>
-				<Linker>
-					<Add option="/DEBUG" />
-					<Add library="dinput8.lib" />
-					<Add library="ddraw.lib" />
-					<Add library="dxguid.lib" />
-					<Add library="User32.lib" />
-					<Add library="Gdi32.lib" />
-					<Add library="kernel32.lib" />
-					<Add library="advapi32.lib" />
-					<Add library="comdlg32.lib" />
-					<Add library="shell32.lib" />
-					<Add directory="C:\Program Files\Microsoft DirectX SDK (August 2009)\Lib\x86" />
-				</Linker>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -362,6 +391,7 @@
 			<Option target="Debug-Linux-i686-SDL" />
 			<Option target="Release-Windows-i686-SDL" />
 			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-Allegro" />
 		</Unit>
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />

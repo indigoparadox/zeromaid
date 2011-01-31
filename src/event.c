@@ -115,6 +115,10 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    }
    #elif defined USEDIRECTX
    BOOL as_keys[EVENT_ID_MAX];
+   #elif defined USEALLEGRO
+   int i_key_value;
+   int as_keys[KEY_MAX] = { FALSE },
+      as_joybuttons[MAX_JOYSTICK_BUTTONS] = { FALSE };
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USEWII, USESDL, USEDIRECTX */
@@ -151,6 +155,8 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    ) ) ) {
       /* error code */
    }
+   #elif defined USEALLEGRO
+   i_key_value = readkey();
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USEWII, USESDL, USEDIRECTX */
@@ -294,6 +300,38 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          default:
             i_key_test = 0;
       }
+      #elif defined USEALLEGRO
+      switch( i ) {
+         case EVENT_ID_UP:
+            i_key_test = KEY_UP;
+            break;
+
+         case EVENT_ID_DOWN:
+            i_key_test = KEY_DOWN;
+            break;
+
+         case EVENT_ID_RIGHT:
+            i_key_test = KEY_RIGHT;
+            break;
+
+         case EVENT_ID_LEFT:
+            i_key_test = KEY_LEFT;
+            break;
+
+         case EVENT_ID_ESC:
+            i_key_test = KEY_ESC;
+            break;
+
+         case EVENT_ID_FIRE:
+            i_key_test = KEY_Z;
+            break;
+
+         case EVENT_ID_JUMP:
+            i_key_test = KEY_X;
+            break;
+
+         default: continue;
+      }
       #endif /* USEWII, USESDL, USEDIRECTX */
 
       /* Perform the actual input test. i_key_test, i_joybutton_test,         *
@@ -347,6 +385,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          tab_poll_last_joybutton[i] = FALSE;
       }
 
+      #ifndef USEALLEGRO
       /* Test the joystick hat. */
       if(
          -1 != i_joyhat_test &&
@@ -369,6 +408,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          tab_poll_last_joyhat[i] = FALSE;
 
       }
+      #endif /* USEALLEGRO */
    }
 }
 

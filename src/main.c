@@ -124,7 +124,7 @@ int main( int argc, char* argv[] ) {
     * so that we can give the multimods system a chance to check for a        *
     * designated mod to load.                                                 */
    ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-   if( file_exists( ps_system_path ) ) {
+   if( zm_file_exists( ps_system_path ) ) {
       /* We sound a system file right here, so skip looking for one. */
       goto main_system_ok;
    }
@@ -152,7 +152,7 @@ int main( int argc, char* argv[] ) {
    #endif /* USEMULTIMODS */
 
    /* If the system file doesn't exist in this directory, we're hosed. */
-   if( !file_exists( ps_system_path ) ) {
+   if( !zm_file_exists( ps_system_path ) ) {
       DBG_ERR_STR( "Unable to find system file", ps_system_path->data );
       i_error_level = ERROR_LEVEL_NOSYS;
       goto main_cleanup;
@@ -222,7 +222,14 @@ int main( int argc, char* argv[] ) {
    if( FAILED( gs_keyboard->Acquire() ) ) {
       /* error code */
    }
-   #endif /* USESDL, USEDIRECTX */
+   #elif defined USEALLEGRO
+   if( allegro_init() != 0 ) {
+      DBG_ERR( "Unable to initialize Allegro." );
+      i_error_level = ERROR_LEVEL_INITFAIL;
+      goto main_cleanup;
+   }
+   install_keyboard();
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    /* Load the game title. */
    ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );

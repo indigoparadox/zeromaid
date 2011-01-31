@@ -415,7 +415,7 @@ ezxml_t systype_title_load_system( void ) {
    bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
 
    /* Verify the XML file exists and open or abort accordingly. */
-   if( !file_exists( ps_system_path ) ) {
+   if( !zm_file_exists( ps_system_path ) ) {
       DBG_ERR_STR( "Unable to load system file.", ps_system_path->data );
       return NULL;
    } else {
