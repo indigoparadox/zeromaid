@@ -27,7 +27,9 @@ LPDIRECTDRAW7 gps_dx_ddraw = NULL;
 LPDIRECTDRAWSURFACE7 gps_surface_primary = NULL;
 LPDIRECTDRAWSURFACE7 gps_surface_back = NULL;
 DDSURFACEDESC2 gs_surface_desc;
-#endif /* USEDIRECTX */
+#elif defined USEALLEGRO
+GFX_SURFACE* gps_screen_buffer = NULL;
+#endif /* USEDIRECTX, USEALLEGRO */
 
 /* = Functions = */
 
@@ -55,8 +57,6 @@ BOOL graphics_create_screen(
       );
    }
    #elif defined USEDIRECTX
-
-
    if( FAILED(
       DirectDrawCreateEx( NULL, (void**)gps_dx_ddraw, IID_IDirectDraw7, NULL )
    ) ) {
@@ -85,6 +85,27 @@ BOOL graphics_create_screen(
       &gs_surface_desc.ddsCaps, &gps_surface_back
    ) != DD_OK ) {
       DBG_ERR( "Failed to create DirectDraw backbuffer surface." );
+      b_success = FALSE;
+      goto gcs_cleanup;
+   }
+   #elif defined USEALLEGRO
+   if( 0 == set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0 ) ) {
+      /* Everything went better than expected! */
+      goto gcs_cleanup;
+   } else if( 0 == set_gfx_mode(GFX_SAFE, 640, 480, 0, 0) ) {
+	   /* Beggars can't be choosers... */
+	   DBG_ERR_STR( "Unable to set auto graphic mode", allegro_error );
+	   goto gcs_cleanup;
+   } else {
+      DBG_ERR_STR( "Unable to set any graphic mode", allegro_error );
+      b_success = FALSE;
+      goto gcs_cleanup;
+   }
+
+   /* Now that the screen is taken care of, setup the buffer page. */
+   gps_screen_buffer = create_system_bitmap( SCREEN_W, SCREEN_H );
+   if( NULL == gps_screen_buffer ) {
+      DBG_ERR_STR( "Unable to setup screen buffer", allegro_error );
       b_success = FALSE;
       goto gcs_cleanup;
    }
@@ -160,9 +181,11 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    ps_image->surface = DDLoadBitmap( gps_dx_ddraw, (LPCSTR)ps_path_in->data, 0, 0 );
    ps_image->w = i_width;
    ps_image->h = i_height;
+   #elif defined USEALLEGRO
+   ps_image = load_bitmap( ps_path_in->data, NULL );
    #else
    #error "No image loading mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
 gci_cleanup:
 
@@ -224,7 +247,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
    DBG_INFO_STR( "Loading tile data", ps_path_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
-   if( !file_exists( ps_path_in ) ) {
+   if( !zm_file_exists( ps_path_in ) ) {
       DBG_ERR_STR( "Unable to load tile data", ps_path_in->data );
       return NULL;
    }
@@ -304,7 +327,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
                NULL != ps_prop_string &&
                0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "animated" )
             ) {
-               if( string_is_true( ps_prop_string ) ) {
+               if( zm_string_is_true( ps_prop_string ) ) {
                   ps_tileset_out->tile_list[i_gid].animated = TRUE;
                }
             }
@@ -351,15 +374,7 @@ GFX_COLOR* graphics_create_color(
 ) {
    GFX_COLOR* ps_color_out = NULL;
 
-   #ifdef USESDL
-   ps_color_out = calloc( 1, sizeof( GFX_COLOR ) );
-   if( NULL == ps_color_out ) {
-      DBG_ERR( "Unable to allocate color." );
-   }
-   ps_color_out->r = i_red_in;
-   ps_color_out->g = i_green_in;
-   ps_color_out->b = i_blue_in;
-   #elif defined USEDIRECTX
+   #if defined USESDL || defined USEDIRECTX || defined USEALLEGRO
    ps_color_out = (GFX_COLOR*)calloc( 1, sizeof( GFX_COLOR ) );
    if( NULL == ps_color_out ) {
       DBG_ERR( "Unable to allocate color." );
@@ -369,7 +384,7 @@ GFX_COLOR* graphics_create_color(
    ps_color_out->b = i_blue_in;
    #else
    #error "No color creation mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    return ps_color_out;
 }
@@ -402,21 +417,47 @@ GFX_COLOR* graphics_create_color_html( bstring ps_color_in ) {
 
 GFX_FONT* graphics_create_font( bstring ps_font_path_in, int i_size_in ) {
    GFX_FONT* ps_font_out;
+   bstring ps_font_path_proc;
+
+   /* Some font loaders are different, so we might need to alter the inputted *
+    * path.                                                                   */
+   ps_font_path_proc = bformat( "%s", ps_font_path_in->data );
 
    #ifdef USESDL
    ps_font_out = TTF_OpenFont(
       (const char *)ps_font_path_in->data, i_size_in
    );
+   #elif defined USEALLEGRO
+   bstring ps_font_size_txt;
+   int i_file_extension_start;
 
-   if( NULL == ps_font_out ) {
-      DBG_ERR_STR( "Unable to load font", ps_font_path_in->data );
-         DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
-   } else {
-      DBG_INFO_STR( "Font loaded", ps_font_path_in->data );
-   }
+   /* Allegro handles fonts a little differently and requires its own bitmap  *
+    * format anyway, so we'll incorporate the size into the filename.         */
+   ps_font_size_txt = bformat( "_%d", i_size_in );
+   i_file_extension_start = bstrrchr( ps_font_path_proc, '.' );
+   binsert( ps_font_path_proc, i_file_extension_start, ps_font_size_txt, NULL );
+
+   ps_font_out = load_font( ps_font_path_proc->data, NULL, NULL );
+
+   /* Clean up. */
+   bdestroy( ps_font_size_txt );
    #else
    #error "No font loading mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEALLEGRO */
+
+   if( NULL == ps_font_out ) {
+      DBG_ERR_STR( "Unable to load font", ps_font_path_proc->data );
+
+      #ifdef USESDL
+      DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
+      #endif /* USESDL */
+   } else {
+      DBG_INFO_STR( "Font loaded", ps_font_path_proc->data );
+   }
+
+gcf_cleanup:
+
+   bdestroy( ps_font_path_proc );
 
    return ps_font_out;
 }
@@ -464,14 +505,28 @@ void graphics_draw_text(
    ps_destreg.w = ps_type_render_out->w;
    ps_destreg.h = ps_type_render_out->h;
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
+   #elif defined USEALLEGRO
+   textout_ex(
+      gps_screen_buffer,
+      ps_font_in,
+      ps_string_in->data,
+      i_x_in,
+      i_y_in,
+      makecol( ps_color_in->r, ps_color_in->g, ps_color_in->b ),
+      -1
+   );
+   #else
+   #error "No text rendering mechanism defined for this platform!"
+   #endif /* USESDL, USEALLEGRO */
 
 gdt_cleanup:
 
+   #ifdef USESDL
    /* Clean up. */
    SDL_FreeSurface( ps_type_render_out );
-   #else
-   #error "No text rendering mechanism defined for this platform!"
    #endif /* USESDL */
+
+   return;
 }
 
 /* Purpose: Blit a tile from a surface to the screen. We should never be      *
@@ -488,7 +543,9 @@ void graphics_draw_blit_tile(
 
    #ifdef USESDL
    /* No problems, blit! */
-   SDL_BlitSurface( ps_src_in, ps_srcreg_in, SDL_GetVideoSurface(), ps_destreg_in );
+   SDL_BlitSurface(
+      ps_src_in, ps_srcreg_in, SDL_GetVideoSurface(), ps_destreg_in
+   );
    #elif defined USEDIRECTX
    RECT s_dest = {
       ps_destreg_in->x,
@@ -497,9 +554,20 @@ void graphics_draw_blit_tile(
       ps_destreg_in->y + ps_src_in->h
    };
    gps_surface_back->Blt( &s_dest, ps_src_in->surface, NULL, DDBLT_WAIT, NULL );
+   #elif defined USEALLEGRO
+   masked_blit(
+      ps_src_in,
+      gps_screen_buffer,
+      ps_srcreg_in->x,
+      ps_srcreg_in->y,
+      ps_destreg_in->x,
+      ps_destreg_in->y,
+      ps_srcreg_in->w,
+      ps_srcreg_in->h
+   );
    #else
    #error "No tile blitting mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 }
 
 /* Purpose: Blit a sprite from a surface to the screen. We should never be    *
@@ -514,9 +582,11 @@ void graphics_draw_blit_sprite(
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #elif defined USEDIRECTX
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
+   #elif defined USEALLEGRO
+   graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #else
    #error "No sprite blitting mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 }
 
 /* Purpose: Blank the screen.                                                 */
@@ -554,9 +624,18 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
 
    gps_surface_back->
       Blt( NULL, NULL, NULL, DDBLT_COLORFILL|DDBLT_WAIT, &s_fx );
+   #elif defined USEALLEGRO
+   clear_to_color(
+      gps_screen_buffer,
+      makecol(
+         ps_color_in->r,
+         ps_color_in->g,
+         ps_color_in->b
+      )
+   );
    #else
    #error "No blanking mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 }
 
 /* Purpose: Fade the screen in or out.                                        */
@@ -635,9 +714,15 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    /* Clean up. */
    SDL_FreeSurface( ps_surface_screen_copy );
    SDL_FreeSurface( ps_surface_fader );
+   #elif defined USEALLEGRO
+   if( GFX_TRANS_FADE_OUT == i_fade_io ) {
+      fade_out( 32 );
+   } else {
+      fade_in( default_palette, 32 );
+   }
    #else
    #error "No in-fading mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX */
+   #endif /* USESDL, USEALLEGRO */
 }
 
 /* Purpose: Flip the screen surface buffer.                                   */
@@ -647,9 +732,14 @@ void graphics_do_update( void ) {
    SDL_Flip( ps_screen );
    #elif defined USEDIRECTX
    gps_surface_primary->Flip( gps_surface_back, DDFLIP_WAIT );
+   #elif defined USEALLEGRO
+   vsync();
+   acquire_screen();
+   blit( gps_screen_buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H );
+   release_screen();
    #else
    #error "No surface flipping mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 }
 
 /* Purpose: Get the data for the tile with the given GID.                     */
@@ -665,9 +755,12 @@ int graphics_get_font_height( GFX_FONT* ps_font_in ) {
 
    #ifdef USESDL
    i_height_out = TTF_FontHeight( ps_font_in );
+   #elif defined USEALLEGRO
+   /* XXX: Figure out a way to detect this automatically. */
+   i_height_out = 20;
    #else
    #error "No font measuring mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEALLEGRO */
 
    return i_height_out;
 }
@@ -685,9 +778,11 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
    #elif defined USEDIRECTX
    free( ps_surface_in->surface );
    free( ps_surface_in );
+   #elif defined USEALLEGRO
+   destroy_bitmap( ps_surface_in );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 }
 
 /* Purpose: Free the given spritesheet buffer.                                */
@@ -699,9 +794,11 @@ void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
    }
    #elif defined USEDIRECTX
    graphics_free_image( ps_spritesheet_in->image );
+   #elif defined USEALLEGRO
+   graphics_free_image( ps_spritesheet_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    free( ps_spritesheet_in );
 }
@@ -713,9 +810,11 @@ void graphics_free_tileset( GFX_TILESET* ps_tileset_in ) {
    SDL_FreeSurface( ps_tileset_in->image );
    #elif defined USEDIRECTX
    graphics_free_image( ps_tileset_in->image );
+   #elif defined USEALLEGRO
+   graphics_free_image( ps_tileset_in->image );
    #else
    #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX */
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    free( ps_tileset_in );
 }
@@ -729,6 +828,8 @@ void graphics_free_font( GFX_FONT* ps_font_in ) {
 
    #ifdef USESDL
    TTF_CloseFont( ps_font_in );
+   #elif defined USEALLEGRO
+   destroy_font( ps_font_in );
    #else
    #error "No font freeing mechanism defined for this platform!"
    #endif /* USESDL */

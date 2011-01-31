@@ -113,7 +113,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    ps_path_temp = bformat( "%s%s.xml", PATH_SHARE, ps_type_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
-   if( !file_exists( ps_path_temp ) ) {
+   if( !zm_file_exists( ps_path_temp ) ) {
       DBG_ERR_STR( "Unable to load mobile data file", ps_path_temp->data );
       return NULL;
    }
