@@ -64,7 +64,7 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Listen for events. */
       event_do_poll( &s_event, FALSE );
-      if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
+      if( s_event.state[EVENT_ID_CANCEL] || s_event.state[EVENT_ID_QUIT] ) {
          DBG_INFO( "Quitting..." );
          goto slt_cleanup;
       }
@@ -412,11 +412,13 @@ BOOL systype_title_load_titlescreen_text(
 
 /* Purpose: Verify that the system file is valid and load its XML tree.       */
 ezxml_t systype_title_load_system( void ) {
-   bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   bstring ps_system_path;
+
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_system_path ) ) {
-      DBG_ERR_STR( "Unable to load system file.", ps_system_path->data );
+      DBG_ERR_STR( "Unable to find system file.", ps_system_path->data );
       return NULL;
    } else {
       return ezxml_parse_file( (const char*)ps_system_path->data );

@@ -303,6 +303,8 @@ main_cleanup:
 
    GFX_DRAW_LOOP_FREE
 
+   event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
+
    bdestroy( ps_system_path );
    bdestroy( ps_title );
    #ifndef USEWII
