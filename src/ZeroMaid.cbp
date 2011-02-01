@@ -83,6 +83,7 @@
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DEZXML_NOMMAP" />
+					<Add option="-DOUTTOFILE" />
 					<Add directory="$(#allegro)\include" />
 				</Compiler>
 				<Linker>

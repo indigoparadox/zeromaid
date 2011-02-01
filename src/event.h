@@ -48,8 +48,22 @@ typedef struct _lwpnode {
 #endif */ /* USEWII */
 
 #include "defines.h"
+#include "util.h"
 
 /* = Definitions = */
+
+/* This is important for reading the right key settings from the              *
+ * configuration files.                                                       */
+
+#ifdef USESDL
+   #define EVENT_INPUT_ENGINE "sdl"
+#elif defined USEDIRECTX
+   #define EVENT_INPUT_ENGINE "directx"
+#elif defined USEALLEGRO
+   #define EVENT_INPUT_ENGINE "allegro"
+#endif
+
+/* Event IDs; these are events that the game can detect. */
 
 #define EVENT_ID_NULL 0
 
@@ -60,15 +74,28 @@ typedef struct _lwpnode {
 #define EVENT_ID_LEFT 5
 #define EVENT_ID_FIRE 6
 #define EVENT_ID_JUMP 7
-#define EVENT_ID_ESC 8
+#define EVENT_ID_CANCEL 8
+#define EVENT_ID_MENU 9
 
-#define EVENT_ID_MAX 9
+#define EVENT_ID_MAX 10
+
+/* Event types; these are the kinds of physical actions which the events      *
+ * listed above can be assigned to.                                           */
+
+#define EVENT_INPUT_TYPE_KEY 1
+#define EVENT_INPUT_TYPE_JHAT 2
+#define EVENT_INPUT_TYPE_JBUTTON 3
+
+/* If this is passed, the loader will free its cached assignments: */
+#define EVENT_INPUT_TYPE_FREE 4
 
 #ifdef USESDL
 /* TODO: Autodetect the number of joystick buttons. */
 #define SDL_JOYBUTTONS_MAX 10
 #define SDL_JOYHATPOS_MAX 13
-#endif /* USESDL */
+#elif defined USEALLEGRO
+#define as_keys key
+#endif /* USESDL, USEALLEGRO */
 
 /* It might not be a good idea to use time() as our tick timer, so keep an    *
  * out for problems this might cause.                                         */
@@ -95,6 +122,8 @@ void event_timer_start( EVENT_TIMER* );
 void event_timer_start( EVENT_TIMER* );
 void event_timer_pause( EVENT_TIMER* );
 void event_timer_unpause( EVENT_TIMER* );
+int* event_load_assignments( int );
+int event_get_assigned( int, int );
 void event_do_poll( EVENT_EVENT*, BOOL );
 #ifdef USESDL
 void event_do_poll_sdl_joystick_buttons( SDL_Event*, Uint8* );

@@ -89,10 +89,10 @@ BOOL graphics_create_screen(
       goto gcs_cleanup;
    }
    #elif defined USEALLEGRO
-   if( 0 == set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0 ) ) {
+   if( 0 == set_gfx_mode( GFX_AUTODETECT_WINDOWED, i_width_in, i_height_in, 0, 0 ) ) {
       /* Everything went better than expected! */
       goto gcs_cleanup;
-   } else if( 0 == set_gfx_mode(GFX_SAFE, 640, 480, 0, 0) ) {
+   } else if( 0 == set_gfx_mode( GFX_SAFE, i_width_in, i_height_in, 0, 0 ) ) {
 	   /* Beggars can't be choosers... */
 	   DBG_ERR_STR( "Unable to set auto graphic mode", allegro_error );
 	   goto gcs_cleanup;
@@ -108,6 +108,8 @@ BOOL graphics_create_screen(
       DBG_ERR_STR( "Unable to setup screen buffer", allegro_error );
       b_success = FALSE;
       goto gcs_cleanup;
+   } else {
+      DBG_INFO_PTR( "Created screen buffer", gps_screen_buffer );
    }
    #else
    #error "No screen-getting mechanism defined for this platform!"
@@ -555,6 +557,35 @@ void graphics_draw_blit_tile(
    };
    gps_surface_back->Blt( &s_dest, ps_src_in->surface, NULL, DDBLT_WAIT, NULL );
    #elif defined USEALLEGRO
+   BOOL b_src_created = FALSE,
+      b_dest_created = FALSE;
+
+   /* If the source region rectangle is null, we must want to blit the whole  *
+    * source.                                                                 */
+   if( NULL == ps_srcreg_in ) {
+      ps_srcreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_srcreg_in->x = 0;
+      ps_srcreg_in->y = 0;
+      ps_srcreg_in->w = ps_src_in->w;
+      ps_srcreg_in->h = ps_src_in->h;
+      b_src_created = TRUE;
+   }
+
+   /* If the destination region rectangle is null, we must want to blit the   *
+    * surface to as much space as it will take.                               */
+   if( NULL == ps_destreg_in ) {
+      ps_destreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_destreg_in->x = 0;
+      ps_destreg_in->y = 0;
+      ps_destreg_in->w = ps_src_in->w;
+      ps_destreg_in->h = ps_src_in->h;
+      b_dest_created = TRUE;
+   }
+
+   if( NULL == gps_screen_buffer ) {
+      goto gdbt_cleanup;
+   }
+
    masked_blit(
       ps_src_in,
       gps_screen_buffer,
@@ -568,6 +599,20 @@ void graphics_draw_blit_tile(
    #else
    #error "No tile blitting mechanism defined for this platform!"
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */
+
+gdbt_cleanup:
+
+   #ifdef USEALLEGRO
+   if( b_src_created ) {
+      free( ps_srcreg_in );
+   }
+
+   if( b_dest_created ) {
+      free( ps_destreg_in );
+   }
+   #endif /* USEALLEGRO */
+
+   return;
 }
 
 /* Purpose: Blit a sprite from a surface to the screen. We should never be    *
@@ -733,10 +778,14 @@ void graphics_do_update( void ) {
    #elif defined USEDIRECTX
    gps_surface_primary->Flip( gps_surface_back, DDFLIP_WAIT );
    #elif defined USEALLEGRO
-   vsync();
-   acquire_screen();
+   if( NULL == gps_screen_buffer ) {
+      return;
+   }
+
+   //vsync();
+   //acquire_screen();
    blit( gps_screen_buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H );
-   release_screen();
+   //release_screen();
    #else
    #error "No surface flipping mechanism defined for this platform!"
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */

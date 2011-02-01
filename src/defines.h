@@ -35,8 +35,13 @@
 
 /* Platform-specific stuff. */
 #define FILE_EXTENSION_IMAGE "bmp"
-#define FILE_EXTENSION_FONT "ttf"
 #define FILE_EXTENSION_AI "aib"
+
+#ifdef USEALLEGRO
+#define FILE_EXTENSION_FONT "bmp"
+#else
+#define FILE_EXTENSION_FONT "ttf"
+#endif /* USEALLEGRO */
 
 /* System loop types. */
 typedef int SYSTEM_TYPE;
@@ -74,6 +79,7 @@ typedef int COND_SCOPE;
 
 #define PATH_FILE_DEFAULT "default.txt"
 #define PATH_FILE_SYSTEM "system.xml"
+#define PATH_FILE_EVENTS "events.xml"
 #define PATH_FILE_WINDOW_WIDE "screen_window_wide." FILE_EXTENSION_IMAGE
 #define PATH_FILE_WINDOW_RECT "screen_window." FILE_EXTENSION_IMAGE
 

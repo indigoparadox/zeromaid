@@ -145,7 +145,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
             );
          }
       }
-      if( s_event.state[EVENT_ID_ESC] || s_event.state[EVENT_ID_QUIT] ) {
+      if( s_event.state[EVENT_ID_CANCEL] || s_event.state[EVENT_ID_QUIT] ) {
          ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
          goto sal_cleanup;
       }

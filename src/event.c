@@ -87,6 +87,147 @@ void event_timer_unpause( EVENT_TIMER* ps_timer_in ) {
    }
 }
 
+/* Purpose: Load all of the assignments for the given input type.             */
+int* event_load_assignments( int i_input_type_in ) {
+   bstring ps_events_path = NULL;
+   ezxml_t ps_xml_events = NULL,
+      ps_xml_engine = NULL,
+      ps_xml_input_iter = NULL;
+   int* ai_input_events_out = NULL,
+      i_event_target = 0, /* The index at which to assign the scancode. */
+      i_event_assignment = 0, /* The scancode to assign. */
+      i; /* Loop counter. */
+
+   /* Open the events.xml configuration file and read the key assignments for *
+    * the current platform.                                                   */
+   ps_events_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_EVENTS );
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !zm_file_exists( ps_events_path ) ) {
+      DBG_ERR_STR( "Unable to find events file.", ps_events_path->data );
+      goto ela_cleanup;
+   } else {
+      ps_xml_events = ezxml_parse_file( (const char*)ps_events_path->data );
+   }
+
+   /* Try to open the section for the current input engine. */
+   ps_xml_engine = ezxml_child( ps_xml_events, EVENT_INPUT_ENGINE );
+   if( NULL == ps_xml_engine ) {
+      DBG_ERR_STR(
+         "Invalid events data format",
+         "Missing <" EVENT_INPUT_ENGINE "> element."
+      );
+      goto ela_cleanup;
+   }
+
+   /* Cycle through and load all of the assignments for the selected input    *
+    * type.                                                                   */
+   switch( i_input_type_in ) {
+      case EVENT_INPUT_TYPE_KEY:
+         ps_xml_input_iter = ezxml_child( ps_xml_engine, "key" );
+         break;
+
+      case EVENT_INPUT_TYPE_JBUTTON:
+         ps_xml_input_iter = ezxml_child( ps_xml_engine, "jbutton" );
+         break;
+
+      case EVENT_INPUT_TYPE_JHAT:
+         ps_xml_input_iter = ezxml_child( ps_xml_engine, "jhat" );
+         break;
+
+      default:
+         DBG_ERR( "Input assignments loader called with no type." );
+         goto ela_cleanup;
+   }
+   ai_input_events_out = (int*)calloc( EVENT_ID_MAX, sizeof( int ) );
+   for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
+      ai_input_events_out[i] = -1;
+   }
+   if( NULL == ai_input_events_out ) {
+      DBG_ERR( "Unable to allocate input event array." );
+      goto ela_cleanup;
+   }
+   while( NULL != ps_xml_input_iter ) {
+      i_event_target = atoi( ezxml_attr( ps_xml_input_iter, "id" ) );
+      i_event_assignment =
+         atoi( ezxml_attr( ps_xml_input_iter, "assignment" ) );
+
+      if(
+         0 < i_event_target && EVENT_ID_MAX > i_event_target
+      ) {
+         /* The assignment seems legit. */
+         ai_input_events_out[i_event_target] = i_event_assignment;
+
+         DBG_INFO_INT_INT(
+            "Input event assigned",
+            atoi( ezxml_attr( ps_xml_input_iter, "id" ) ),
+            atoi( ezxml_attr( ps_xml_input_iter, "assignment" ) )
+         )
+      }
+
+      /* Move on to the next one. */
+      ps_xml_input_iter = ezxml_next( ps_xml_input_iter );
+   }
+
+ela_cleanup:
+
+   ezxml_free( ps_xml_events );
+
+   return ai_input_events_out;
+}
+
+/* Purpose: Given an event ID, get the assigned keyboard scancode for the     *
+ *          given event.                                                      */
+int event_get_assigned( int i_input_type_in, int i_event_id_in ) {
+   static int *ti_key_events = NULL,
+      *ti_jhat_events = NULL,
+      *ti_jbutton_events = NULL;
+
+   /* Be hygenic if the system is asking the input assignment cache to free   *
+    * its memory.                                                             */
+   if( EVENT_INPUT_TYPE_FREE == i_input_type_in ) {
+      if( NULL != ti_key_events ) {
+         free( ti_key_events );
+      }
+      if( NULL != ti_jhat_events ) {
+         free( ti_jhat_events );
+      }
+      if( NULL != ti_jbutton_events ) {
+         free( ti_jbutton_events );
+      }
+   }
+
+   /* If we're missing cached data for the type of input we're trying to look *
+    * up, then load it from the disk.                                         */
+   if( NULL == ti_key_events && EVENT_INPUT_TYPE_KEY == i_input_type_in ) {
+      ti_key_events = event_load_assignments( i_input_type_in );
+   }
+   if( NULL == ti_jhat_events && EVENT_INPUT_TYPE_JHAT == i_input_type_in ) {
+      ti_jhat_events = event_load_assignments( i_input_type_in );
+   }
+   if(
+      NULL == ti_jbutton_events &&
+      EVENT_INPUT_TYPE_JBUTTON == i_input_type_in
+   ) {
+      ti_jbutton_events = event_load_assignments( i_input_type_in );
+   }
+
+   /* Look up and return the event ID requested. */
+   switch( i_input_type_in ) {
+      case EVENT_INPUT_TYPE_KEY:
+         return ti_key_events[i_event_id_in];
+
+      case EVENT_INPUT_TYPE_JHAT:
+         return ti_jhat_events[i_event_id_in];
+
+      case EVENT_INPUT_TYPE_JBUTTON:
+         return ti_jbutton_events[i_event_id_in];
+
+      default:
+         return 0;
+   }
+}
+
 /* Purpose: Poll user input devices.                                          */
 void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    static BOOL tab_poll_last_key[EVENT_ID_MAX] = { FALSE },
@@ -94,7 +235,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       tab_poll_last_joyhat[EVENT_ID_MAX] = { FALSE };
    int i_key_test = 0, /* A translation placeholder for pressed keys. */
       i_joybutton_test = 0,
-      i_joyaxis_test = 0,
+      /* i_joyaxis_test = 0, */
       i_joyhat_test = 0,
       i; /* Loop iterator. */
 
@@ -116,9 +257,9 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    #elif defined USEDIRECTX
    BOOL as_keys[EVENT_ID_MAX];
    #elif defined USEALLEGRO
-   int i_key_value;
+   /* int i_key_value;
    int as_keys[KEY_MAX] = { FALSE },
-      as_joybuttons[MAX_JOYSTICK_BUTTONS] = { FALSE };
+      as_joybuttons[MAX_JOYSTICK_BUTTONS] = { FALSE }; */
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USEWII, USESDL, USEDIRECTX */
@@ -132,7 +273,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
 
    if( SDL_KEYDOWN == tps_event_temp->type ) {
-      DBG_INFO( "" );
 
    } else if( SDL_JOYHATMOTION == tps_event_temp->type ) {
       event_do_poll_sdl_joystick_hats( tps_event_temp, as_joyhat );
@@ -156,7 +296,8 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       /* error code */
    }
    #elif defined USEALLEGRO
-   i_key_value = readkey();
+   /* i_key_value = readkey(); */
+   poll_keyboard();
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USEWII, USESDL, USEDIRECTX */
@@ -165,174 +306,11 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    for( i = 0 ; i < EVENT_ID_MAX ; i++ ) {
       /* Each time this loop goes around, one of the events selected by the   *
        * select statements below is tested for each type of input device.     */
-      #ifdef USEWII
-      switch( i ) {
-         case EVENT_ID_UP:
-            i_key_test = -1;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_UP;
-            break;
-         case EVENT_ID_DOWN:
-            i_key_test = -1;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_DOWN;
-            break;
-         case EVENT_ID_RIGHT:
-            i_key_test = -1;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_RIGHT;
-            break;
-         case EVENT_ID_LEFT:
-            i_key_test = -1;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_LEFT;
-            break;
-         case EVENT_ID_FIRE:
-            i_key_test = -1;
-            i_joybutton_test = 2;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         case EVENT_ID_JUMP:
-            i_key_test = -1;
-            i_joybutton_test = 3;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         case EVENT_ID_ESC:
-            i_key_test = -1;
-            i_joybutton_test = 6;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         default:
-            continue;
-      }
-      #elif defined USESDL
-      switch( i ) {
-         /* TODO: Assign joystick controls and make them configurable. */
-         case EVENT_ID_UP:
-            i_key_test = SDLK_UP;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_UP;
-            break;
-         case EVENT_ID_DOWN:
-            i_key_test = SDLK_DOWN;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_DOWN;
-            break;
-         case EVENT_ID_RIGHT:
-            i_key_test = SDLK_RIGHT;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_RIGHT;
-            break;
-         case EVENT_ID_LEFT:
-            i_key_test = SDLK_LEFT;
-            i_joybutton_test = -1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = SDL_HAT_LEFT;
-            break;
-         case EVENT_ID_FIRE:
-            i_key_test = SDLK_z;
-            i_joybutton_test = 0;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         case EVENT_ID_JUMP:
-            i_key_test = SDLK_x;
-            i_joybutton_test = 1;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         case EVENT_ID_ESC:
-            i_key_test = SDLK_ESCAPE;
-            i_joybutton_test = 2;
-            i_joyaxis_test = -1;
-            i_joyhat_test = -1;
-            break;
-         default:
-            continue;
-      }
-      #elif defined USEDIRECTX
-      switch( i ) {
-         case EVENT_ID_UP:
-            i_key_test =
-               ( gac_keystate[DIK_UP] & 0x80 ? EVENT_ID_UP : EVENT_ID_NULL );
-            break;
 
-         case EVENT_ID_DOWN:
-            i_key_test =
-               ( gac_keystate[DIK_DOWN] & 0x80 ? EVENT_ID_DOWN : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_RIGHT:
-            i_key_test =
-               ( gac_keystate[DIK_RIGHT] & 0x80 ? EVENT_ID_RIGHT : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_LEFT:
-            i_key_test =
-               ( gac_keystate[DIK_LEFT] & 0x80 ? EVENT_ID_LEFT : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_ESC:
-            i_key_test =
-               ( gac_keystate[DIK_ESCAPE] & 0x80 ? EVENT_ID_ESC : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_FIRE:
-            i_key_test =
-               ( gac_keystate[DIK_Z] & 0x80 ? EVENT_ID_FIRE : EVENT_ID_NULL );
-            break;
-
-         case EVENT_ID_JUMP:
-            i_key_test =
-               ( gac_keystate[DIK_X] & 0x80 ? EVENT_ID_JUMP : EVENT_ID_NULL );
-            break;
-
-         default:
-            i_key_test = 0;
-      }
-      #elif defined USEALLEGRO
-      switch( i ) {
-         case EVENT_ID_UP:
-            i_key_test = KEY_UP;
-            break;
-
-         case EVENT_ID_DOWN:
-            i_key_test = KEY_DOWN;
-            break;
-
-         case EVENT_ID_RIGHT:
-            i_key_test = KEY_RIGHT;
-            break;
-
-         case EVENT_ID_LEFT:
-            i_key_test = KEY_LEFT;
-            break;
-
-         case EVENT_ID_ESC:
-            i_key_test = KEY_ESC;
-            break;
-
-         case EVENT_ID_FIRE:
-            i_key_test = KEY_Z;
-            break;
-
-         case EVENT_ID_JUMP:
-            i_key_test = KEY_X;
-            break;
-
-         default: continue;
-      }
-      #endif /* USEWII, USESDL, USEDIRECTX */
+      i_key_test = event_get_assigned( EVENT_INPUT_TYPE_KEY, i );
+      i_joybutton_test = event_get_assigned( EVENT_INPUT_TYPE_JBUTTON, i );
+      i_joyhat_test = event_get_assigned( EVENT_INPUT_TYPE_JHAT, i );
+      /* i_joyaxis_test = event_get_assigned( EVENT_TYPE_JAXIS, i ); */
 
       /* Perform the actual input test. i_key_test, i_joybutton_test,         *
        * i_joyaxis_test, and i_joyhat_test all contain their native           *
@@ -362,6 +340,7 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          tab_poll_last_key[i] = FALSE;
       }
 
+      #ifndef USEALLEGRO
       /* Test the joystick buttons. */
       if(
          -1 != i_joybutton_test &&
@@ -385,7 +364,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
          tab_poll_last_joybutton[i] = FALSE;
       }
 
-      #ifndef USEALLEGRO
       /* Test the joystick hat. */
       if(
          -1 != i_joyhat_test &&
