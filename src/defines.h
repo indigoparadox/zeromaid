@@ -93,7 +93,7 @@ typedef int COND_SCOPE;
 
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
 #define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */
-#define ERROR_LEVEL_FONTS 3 /* Unable to setup default fonts. */
+#define ERROR_LEVEL_WINDOW 3 /* Unable to setup default fonts. */
 #define ERROR_LEVEL_INITFAIL 4 /* Unable to initialize abstraction. */
 
 #define GEN_OPCODE_CLEAN -999999 /* For cleaning static tables. */

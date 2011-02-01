@@ -25,6 +25,7 @@
 #include "tilemap.h"
 #include "mobile.h"
 #include "cache.h"
+#include "window.h"
 
 /* = Definitions = */
 
@@ -46,9 +47,15 @@ int systype_adventure_loop( CACHE_CACHE* );
 BOOL systype_adventure_mobile_walk(
    MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*
 );
+void systype_adventure_menu_show( WINDOW_MENU**, CACHE_CACHE* );
+void systype_adventure_menu_test( void );
 void systype_adventure_viewport_scroll(
-   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, TILEMAP_DIR );
+   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
+   WINDOW_MENU*, TILEMAP_DIR
+);
 void systype_adventure_viewport_draw(
-   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*, BOOL );
+   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
+   WINDOW_MENU*, BOOL
+);
 
 #endif /* SYSTYPE_ADVENTURE_H */

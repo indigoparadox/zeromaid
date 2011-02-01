@@ -20,11 +20,87 @@ DBG_ENABLE
 
 /* = Global Variables = */
 
-WINDOW_MENU* gps_menu = NULL;
-GFX_FONT* gps_default_text_font = NULL,
-   * gps_default_menu_font = NULL;
+static GFX_FONT* tgps_default_text_font = NULL,
+   * tgps_default_menu_font = NULL;
+static WINDOW_MENU_COLORS* tgps_default_menu_colors = NULL;
 
 /* = Functions = */
+
+/* Purpose: Try to setup some things the window system requires to function   *
+ *          properly, such as the default window fonts.                       */
+BOOL window_init( void ) {
+   bstring ps_default_font_path;
+   BOOL b_success = TRUE;
+
+   /* Attempt to setup the default menu colors. */
+   tgps_default_menu_colors = calloc( 1, sizeof( WINDOW_MENU_COLORS ) );
+   if( NULL != tgps_default_menu_colors ) {
+      tgps_default_menu_colors->fg.r = WINDOW_MENU_DEFAULT_COLOR_FG_R;
+      tgps_default_menu_colors->fg.g = WINDOW_MENU_DEFAULT_COLOR_FG_G;
+      tgps_default_menu_colors->fg.b = WINDOW_MENU_DEFAULT_COLOR_FG_B;
+      tgps_default_menu_colors->bg.r = WINDOW_MENU_DEFAULT_COLOR_BG_R;
+      tgps_default_menu_colors->bg.g = WINDOW_MENU_DEFAULT_COLOR_BG_G;
+      tgps_default_menu_colors->bg.b = WINDOW_MENU_DEFAULT_COLOR_BG_B;
+      tgps_default_menu_colors->sfg.r = WINDOW_MENU_DEFAULT_COLOR_FG_S_R;
+      tgps_default_menu_colors->sfg.g = WINDOW_MENU_DEFAULT_COLOR_FG_S_G;
+      tgps_default_menu_colors->sfg.b = WINDOW_MENU_DEFAULT_COLOR_FG_S_B;
+      tgps_default_menu_colors->sbg.r = WINDOW_MENU_DEFAULT_COLOR_BG_S_R;
+      tgps_default_menu_colors->sbg.g = WINDOW_MENU_DEFAULT_COLOR_BG_S_G;
+      tgps_default_menu_colors->sbg.b = WINDOW_MENU_DEFAULT_COLOR_BG_S_B;
+   } else {
+      DBG_ERR( "Unable to allocate window menu default colors." );
+      b_success = FALSE;
+   }
+
+   /* Attempt to load the default text font. */
+   ps_default_font_path = bfromcstr( WINDOW_TEXT_DEFAULT_FONT );
+   window_set_text_font(
+      ps_default_font_path,
+      WINDOW_TEXT_DEFAULT_SIZE
+   );
+   if( NULL == tgps_default_text_font ) {
+      DBG_ERR_STR(
+         "Unable to load window default text font",
+         ps_default_font_path->data
+      );
+      b_success = FALSE;
+   }
+   bdestroy( ps_default_font_path );
+
+   /* Attempt to load the default menu font. */
+   ps_default_font_path = bfromcstr( WINDOW_MENU_DEFAULT_FONT );
+   window_set_menu_font(
+      ps_default_font_path,
+      WINDOW_MENU_DEFAULT_SIZE
+   );
+   if( NULL == tgps_default_menu_font ) {
+      DBG_ERR_STR(
+         "Unable to load window default menu font",
+         ps_default_font_path->data
+      );
+      b_success = FALSE;
+   }
+
+wi_cleanup:
+
+   bdestroy( ps_default_font_path );
+
+   return b_success;
+}
+
+void window_cleanup( void ){
+   if( NULL != tgps_default_text_font ) {
+      graphics_free_font( tgps_default_text_font );
+   }
+
+   if( NULL != tgps_default_menu_font ) {
+      graphics_free_font( tgps_default_menu_font );
+   }
+
+   if( NULL != tgps_default_menu_colors ) {
+      free( tgps_default_menu_colors );
+   }
+}
 
 /* Purpose: Create a text log entry with it at the end of the given list.     */
 /* Parameters: The text of the entry to create, a pointer to the list to      *
@@ -60,6 +136,7 @@ wct_cleanup:
 WINDOW_MENU* window_create_menu(
    bstring ps_items_in,
    COND_SCOPE i_scope_in,
+   void (*f_callback_in)( void ),
    WINDOW_MENU_COLORS* ps_colors_in
 ) {
    struct bstrList* ps_items_list = NULL,
@@ -67,11 +144,30 @@ WINDOW_MENU* window_create_menu(
       * ps_keyval_iter = NULL;
    WINDOW_MENU* ps_menu_out = NULL; /* Temporary menu struct to copy to the stack. */
    int i; /* Loop iterator. */
+   WINDOW_MENU_COLORS* ps_colors = NULL;
+   BOOL b_default_colors; /* We're using a copy of the default colors. */
+
+   /* If no colors were specified, use the default colors. */
+   if( NULL == ps_colors_in ) {
+      ps_colors = malloc( sizeof( WINDOW_MENU_COLORS ) );
+      if( NULL == ps_colors ) {
+         DBG_ERR(
+            "Unable to allocate temporary buffer for default menu colors."
+         );
+         goto wcm_cleanup;
+      }
+      memcpy(
+         ps_colors, tgps_default_menu_colors, sizeof( WINDOW_MENU_COLORS )
+      );
+      b_default_colors = TRUE;
+   }
 
    ps_menu_out = calloc( 1, sizeof( WINDOW_MENU ) );
 
    /* Copy the colors struct. */
-   memcpy( &ps_menu_out->colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
+   if( NULL != ps_colors_in ) {
+      memcpy( &ps_menu_out->colors, ps_colors_in, sizeof( WINDOW_MENU_COLORS ) );
+   }
 
    /* Set the scope. */
    ps_menu_out->scope = i_scope_in;
@@ -115,6 +211,10 @@ WINDOW_MENU* window_create_menu(
    DBG_INFO( "Menu created" );
 
 wcm_cleanup:
+
+   if( b_default_colors && NULL != ps_colors ) {
+      free( ps_colors );
+   }
 
    return ps_menu_out;
 }
@@ -167,7 +267,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    }
 
    /* Figure out the font height. */
-   i_font_height = graphics_get_font_height( gps_default_text_font );
+   i_font_height = graphics_get_font_height( tgps_default_text_font );
 
    /*DBG_INFO_INT( "index", i_index_in );
    DBG_INFO_INT( "count", ps_cache_in->text_log_count );
@@ -209,7 +309,7 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
             ts_rect_window.y +
                (i_lines_printed * (i_font_height + 5 )) +  20,
             ps_line_buffer,
-            gps_default_text_font,
+            tgps_default_text_font,
             // WINDOW_TEXT_SIZE,
             &ts_color_text
          );
@@ -260,7 +360,7 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
    }
 
    /* TODO: Process menu item's font if it has one. */
-   i_menuitem_height = graphics_get_font_height( gps_default_menu_font );
+   i_menuitem_height = graphics_get_font_height( tgps_default_menu_font );
 
    graphics_draw_blit_tile( tps_menu_window_bg, NULL, &ts_rect_window );
 
@@ -276,7 +376,7 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
          ts_rect_window.x + 30,
          ts_rect_window.y + 30 + ((i_menuitem_height + 5) * i),
          ps_menu_in->options[i].desc,
-         gps_default_menu_font,
+         tgps_default_menu_font,
          ps_color
       );
    }
@@ -298,7 +398,7 @@ void window_set_text_font(
       PATH_SHARE "%s." FILE_EXTENSION_FONT,
       ps_font_name_in->data
    );
-   gps_default_text_font = graphics_create_font(
+   tgps_default_text_font = graphics_create_font(
       // TODO: XML should control menu size.
       ps_font_path, i_size_in
    );
@@ -317,7 +417,7 @@ void window_set_menu_font(
       PATH_SHARE "%s." FILE_EXTENSION_FONT,
       ps_font_name_in->data
    );
-   gps_default_menu_font = graphics_create_font(
+   tgps_default_menu_font = graphics_create_font(
       // TODO: XML should control menu size.
       ps_font_path, i_size_in
    );

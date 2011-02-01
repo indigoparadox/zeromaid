@@ -774,7 +774,7 @@ int systype_visnov_exec_menu(
     * it since the dynamic stuff pointed to it will be pointed to by    *
     * the copy on the menu stack.                                       */
    *pps_menu_in = window_create_menu(
-      ps_items, i_scope, &s_colors_tmp
+      ps_items, i_scope, NULL, &s_colors_tmp
    );
 
 stvnem_cleanup:
