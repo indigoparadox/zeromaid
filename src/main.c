@@ -229,6 +229,7 @@ int main( int argc, char* argv[] ) {
       goto main_cleanup;
    }
    install_keyboard();
+   set_keyboard_rate( 0, 0 );
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    /* Load the game title. */

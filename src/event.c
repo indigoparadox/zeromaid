@@ -235,7 +235,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       tab_poll_last_joyhat[EVENT_ID_MAX] = { FALSE };
    int i_key_test = 0, /* A translation placeholder for pressed keys. */
       i_joybutton_test = 0,
-      /* i_joyaxis_test = 0, */
       i_joyhat_test = 0,
       i; /* Loop iterator. */
 
@@ -257,12 +256,14 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    #elif defined USEDIRECTX
    BOOL as_keys[EVENT_ID_MAX];
    #elif defined USEALLEGRO
-   /* int i_key_value;
-   int as_keys[KEY_MAX] = { FALSE },
-      as_joybuttons[MAX_JOYSTICK_BUTTONS] = { FALSE }; */
+   /* Nothing to do! */
    #else
    #error "No event polling mechanism defined for this platform!"
    #endif /* USEWII, USESDL, USEDIRECTX */
+
+   /* Clear out the last event from the event buffer. */
+   /* TODO: Do it without a costly memset. */
+   memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
 
    /* Perform the polling and event assignment. */
    #ifdef USESDL
@@ -270,7 +271,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
    SDL_JoystickUpdate();
    SDL_PollEvent( tps_event_temp );
    as_keys = SDL_GetKeyState( NULL );
-   memset( ps_event_out, 0, sizeof( EVENT_EVENT ) );
 
    if( SDL_KEYDOWN == tps_event_temp->type ) {
 
@@ -296,7 +296,6 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       /* error code */
    }
    #elif defined USEALLEGRO
-   /* i_key_value = readkey(); */
    poll_keyboard();
    #else
    #error "No event polling mechanism defined for this platform!"
@@ -310,14 +309,10 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       i_key_test = event_get_assigned( EVENT_INPUT_TYPE_KEY, i );
       i_joybutton_test = event_get_assigned( EVENT_INPUT_TYPE_JBUTTON, i );
       i_joyhat_test = event_get_assigned( EVENT_INPUT_TYPE_JHAT, i );
-      /* i_joyaxis_test = event_get_assigned( EVENT_TYPE_JAXIS, i ); */
 
       /* Perform the actual input test. i_key_test, i_joybutton_test,         *
        * i_joyaxis_test, and i_joyhat_test all contain their native           *
        * constants.                                                           */
-      /* TODO: Test joy axis. */
-
-      /* Test the keyboard keys. */
       if(
          /* Avoid a negative index issue for unassigned events! Heh... */
          -1 != i_key_test &&
@@ -388,6 +383,14 @@ void event_do_poll( EVENT_EVENT* ps_event_out, BOOL b_repeat_in ) {
       }
       #endif /* USEALLEGRO */
    }
+
+edp_cleanup:
+
+   #ifdef USEALLEGRO
+   clear_keybuf();
+   #endif /* USEALLEGRO */
+
+   return;
 }
 
 #ifdef USESDL

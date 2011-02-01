@@ -21,7 +21,7 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#sdl)\include" />
+					<Add directory="$(#sdl_mingw)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -35,7 +35,7 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
-					<Add directory="$(#sdl)\lib" />
+					<Add directory="$(#sdl_mingw)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-SDL">
@@ -51,7 +51,7 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#sdl)\include" />
+					<Add directory="$(#sdl_mingw)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -65,7 +65,7 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
-					<Add directory="$(#sdl)\lib" />
+					<Add directory="$(#sdl_mingw)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-Allegro">
@@ -84,14 +84,14 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DEZXML_NOMMAP" />
 					<Add option="-DOUTTOFILE" />
-					<Add directory="$(#allegro)\include" />
+					<Add directory="$(#allegro_mingw)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
 					<Add option="-pg" />
-					<Add library="alleg" />
+					<Add library="alleg44" />
 					<Add library="mingw32" />
-					<Add directory="$(#allegro)\lib" />
+					<Add directory="$(#allegro_mingw)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-Allegro">
@@ -107,13 +107,13 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
-					<Add directory="$(#allegro)\include" />
+					<Add directory="$(#allegro_mingw)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="alleg" />
 					<Add library="mingw32" />
-					<Add directory="$(#allegro)\lib" />
+					<Add directory="$(#allegro_mingw)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Debug-Windows-i686-DirectX">

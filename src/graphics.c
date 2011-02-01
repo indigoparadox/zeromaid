@@ -29,6 +29,7 @@ LPDIRECTDRAWSURFACE7 gps_surface_back = NULL;
 DDSURFACEDESC2 gs_surface_desc;
 #elif defined USEALLEGRO
 GFX_SURFACE* gps_screen_buffer = NULL;
+PALETTE gs_palette;
 #endif /* USEDIRECTX, USEALLEGRO */
 
 /* = Functions = */
@@ -89,26 +90,27 @@ BOOL graphics_create_screen(
       goto gcs_cleanup;
    }
    #elif defined USEALLEGRO
+   GFX_SURFACE* ps_screen_buffer = NULL;
+
    if( 0 == set_gfx_mode( GFX_AUTODETECT_WINDOWED, i_width_in, i_height_in, 0, 0 ) ) {
       /* Everything went better than expected! */
-      goto gcs_cleanup;
    } else if( 0 == set_gfx_mode( GFX_SAFE, i_width_in, i_height_in, 0, 0 ) ) {
 	   /* Beggars can't be choosers... */
 	   DBG_ERR_STR( "Unable to set auto graphic mode", allegro_error );
-	   goto gcs_cleanup;
-   } else {
+	} else {
       DBG_ERR_STR( "Unable to set any graphic mode", allegro_error );
       b_success = FALSE;
       goto gcs_cleanup;
    }
 
    /* Now that the screen is taken care of, setup the buffer page. */
-   gps_screen_buffer = create_system_bitmap( SCREEN_W, SCREEN_H );
-   if( NULL == gps_screen_buffer ) {
+   ps_screen_buffer = create_system_bitmap( SCREEN_W, SCREEN_H );
+   if( NULL == ps_screen_buffer ) {
       DBG_ERR_STR( "Unable to setup screen buffer", allegro_error );
       b_success = FALSE;
       goto gcs_cleanup;
    } else {
+      gps_screen_buffer = ps_screen_buffer;
       DBG_INFO_PTR( "Created screen buffer", gps_screen_buffer );
    }
    #else
@@ -184,7 +186,20 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    ps_image->w = i_width;
    ps_image->h = i_height;
    #elif defined USEALLEGRO
-   ps_image = load_bitmap( ps_path_in->data, NULL );
+   ps_image = load_bitmap( ps_path_in->data, gs_palette );
+   if( NULL == ps_image ) {
+      DBG_ERR_STR( "Unable to load bitmap", ps_path_in->data );
+      goto gci_cleanup;
+   } else {
+      DBG_INFO_STR_PTR(
+         "Loaded image", (const char*)ps_path_in->data, ps_image
+      );
+      DBG_INFO_INT(
+         "Image mask color", bitmap_mask_color( ps_image )
+      );
+      DBG_INFO_STR_PTR( "Loaded image", (const char*)ps_path_in->data, ps_image );
+      set_palette( gs_palette );
+   }
    #else
    #error "No image loading mechanism defined for this platform!"
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */
@@ -508,7 +523,7 @@ void graphics_draw_text(
    ps_destreg.h = ps_type_render_out->h;
    graphics_draw_blit_tile( ps_type_render_out, NULL, &ps_destreg );
    #elif defined USEALLEGRO
-   textout_ex(
+   /*textout_ex(
       gps_screen_buffer,
       ps_font_in,
       ps_string_in->data,
@@ -516,7 +531,8 @@ void graphics_draw_text(
       i_y_in,
       makecol( ps_color_in->r, ps_color_in->g, ps_color_in->b ),
       -1
-   );
+   );*/
+   /* XXX */
    #else
    #error "No text rendering mechanism defined for this platform!"
    #endif /* USESDL, USEALLEGRO */
@@ -586,7 +602,7 @@ void graphics_draw_blit_tile(
       goto gdbt_cleanup;
    }
 
-   masked_blit(
+   blit(
       ps_src_in,
       gps_screen_buffer,
       ps_srcreg_in->x,
@@ -628,10 +644,57 @@ void graphics_draw_blit_sprite(
    #elif defined USEDIRECTX
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
    #elif defined USEALLEGRO
-   graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
+   /* graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in ); */
+   BOOL b_src_created = FALSE,
+      b_dest_created = FALSE;
+
+   /* If the source region rectangle is null, we must want to blit the whole  *
+    * source.                                                                 */
+   if( NULL == ps_srcreg_in ) {
+      ps_srcreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_srcreg_in->x = 0;
+      ps_srcreg_in->y = 0;
+      ps_srcreg_in->w = ps_src_in->w;
+      ps_srcreg_in->h = ps_src_in->h;
+      b_src_created = TRUE;
+   }
+
+   /* If the destination region rectangle is null, we must want to blit the   *
+    * surface to as much space as it will take.                               */
+   if( NULL == ps_destreg_in ) {
+      ps_destreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_destreg_in->x = 0;
+      ps_destreg_in->y = 0;
+      ps_destreg_in->w = ps_src_in->w;
+      ps_destreg_in->h = ps_src_in->h;
+      b_dest_created = TRUE;
+   }
+
+   if( NULL == gps_screen_buffer ) {
+      goto gdbs_cleanup;
+   }
+
+   masked_stretch_blit(
+      ps_src_in,
+      gps_screen_buffer,
+      ps_srcreg_in->x,
+      ps_srcreg_in->y,
+      ps_srcreg_in->w,
+      ps_srcreg_in->h,
+      ps_destreg_in->x,
+      ps_destreg_in->y,
+      ps_destreg_in->w,
+      ps_destreg_in->h
+   );
+
+   /* clear_to_color( gps_screen_buffer, bitmap_mask_color( ps_src_in ) ); */
    #else
    #error "No sprite blitting mechanism defined for this platform!"
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */
+
+gdbs_cleanup:
+
+   return;
 }
 
 /* Purpose: Blank the screen.                                                 */
@@ -763,7 +826,7 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    if( GFX_TRANS_FADE_OUT == i_fade_io ) {
       fade_out( 32 );
    } else {
-      fade_in( default_palette, 32 );
+      fade_in( gs_palette, 32 );
    }
    #else
    #error "No in-fading mechanism defined for this platform!"
