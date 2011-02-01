@@ -129,6 +129,13 @@ typedef struct {
    #define GFX_DRAW_LOOP_START
    #define GFX_DRAW_LOOP_END SDL_Delay( 1000 / GFX_FPS );
    #define GFX_DRAW_LOOP_FREE
+#elif defined USEALLEGRO
+   #define GFX_DRAW_LOOP_DECLARE
+   #define GFX_DRAW_LOOP_INIT
+   #define GFX_DRAW_LOOP_ENABLE
+   #define GFX_DRAW_LOOP_START
+   #define GFX_DRAW_LOOP_END rest( 1000 / GFX_FPS );
+   #define GFX_DRAW_LOOP_FREE
 #else
    #define GFX_DRAW_LOOP_DECLARE EVENT_TIMER* gps_fps;
    #define GFX_DRAW_LOOP_INIT gps_fps = event_timer_create();
@@ -136,12 +143,14 @@ typedef struct {
    #define GFX_DRAW_LOOP_START event_timer_start( gps_fps );
    #define GFX_DRAW_LOOP_END while( GFX_FPS > gps_fps->i_ticks_start );
    #define GFX_DRAW_LOOP_FREE event_timer_free( gps_fps );
-#endif /* USESDL */
+#endif /* USESDL, USEALLEGRO */
 
 #ifdef USEDIRECTX
-#define PACK_16_BIT( r, g, b ) \
-   (((r & 248) << 8) + ((g & 252) << 3) + (b >> 3))
-#endif /* USEDIRECTX */
+   #define PACK_16_BIT( r, g, b ) \
+      (((r & 248) << 8) + ((g & 252) << 3) + (b >> 3))
+#elif defined USEALLEGRO
+   /* #define GFX_PALETTE_DEFAULT default_palette */
+#endif /* USEDIRECTX, USEALLEGRO */
 
 /* = Function Prototypes = */
 

@@ -44,6 +44,9 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
    DBG_INFO( "Running title screen loop..." );
    if( NULL != ps_title_iter ) {
       graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+      #ifdef USEALLEGRO
+      graphics_do_update();
+      #endif /* USEALLEGRO */
       graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
    }
    while( 1 ) {
