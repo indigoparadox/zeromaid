@@ -60,9 +60,6 @@ unsigned char gac_keystate[256];
 SDL_Joystick* gps_joystick_current;
 #endif /* USEDIRECTX, USESDL */
 
-extern GFX_FONT* gps_default_text_font;
-extern GFX_FONT* gps_default_menu_font;
-
 bstring gps_title_error;
 
 /* = Functions = */
@@ -72,8 +69,7 @@ int main( int argc, char* argv[] ) {
       i_error_level = 0, /* The program error level returned to the shell. */
       i; /* Loop counter. */
    bstring ps_system_path,
-      ps_title,
-      ps_default_font_path;
+      ps_title;
    CACHE_CACHE* ps_cache = NULL;
    ezxml_t ps_xml_system;
    const char* pc_title;
@@ -248,24 +244,10 @@ int main( int argc, char* argv[] ) {
       ps_title
    );
 
-   /* Try to set the default window fonts. */
-   ps_default_font_path = bfromcstr( WINDOW_TEXT_DEFAULT_FONT );
-   window_set_text_font(
-      ps_default_font_path,
-      WINDOW_TEXT_DEFAULT_SIZE
-   );
-   bdestroy( ps_default_font_path );
-   ps_default_font_path = bfromcstr( WINDOW_MENU_DEFAULT_FONT );
-   window_set_menu_font(
-      ps_default_font_path,
-      WINDOW_MENU_DEFAULT_SIZE
-   );
-   bdestroy( ps_default_font_path );
-
-   /* Make sure the fonts were loaded properly. */
-   if( NULL == gps_default_text_font || NULL == gps_default_menu_font ) {
-      DBG_ERR( "Unable to load default fonts." );
-      i_error_level = ERROR_LEVEL_FONTS;
+   /* Load the subsystems which require initialization. */
+   if( !window_init() ) {
+      DBG_ERR( "Unable to initialize window system." );
+      i_error_level = ERROR_LEVEL_WINDOW;
       goto main_cleanup;
    }
 
@@ -306,8 +288,11 @@ main_cleanup:
 
    event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
 
+   window_cleanup();
+
    bdestroy( ps_system_path );
    bdestroy( ps_title );
+
    #ifndef USEWII
    bdestroy( ps_new_share_path );
    #endif /* USEWII */

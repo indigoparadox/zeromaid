@@ -45,6 +45,20 @@
 #define WINDOW_MENU_DEFAULT_SIZE 22
 #define WINDOW_MENU_DEFAULT_HEIGHT 30
 
+#define WINDOW_MENU_DEFAULT_COLOR_FG_R 255
+#define WINDOW_MENU_DEFAULT_COLOR_FG_G 255
+#define WINDOW_MENU_DEFAULT_COLOR_FG_B 255
+#define WINDOW_MENU_DEFAULT_COLOR_BG_R 0
+#define WINDOW_MENU_DEFAULT_COLOR_BG_G 0
+#define WINDOW_MENU_DEFAULT_COLOR_BG_B 0
+#define WINDOW_MENU_DEFAULT_COLOR_FG_S_R 0
+#define WINDOW_MENU_DEFAULT_COLOR_FG_S_G 0
+#define WINDOW_MENU_DEFAULT_COLOR_FG_S_B 0
+#define WINDOW_MENU_DEFAULT_COLOR_BG_S_R 255
+#define WINDOW_MENU_DEFAULT_COLOR_BG_S_G 255
+#define WINDOW_MENU_DEFAULT_COLOR_BG_S_B 255
+
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
@@ -65,12 +79,17 @@ typedef struct {
       x, y; /* Where the menu on the screen is located. */
    WINDOW_MENU_COLORS colors;
    COND_SCOPE scope;
+   void (*callback)( void );
 } WINDOW_MENU;
 
 /* = Function Prototypes = */
 
+BOOL window_init( void );
+void window_cleanup( void );
 CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
-WINDOW_MENU* window_create_menu( bstring, COND_SCOPE, WINDOW_MENU_COLORS* );
+WINDOW_MENU* window_create_menu(
+   bstring, COND_SCOPE, void (*)( void ), WINDOW_MENU_COLORS*
+);
 void window_draw_text( int, CACHE_CACHE* );
 void window_draw_menu( WINDOW_MENU* );
 void window_set_text_font( bstring, int );

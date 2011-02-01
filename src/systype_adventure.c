@@ -36,6 +36,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    GFX_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
+   WINDOW_MENU* ps_menu = NULL;
 
    /* Initialize what we need to use functions to initialize. */
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
@@ -89,6 +90,11 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Listen for events. */
       event_do_poll( &s_event, TRUE );
+      if( s_event.state[EVENT_ID_MENU] ) {
+         if( NULL == ps_menu ) {
+            systype_adventure_menu_show( &ps_menu, ps_cache_in );
+         }
+      }
       if( s_event.state[EVENT_ID_UP] ) {
          //s_viewport.y -= 32;
          if( !ps_cache_in->player_team[ps_cache_in->player_team_front].moving ) {
@@ -163,7 +169,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ) { /* North */
          systype_adventure_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
-            TILEMAP_DIR_NORTH
+            ps_menu, TILEMAP_DIR_NORTH
          );
       } else if(
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y >=
@@ -171,7 +177,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ) { /* South */
          systype_adventure_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
-            TILEMAP_DIR_SOUTH
+            ps_menu, TILEMAP_DIR_SOUTH
          );
       } else if(
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x >=
@@ -179,7 +185,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ) { /* East */
          systype_adventure_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
-            TILEMAP_DIR_EAST
+            ps_menu, TILEMAP_DIR_EAST
          );
       } else if(
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x <
@@ -187,7 +193,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ) { /* West */
          systype_adventure_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
-            TILEMAP_DIR_WEST
+            ps_menu, TILEMAP_DIR_WEST
          );
       }
 
@@ -209,7 +215,8 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Draw the viewport. */
       systype_adventure_viewport_draw(
-         &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map, FALSE
+         &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
+         ps_menu, FALSE
       );
 
       GFX_DRAW_LOOP_END
@@ -397,12 +404,38 @@ BOOL systype_adventure_mobile_walk(
    return TRUE;
 }
 
+void systype_adventure_menu_show(
+   WINDOW_MENU** pps_menu_in,
+   CACHE_CACHE* ps_cache_in
+) {
+   bstring ps_items = bformat( "Test" );
+   /* Create the menu for adventure mode. */
+
+   /* Setup the new menu colors. */
+   /* memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GFX_COLOR ) ); */
+
+   /* Append the menu struct and clean up. It's all right to just free  *
+    * it since the dynamic stuff pointed to it will be pointed to by    *
+    * the copy on the menu stack.                                       */
+   *pps_menu_in = window_create_menu(
+      ps_items, 0, &systype_adventure_menu_test, NULL
+   );
+}
+
+void systype_adventure_menu_test( void ) {
+   DBG_INFO( "Test menu selected." );
+}
+
 void systype_adventure_viewport_scroll(
    GFX_RECTANGLE* ps_viewport_in,
    CACHE_CACHE* ps_cache_in,
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,
    TILEMAP_TILEMAP* ps_map_in,
+   WINDOW_MENU* ps_menu_in,
    TILEMAP_DIR i_dir_in
 ) {
    /* Figure out the desired X and Y of the viewport. */
@@ -421,7 +454,8 @@ void systype_adventure_viewport_scroll(
          (tilemap_dir_get_add_y( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
 
       systype_adventure_viewport_draw(
-         ps_viewport_in, ps_cache_in, as_mobiles_in, i_mobiles_count_in, ps_map_in, TRUE
+         ps_viewport_in, ps_cache_in, as_mobiles_in, i_mobiles_count_in, ps_map_in,
+         ps_menu_in, TRUE
       );
 
       GFX_DRAW_LOOP_END
@@ -436,6 +470,7 @@ void systype_adventure_viewport_draw(
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,
    TILEMAP_TILEMAP* ps_map_in,
+   WINDOW_MENU* ps_menu_in,
    BOOL b_force_redraw_in
 ) {
    int i; /* Loop iterator. */
@@ -449,6 +484,12 @@ void systype_adventure_viewport_draw(
    mobile_draw(
       &ps_cache_in->player_team[ps_cache_in->player_team_front], ps_viewport_in
    ); /* PCs */
+
+   /* Draw windows and menus. */
+   window_draw_text( 0, ps_cache_in );
+   if( NULL != ps_menu_in ) {
+      window_draw_menu( ps_menu_in );
+   }
 
    graphics_do_update();
 }
