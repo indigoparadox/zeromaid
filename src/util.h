@@ -93,6 +93,7 @@
 
 /* = Function Prototypes = */
 
+char *zm_achar_trimws( char* );
 int zm_file_exists( bstring );
 BOOL zm_string_is_true( bstring );
 int zm_string_in_array( bstring, int, bstring*, int );

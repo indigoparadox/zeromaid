@@ -16,6 +16,77 @@
 
 #include "util.h"
 
+/* Purpose: Trims the whitespace from the given character array and returns a *
+ *          modified copy. Does not modify the original character array.      */
+char *zm_achar_trimws( char *ac_chara_in ) {
+   int i_strlen,
+      i_strpos, /* Character iterator. */
+      i_ws, /* Whitespace iterator. */
+      i_strend, /* Last untrimmed character. */
+      i_strstart; /* First untrimmed character. */
+   char* pc_out, /* The character array to return. */
+      ac_ws[3] = { ' ', '\n', '\t' };
+   BOOL b_strike = FALSE;
+
+   i_strlen = strlen( ac_chara_in );
+
+   /* Find the last acceptable character. */
+   i_strpos = 0;
+   while( i_strlen && i_strpos ) {
+      /* This might be the end... */
+      b_strike = TRUE;
+      i_strend = i_strpos;
+
+      /* Test our hypothesis. */
+      for( i_ws = 0 ; i_ws < 3 ; i_ws++ ) {
+         if( ac_ws[i_ws] == ac_chara_in[i_strpos] ) {
+            /* This character is unacceptable. */
+            b_strike = FALSE;
+            break;
+         }
+      }
+
+      /* It was the end after all! */
+      if( b_strike ) {
+         break;
+      } else {
+         i_strpos--;
+      }
+   }
+
+   /* Find the first acceptable character. */
+   i_strpos = 0;
+   while( i_strlen && i_strpos < i_strend ) {
+      /* This might be the start... */
+      b_strike = TRUE;
+      i_strend = i_strpos;
+
+      /* Test our hypothesis. */
+      for( i_ws = 0 ; i_ws < 3 ; i_ws++ ) {
+         if( ac_ws[i_ws] == ac_chara_in[i_strpos] ) {
+            /* This character is unacceptable. */
+            b_strike = FALSE;
+            break;
+         }
+      }
+
+      /* It was the start after all! */
+      if( b_strike ) {
+         break;
+      } else {
+         i_strpos++;
+      }
+   }
+
+   /* Allocate the new string. */
+   pc_out = malloc( (i_strend - i_strstart) * sizeof( char ) );
+   if( NULL != pc_out ) {
+      strncpy( pc_out, &ac_chara_in[i_strstart], (i_strend - i_strstart) );
+   }
+
+   return pc_out;
+}
+
 /* Purpose: Determine if the specified file exists. This could be done with   *
  *          access(), but that function is unavailable on some target         *
  *          platforms.                                                        */
