@@ -512,10 +512,6 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
    CACHE_CACHE s_cache_temp;
 
-   /* ps_cache_in->game_type = SYSTEM_TYPE_ADVENTURE;
-   bdestroy( ps_cache_in->map_name );
-   ps_cache_in->map_name = bformat( "field" ); */
-
    /* Reminder to my future self: If the cache remained a global variable,    *
     * might never have found this. Stupid. ~_~                                */
    memset( &s_cache_temp, 0, sizeof( CACHE_CACHE ) );
@@ -555,7 +551,7 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    }
 
    /* Load the starting field name. */
-   s_cache_temp.map_name = bformat( "%s", ezxml_attr( ps_xml_smap, "name" ) );
+   CACHE_MAP_NAME_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "name" ) );
 
    /* If everything checks out then copy the temp cache onto the given cache. */
    // TODO: Validation per game type.
