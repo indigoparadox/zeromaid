@@ -90,15 +90,15 @@ typedef union {
       * color_bg,    /* DI 3 - MENU */
       * color_sfg,   /* DI 4 - MENU */
       * color_sbg;   /* DI 5 - MENU */
-   bstring name,     /* DI 0 - LABEL */
-      emotion,       /* DI 1 - PORTRAIT */
-      key,           /* DI 2 - COND, SET */
-      equals,        /* DI 3 - COND, SET */
-      destmap,       /* DI 0 - TELEPORT */
-      talktext,      /* DI 1 - TALK */
-      target,        /* DI 0 - GOTO, COND */
-      items,         /* DI 0 - MENU */
-      type;          /* DI 3 - TELEPORT */
+   char* name,       /* DI 0 - LABEL */
+      * emotion,     /* DI 1 - PORTRAIT */
+      * key,         /* DI 2 - COND, SET */
+      * equals,      /* DI 3 - COND, SET */
+      * destmap,     /* DI 0 - TELEPORT */
+      * talktext,    /* DI 1 - TALK */
+      * target,      /* DI 0 - GOTO, COND */
+      * items,       /* DI 0 - MENU */
+      * type;        /* DI 3 - TELEPORT */
    COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
@@ -157,11 +157,10 @@ typedef struct {
 
 /* Purpose: Parse a string attribute into the property specified by dtype.    */
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
+   s_command_tmp.data[di].dtype = calloc(\
+      strlen( ezxml_attr( ps_xml_command, #dtype ) ), sizeof( char ) \
    ); \
-   s_command_tmp.data[di].dtype = \
-      bstrcpy( ps_command_attr );
+   strcpy( s_command_tmp.data[di].dtype, ezxml_attr( ps_xml_command, #dtype ) );
 
 /* Purpose: Parse a scope attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_SCOPE( dtype, di ) \
@@ -189,12 +188,8 @@ typedef struct {
 
 /* Purpose: Parse an string body into the property specified by dtype.        */
 #define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
-   ); \
-   btrimws( ps_command_attr ); \
    s_command_tmp.data[di].dtype = \
-      bstrcpy( ps_command_attr );
+      zm_achar_trimws( ezxml_txt( ps_xml_command ) );
 
 /* = Function Prototypes = */
 

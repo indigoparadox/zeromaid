@@ -458,8 +458,8 @@ int systype_visnov_exec_cond(
 
    DBG_INFO_STR_STR(
       "Testing condition (key, equals)",
-      ps_command_in->data[2].key->data,
-      ps_command_in->data[3].equals->data
+      ps_command_in->data[2].key,
+      ps_command_in->data[3].equals
    );
 
    if( COND_SCOPE_GLOBAL == ps_command_in->data[1].scope ) {
@@ -469,10 +469,10 @@ int systype_visnov_exec_cond(
          bstring skey = svar->key;
          DBG_INFO( skey->data ); */
          if(
-            0 == bstrcmp(
-               ps_command_in->data[2].key, ps_cache_in->globals[i].key ) &&
-            0 == bstrcmp(
-               ps_command_in->data[3].equals, ps_cache_in->globals[i].value )
+            0 == strcmp(
+               ps_command_in->data[2].key, ps_cache_in->globals[i].key->data ) &&
+            0 == strcmp(
+               ps_command_in->data[3].equals, ps_cache_in->globals[i].value->data )
          ) {
             /* Conditions are matched, so jump to target. */
             return systype_visnov_exec_goto(
@@ -482,8 +482,8 @@ int systype_visnov_exec_cond(
                i_command_cursor_in
             );
          } else if(
-            0 == bstrcmp(
-               ps_command_in->data[2].key, ps_cache_in->globals[i].key )
+            0 == strcmp(
+               ps_command_in->data[2].key, ps_cache_in->globals[i].key->data )
          ) {
             /* The key was found but the value was different. */
             DBG_INFO_STR_STR(
@@ -492,16 +492,16 @@ int systype_visnov_exec_cond(
                ps_cache_in->globals[i].value->data
             );
          } else {
-            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key->data );
+            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key );
          }
       }
    } else if( COND_SCOPE_LOCAL == ps_command_in->data[1].scope ) {
       for( i = 0 ; i < i_locals_count_in ; i++ ) {
          if(
-            0 == bstrcmp(
-               ps_command_in->data[2].key, as_locals_in[i].key ) &&
-            0 == bstrcmp(
-               ps_command_in->data[3].equals, as_locals_in[i].value )
+            0 == strcmp(
+               ps_command_in->data[2].key, as_locals_in[i].key->data ) &&
+            0 == strcmp(
+               ps_command_in->data[3].equals, as_locals_in[i].value->data )
          ) {
             /* Conditions are matched, so jump to target. */
             return systype_visnov_exec_goto(
@@ -511,8 +511,8 @@ int systype_visnov_exec_cond(
                i_command_cursor_in
             );
          } else if(
-            0 == bstrcmp(
-               ps_command_in->data[2].key, as_locals_in[i].key )
+            0 == strcmp(
+               ps_command_in->data[2].key, as_locals_in[i].key->data )
          ) {
             /* The key was found but the value was different. */
             DBG_INFO_STR_STR(
@@ -521,7 +521,7 @@ int systype_visnov_exec_cond(
                as_locals_in[i].value->data
             );
          } else {
-            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key->data );
+            DBG_INFO_STR( "Key not found", ps_command_in->data[2].key );
          }
       }
    }
@@ -570,7 +570,7 @@ int systype_visnov_exec_talk(
       ps_talk_text = bformat(
          "%s: %s",
          ps_mob_talk->proper_name->data,
-         ps_command_in->data[1].talktext->data
+         ps_command_in->data[1].talktext
       );
    } else {
       /* Couldn't find the mobile to talk! */
@@ -606,11 +606,11 @@ int systype_visnov_exec_goto(
    for( i = 0 ; i < i_commands_count_in ; i++ ) {
       if(
          SYSTYPE_VISNOV_CMD_LABEL == as_commands_in[i].command &&
-         0 == bstrcmp(
+         0 == strcmp(
             ps_command_in->data[0].target, as_commands_in[i].data[0].name )
       ) {
          DBG_INFO_STR(
-            "Jumping to label", as_commands_in[i].data[0].name->data
+            "Jumping to label", as_commands_in[i].data[0].name
          );
          /* Line found, return its index. */
          return i;
@@ -619,7 +619,7 @@ int systype_visnov_exec_goto(
 
    /* Label not found, move on. */
    DBG_ERR_STR(
-      "Visual novel label not found", ps_command_in->data[0].target->data
+      "Visual novel label not found", ps_command_in->data[0].target
    );
    return ++i_command_cursor_in;
 }
@@ -681,9 +681,9 @@ int systype_visnov_exec_portrait(
    /* Set the actor's current emotion. */
    emotion_selected = -1;
    for( i = 0 ; i < ps_actor_current->emotions_count ; i++ ) {
-      if( 0 != bstricmp (
+      if( 0 != stricmp (
          ps_command_in->data[1].emotion,
-         ps_actor_current->emotions[i].id
+         ps_actor_current->emotions[i].id->data
       ) ) {
          continue;
       } else {
@@ -715,17 +715,17 @@ int systype_visnov_exec_teleport(
 
    /* Set the target game type. */
    CACHE_SYSTEM_TYPE_SET(
-      ps_cache_in, (const char*)ps_command_in->data[3].type->data
+      ps_cache_in, (const char*)ps_command_in->data[3].type
    );
    CACHE_MAP_NAME_SET(
-      ps_cache_in, (const char*)ps_command_in->data[0].destmap->data
+      ps_cache_in, (const char*)ps_command_in->data[0].destmap
    );
 
    /* If everything looks okay, flip the switch and allow the teleport! */
    if( b_success ) {
       DBG_INFO_STR(
          "Initiating teleportation",
-         (const char*)ps_command_in->data[0].destmap->data
+         ps_command_in->data[0].destmap
       );
       *pb_teleport_out = TRUE;
    }
@@ -746,7 +746,8 @@ int systype_visnov_exec_menu(
    int i_command_cursor_in
 ) {
    WINDOW_MENU_COLORS s_colors_tmp;
-   bstring ps_items = ps_command_in->data[0].items;
+   bstring ps_items_b = NULL;
+   char* ps_items = ps_command_in->data[0].items;
    COND_SCOPE i_scope = ps_command_in->data[1].scope;
 
    /* If the menu we're about to create is already active, then just reset    *
@@ -824,8 +825,8 @@ int systype_visnov_exec_set(
 ) {
    DBG_INFO_STR_STR(
       "Setting key to value",
-      ps_command_in->data[2].key->data,
-      ps_command_in->data[3].equals->data
+      ps_command_in->data[2].key,
+      ps_command_in->data[3].equals
    );
    STVN_CACHE_SET(
       ps_command_in->data[2].key,
@@ -889,17 +890,17 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
       case SYSTYPE_VISNOV_CMD_LABEL:
          DBG_INFO_STR(
             "Freeing command: LABEL: name",
-            (const char*)ps_command_in->data[0].name->data
+            (const char*)ps_command_in->data[0].name
          );
-         bdestroy( ps_command_in->data[0].name );
+         free( ps_command_in->data[0].name );
          break;
 
       case SYSTYPE_VISNOV_CMD_COND:
          DBG_INFO_STR(
             "Freeing command: COND: target",
-            (const char*)ps_command_in->data[0].target->data
+            (const char*)ps_command_in->data[0].target
          );
-         bdestroy( ps_command_in->data[0].target );
+         free( ps_command_in->data[0].target );
          #ifndef USEWII
          /* XXX: This line causes a crash on the Wii. Ideally the best        *
           *      solution would be to find the root cause, but this whole     *
@@ -907,56 +908,56 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
           *      waste of time and frustration.                               */
          DBG_INFO_STR(
             "Freeing command: COND: key",
-            (const char*)ps_command_in->data[2].key->data
+            (const char*)ps_command_in->data[2].key
          );
-         bdestroy( ps_command_in->data[2].key );
+         free( ps_command_in->data[2].key );
          DBG_INFO_STR(
             "Freeing command: COND: equals",
-            (const char*)ps_command_in->data[3].equals->data
+            (const char*)ps_command_in->data[3].equals
          );
-         bdestroy( ps_command_in->data[3].equals );
+         free( ps_command_in->data[3].equals );
          #endif /* USEWII */
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
          DBG_INFO_STR(
             "Freeing command: TALK: talktext",
-            (const char*)ps_command_in->data[1].talktext->data
+            (const char*)ps_command_in->data[1].talktext
          );
-         bdestroy( ps_command_in->data[1].talktext );
+         free( ps_command_in->data[1].talktext );
          break;
 
       case SYSTYPE_VISNOV_CMD_GOTO:
          DBG_INFO_STR(
             "Freeing command: GOTO: target",
-            (const char*)ps_command_in->data[0].target->data
+            (const char*)ps_command_in->data[0].target
          );
-         bdestroy( ps_command_in->data[0].target );
+         free( ps_command_in->data[0].target );
          break;
 
       case SYSTYPE_VISNOV_CMD_PORTRAIT:
          DBG_INFO_STR(
             "Freeing command: PORTRAIT: emotion",
-            (const char*)ps_command_in->data[1].emotion->data
+            (const char*)ps_command_in->data[1].emotion
          );
-         bdestroy( ps_command_in->data[1].emotion );
+         free( ps_command_in->data[1].emotion );
          break;
 
       case SYSTYPE_VISNOV_CMD_TELEPORT:
          DBG_INFO_STR(
             "Freeing command: TELEPORT: destmap",
-            (const char*)ps_command_in->data[0].destmap->data
+            (const char*)ps_command_in->data[0].destmap
          );
-         bdestroy( ps_command_in->data[0].destmap );
+         free( ps_command_in->data[0].destmap );
          DBG_INFO_STR(
             "Freeing command: TELEPORT: type",
-            (const char*)ps_command_in->data[3].type->data
+            (const char*)ps_command_in->data[3].type
          );
-         bdestroy( ps_command_in->data[3].type );
+         free( ps_command_in->data[3].type );
          break;
 
       case SYSTYPE_VISNOV_CMD_MENU:
-         bdestroy( ps_command_in->data[0].items );
+         free( ps_command_in->data[0].items );
          DBG_INFO_PTR(
             "Freeing command: MENU: color_fg", ps_command_in->data[2].color_fg
          );
@@ -978,8 +979,8 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_SET:
-         bdestroy( ps_command_in->data[2].key );
-         bdestroy( ps_command_in->data[3].equals );
+         free( ps_command_in->data[2].key );
+         free( ps_command_in->data[3].equals );
          break;
    }
 }
