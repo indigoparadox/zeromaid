@@ -545,17 +545,11 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    }
 
    /* Load the starting map. */
-   if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "visnov" ) ) {
-      s_cache_temp.game_type = SYSTEM_TYPE_VISNOV;
-      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
-   } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "adventure" ) ) {
-      s_cache_temp.game_type = SYSTEM_TYPE_ADVENTURE;
-      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
-   } else if( 0 == strcmp( ezxml_attr( ps_xml_smap, "type" ), "platform" ) ) {
-      s_cache_temp.game_type = SYSTEM_TYPE_PLATFORM;
+   if( NULL != ezxml_attr( ps_xml_smap, "type" ) ) {
+      CACHE_SYSTEM_TYPE_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "type" ) );
       DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
    } else {
-      DBG_ERR( "Invalid game type." );
+      DBG_ERR( "No game type specefied." );
       b_success = FALSE;
       goto stls_cleanup;
    }

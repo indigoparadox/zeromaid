@@ -41,12 +41,32 @@ typedef struct {
       text_log_count, /* Number of previously spoken text item. */
       player_team_count, /* Number of members in the player's party. */
       player_team_front; /* The team member currently playable. */
-   SYSTEM_TYPE game_type;
-   bstring map_name; /* Name of the map currently loaded. */
+   bstring map_name, /* Name of the map currently loaded. */
+      game_type;
    MOBILE_MOBILE* player_team; /* Dynamic array of mobiles in player's party. */
 } CACHE_CACHE;
 
 /* = Macros = */
+
+/* Purpose: Set the map name the cache is currently running. Should be        *
+ *          called during a map change, most likely.                          */
+/* Parameters: The map name as a null-terminated character array. bstrings    *
+ *             should NOT be used here.                                       */
+#define CACHE_MAP_NAME_SET( cache_addr, targetname ) \
+   if( NULL != (cache_addr)->map_name ) { \
+      bdestroy( (cache_addr)->map_name ); \
+   } \
+   (cache_addr)->map_name = bformat( "%s", targetname );
+
+/* Purpose: Set the system type the cache is currently running. Should be     *
+ *          called during a map change, most likely.                          */
+/* Parameters: The target type as a null-terminated character array. bstrings *
+ *             should NOT be used here.                                       */
+#define CACHE_SYSTEM_TYPE_SET( cache_addr, targettype ) \
+   if( NULL != (cache_addr)->game_type ) { \
+      bdestroy( (cache_addr)->game_type ); \
+   } \
+   (cache_addr)->game_type = bformat( "%s", targettype );
 
 /* Purpose: Determine the scope and set a convenience pointer to the correct  *
  *          list in the given cache for that scope.                           */

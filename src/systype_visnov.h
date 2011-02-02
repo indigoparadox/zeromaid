@@ -32,6 +32,12 @@
  * 3. Add a section to the load_commands function to load the new command.    *
  * 4. Add an exec function to execute the new command.                        */
 
+/* To figure out a DI for a field:                                            *
+ * 1. Figure out which commands will need that field. For example, both COND  *
+ *    and SET use a "key" field.                                              *
+ * 2. Find an index which does not collide with any other fields already      *
+ *    being used by those commands you've chosen.                             */
+
 /* = Includes = */
 
 #include "defines.h"
@@ -91,7 +97,8 @@ typedef union {
       destmap,       /* DI 0 - TELEPORT */
       talktext,      /* DI 1 - TALK */
       target,        /* DI 0 - GOTO, COND */
-      items;         /* DI 0 - MENU */
+      items,         /* DI 0 - MENU */
+      type;          /* DI 3 - TELEPORT */
    COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
    GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
@@ -102,7 +109,6 @@ typedef union {
       desty,         /* DI 2 - TELEPORT */
       speed;         /* DI 2 - TALK */
    float zoom;       /* DI 2 - PORTRAIT */
-   SYSTEM_TYPE type; /* DI 3 - TELEPORT */
 } SYSTYPE_VISNOV_DATA;
 
 /* "data" is a dynamic array, but a count is not necessary as the required    *
