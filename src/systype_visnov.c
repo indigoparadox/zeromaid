@@ -237,10 +237,15 @@ stvnl_cleanup:
    }
    free( as_actors );
 
+   #ifndef USEWII
+   /* XXX: This line causes a crash on the Wii. Ideally the best solution     *
+    * would be to find the root cause, but this whole module badly needs to   *
+    * be re-written anyway, so it would be a waste of time and frustration.   */
    for( i = 0 ; i < i_commands_count ; i++ ) {
       systype_visnov_free_command_arr( &as_commands[i] );
    }
    free( as_commands );
+   #endif /* USEWII */
 
    if( NULL != ps_menu ) {
       window_free_menu( ps_menu );
@@ -900,11 +905,6 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             (const char*)ps_command_in->data[0].target->data
          );
          bdestroy( ps_command_in->data[0].target );
-         #ifndef USEWII
-         /* XXX: This line causes a crash on the Wii. Ideally the best        *
-          *      solution would be to find the root cause, but this whole     *
-          *      module badly needs to be re-written anyway, so it would be a *
-          *      waste of time and frustration.                               */
          DBG_INFO_STR(
             "Freeing command: COND: key",
             (const char*)ps_command_in->data[2].key->data
@@ -915,7 +915,6 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             (const char*)ps_command_in->data[3].equals->data
          );
          bdestroy( ps_command_in->data[3].equals );
-         #endif /* USEWII */
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
