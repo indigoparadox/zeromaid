@@ -20,6 +20,20 @@ DBG_ENABLE
 TITLE_ERROR_ENABLE
 GFX_DRAW_LOOP_ENABLE
 
+/* = Commands = */
+
+/* XXX: Don't mind this. We're just thinking to ourselves...
+STVN_COMMAND( background );
+STVN_COMMAND( pause );
+STVN_COMMAND( label );
+STVN_COMMAND( cond );
+STVN_COMMAND( talk );
+STVN_COMMAND( goto );
+STVN_COMMAND( portrait );
+STVN_COMMAND( teleport );
+STVN_COMMAND( menu );
+STVN_COMMAND( set ); */
+
 /* = Functions = */
 
 /* Purpose: Visual novel loop.                                                */
@@ -886,6 +900,11 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             (const char*)ps_command_in->data[0].target->data
          );
          bdestroy( ps_command_in->data[0].target );
+         #ifndef USEWII
+         /* XXX: This line causes a crash on the Wii. Ideally the best        *
+          *      solution would be to find the root cause, but this whole     *
+          *      module badly needs to be re-written anyway, so it would be a *
+          *      waste of time and frustration.                               */
          DBG_INFO_STR(
             "Freeing command: COND: key",
             (const char*)ps_command_in->data[2].key->data
@@ -896,6 +915,7 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             (const char*)ps_command_in->data[3].equals->data
          );
          bdestroy( ps_command_in->data[3].equals );
+         #endif /* USEWII */
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
