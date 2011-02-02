@@ -44,13 +44,12 @@
 #endif /* USEALLEGRO */
 
 /* System loop types. */
-typedef int SYSTEM_TYPE;
 #define SYSTEM_TYPE_TITLE 0
-#define SYSTEM_TYPE_ADVENTURE 1
-#define SYSTEM_TYPE_TACTICS 2
-#define SYSTEM_TYPE_FISHING 3
-#define SYSTEM_TYPE_VISNOV 4
-#define SYSTEM_TYPE_PLATFORM 5
+#define SYSTEM_TYPE_ADVENTURE "adventure"
+#define SYSTEM_TYPE_TACTICS "tactics"
+#define SYSTEM_TYPE_FISHING "fishing"
+#define SYSTEM_TYPE_VISNOV "visnov"
+#define SYSTEM_TYPE_PLATFORM "platform"
 
 /* Some platforms don't need BOOL defined. */
 #if ! defined USEWII && ! defined USEDIRECTX
@@ -88,8 +87,6 @@ typedef int COND_SCOPE;
 #define RETURN_ACTION_LOADCACHE 2 /* Load the next instruction/data from the  *
                                    * cache.                                   */
 #define TEAM_MAX_SIZE 10
-
-#define SYSTYPE_TITLE 1
 
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
 #define ERROR_LEVEL_NOSYS 2 /* Unable to find system.xml. */

@@ -88,6 +88,10 @@ wi_cleanup:
    return b_success;
 }
 
+/* Purpose: Clean up the window system once the game won't need it anymore.   *
+ *          It's probably a good idea to call this at the end of a game       *
+ *          module and  then window_init() at the beginning of the next one,  *
+ *          maybe.                                                            */
 void window_cleanup( void ){
    if( NULL != tgps_default_text_font ) {
       graphics_free_font( tgps_default_text_font );

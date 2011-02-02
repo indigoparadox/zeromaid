@@ -267,12 +267,28 @@ int main( int argc, char* argv[] ) {
       switch( i_last_return ) {
          case RETURN_ACTION_LOADCACHE:
             /* Execute the next instruction based on the system cache. */
-            if( SYSTEM_TYPE_ADVENTURE == ps_cache->game_type ) {
+            if(
+               NULL != ps_cache->game_type &&
+               0 == strcmp( SYSTEM_TYPE_ADVENTURE, ps_cache->game_type->data )
+            ) {
                i_last_return = systype_adventure_loop( ps_cache );
-            } else if( SYSTEM_TYPE_VISNOV == ps_cache->game_type ) {
+            } else if(
+               NULL != ps_cache->game_type &&
+               0 == strcmp( SYSTEM_TYPE_VISNOV, ps_cache->game_type->data )
+            ) {
                i_last_return = systype_visnov_loop( ps_cache );
-            } else if( SYSTEM_TYPE_PLATFORM == ps_cache->game_type ) {
+            } else if(
+               NULL != ps_cache->game_type &&
+               0 == strcmp( SYSTEM_TYPE_PLATFORM, ps_cache->game_type->data )
+            ) {
                i_last_return = systype_platform_loop( ps_cache );
+            } else {
+               i_last_return = systype_title_loop( ps_cache );
+               TITLE_ERROR_SET( "Invalid game type specified" );
+               DBG_ERR_STR(
+                  "Invalid game type specified",
+                  ps_cache->game_type->data
+               );
             }
             break;
 

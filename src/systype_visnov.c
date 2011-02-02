@@ -139,6 +139,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
             /* If the teleport command was successful, exit the loop and let  *
              * the cache contents take care of the rest.                      */
             if( b_teleport ) {
+               i_act_return = RETURN_ACTION_LOADCACHE;
                goto stvnl_cleanup;
             }
             break;
@@ -155,6 +156,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
                &as_commands[i_command_cursor], &as_locals, &i_locals_count,
                ps_cache_in, i_command_cursor
             );
+            break;
 
          default:
             /* Just skip commands we don't understand yet. */
@@ -162,7 +164,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       }
 
       if( s_event.state[EVENT_ID_CANCEL] || s_event.state[EVENT_ID_QUIT] ) {
-         ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
+         CACHE_SYSTEM_TYPE_SET( ps_cache_in, SYSTEM_TYPE_TITLE );
          goto stvnl_cleanup;
       }
 
@@ -343,7 +345,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR( destmap, 0 );
          STVN_PARSE_CMD_DAT_INT( destx, 1 );
          STVN_PARSE_CMD_DAT_INT( desty, 2 );
-         STVN_PARSE_CMD_DAT_INT( type, 3 ); /* TODO: Parse the type. */
+         STVN_PARSE_CMD_DAT_STR( type, 3 ); /* TODO: Parse the type. */
 
       } else if( 0 == strcmp( pc_command_action, "menu" ) ) {
          /* COMMAND: MENU */
@@ -448,11 +450,10 @@ int systype_visnov_exec_cond(
 
    if( COND_SCOPE_GLOBAL == ps_command_in->data[1].scope ) {
       for( i = 0 ; i < ps_cache_in->globals_count ; i++ ) {
-
-         CACHE_VARIABLE* svar = &ps_cache_in->globals[i];
+         /* XXX: DEBUG */
+         /* CACHE_VARIABLE* svar = &ps_cache_in->globals[i];
          bstring skey = svar->key;
-         DBG_INFO( skey->data );
-
+         DBG_INFO( skey->data ); */
          if(
             0 == bstrcmp(
                ps_command_in->data[2].key, ps_cache_in->globals[i].key ) &&
@@ -694,9 +695,26 @@ int systype_visnov_exec_teleport(
    CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
+   BOOL b_success = TRUE;
+
    /* Verify that the target map exists. */
 
-   //DBG_INFO_STR( "Initiating teleportation", ps_command_in->data[0].destmap );
+   /* Set the target game type. */
+   CACHE_SYSTEM_TYPE_SET(
+      ps_cache_in, (const char*)ps_command_in->data[3].type->data
+   );
+   CACHE_MAP_NAME_SET(
+      ps_cache_in, (const char*)ps_command_in->data[0].destmap->data
+   );
+
+   /* If everything looks okay, flip the switch and allow the teleport! */
+   if( b_success ) {
+      DBG_INFO_STR(
+         "Initiating teleportation",
+         (const char*)ps_command_in->data[0].destmap->data
+      );
+      *pb_teleport_out = TRUE;
+   }
 
    return ++i_command_cursor_in;
 }
@@ -790,6 +808,11 @@ int systype_visnov_exec_set(
    CACHE_CACHE* ps_cache_in,
    int i_command_cursor_in
 ) {
+   DBG_INFO_STR_STR(
+      "Setting key to value",
+      ps_command_in->data[2].key->data,
+      ps_command_in->data[3].equals->data
+   );
    STVN_CACHE_SET(
       ps_command_in->data[2].key,
       ps_command_in->data[3].equals,

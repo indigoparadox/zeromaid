@@ -152,7 +152,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
          }
       }
       if( s_event.state[EVENT_ID_CANCEL] || s_event.state[EVENT_ID_QUIT] ) {
-         ps_cache_in->game_type = SYSTEM_TYPE_TITLE;
+         CACHE_SYSTEM_TYPE_SET( ps_cache_in, SYSTEM_TYPE_TITLE );
          goto sal_cleanup;
       }
 
@@ -429,6 +429,9 @@ void systype_adventure_menu_test( void ) {
    DBG_INFO( "Test menu selected." );
 }
 
+/* Purpose: Scroll the screen in the given direction, pausing the game but    *
+ *          continuing to draw and refresh, a la the old Zelda games for the  *
+ *          NES.                                                              */
 void systype_adventure_viewport_scroll(
    GFX_RECTANGLE* ps_viewport_in,
    CACHE_CACHE* ps_cache_in,
@@ -486,7 +489,10 @@ void systype_adventure_viewport_draw(
    ); /* PCs */
 
    /* Draw windows and menus. */
-   window_draw_text( 0, ps_cache_in );
+   /* TODO: Display a status window at the bottom of the screen most of the   *
+    *       time until there's something new to read in the text log. Also,   *
+    *       implement scrollback.                                             */
+   /* window_draw_text( 0, ps_cache_in ); */
    if( NULL != ps_menu_in ) {
       window_draw_menu( ps_menu_in );
    }
