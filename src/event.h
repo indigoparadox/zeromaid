@@ -55,7 +55,9 @@ typedef struct _lwpnode {
 /* This is important for reading the right key settings from the              *
  * configuration files.                                                       */
 
-#ifdef USESDL
+#if defined USESDL && USEWII
+   #define EVENT_INPUT_ENGINE "sdl-wii"
+#elif defined USESDL
    #define EVENT_INPUT_ENGINE "sdl"
 #elif defined USEDIRECTX
    #define EVENT_INPUT_ENGINE "directx"
