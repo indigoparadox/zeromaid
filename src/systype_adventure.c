@@ -228,6 +228,9 @@ sal_cleanup:
    graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
 
    /* Clean up! */
+   #ifndef USEWII
+   /* XXX: The Wii doesn't like the way we free things... This could be a     *
+    *      problem.                                                           */
    free( ps_color_fade );
    tilemap_free( ps_map );
    for( i = 0 ; i < i_mobile_count ; i++ ) {
@@ -235,6 +238,7 @@ sal_cleanup:
    }
    free( as_mobile_list );
    systype_adventure_mobile_walk( NULL, GEN_OPCODE_CLEAN, NULL, -1, NULL );
+   #endif /* USEWII */
 
    return i_act_return;
 }
