@@ -136,11 +136,12 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
    ps_temp = SDL_LoadBMP( (const char*)ps_path_in->data );
 
    if( NULL != ps_temp ) {
-      ps_image = SDL_DisplayFormat( ps_temp );
 
       /* Setup transparency. */
-      i_color_key = SDL_MapRGB( ps_image->format, 0xFF, 0, 0xFF );
-      SDL_SetColorKey( ps_image, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
+      i_color_key = SDL_MapRGB( ps_temp->format, 0xFF, 0, 0xFF );
+      SDL_SetColorKey( ps_temp, SDL_RLEACCEL | SDL_SRCCOLORKEY, i_color_key );
+
+      ps_image = SDL_DisplayFormatAlpha( ps_temp );
 
       DBG_INFO_STR_PTR( "Loaded image", (const char*)ps_path_in->data, ps_image );
    } else {
@@ -291,7 +292,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
       ps_xml_tile = ezxml_child( ps_xml_tileset, "tile" );
       while( NULL != ps_xml_tile ) {
          /* Get the GID of the next tile. */
-         ps_gid_string = bformat( "%s", ezxml_attr( ps_xml_tile, "id" ) );
+         ps_gid_string = bfromcstr( ezxml_attr( ps_xml_tile, "id" ) );
          if( NULL != ps_gid_string ) {
             i_gid = atoi( (const char*)ps_gid_string->data );
             bdestroy( ps_gid_string );
@@ -332,7 +333,7 @@ GFX_TILESET* graphics_create_tileset( bstring ps_path_in ) {
          ps_xml_prop_iter = ezxml_child( ps_xml_props, "property" );
          while( NULL != ps_xml_prop_iter ) {
             /* Load the current property into the struct. */
-            ps_prop_string = bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
+            ps_prop_string = bfromcstr( ezxml_attr( ps_xml_prop_iter, "value" ) );
             if(
                NULL != ps_prop_string &&
                0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hindrance" )
@@ -438,7 +439,7 @@ GFX_FONT* graphics_create_font( bstring ps_font_path_in, int i_size_in ) {
 
    /* Some font loaders are different, so we might need to alter the inputted *
     * path.                                                                   */
-   ps_font_path_proc = bformat( "%s", ps_font_path_in->data );
+   ps_font_path_proc = bstrcpy( ps_font_path_in );
 
    #ifdef USESDL
    ps_font_out = TTF_OpenFont(
@@ -884,9 +885,10 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
       return;
    }
 
+   DBG_INFO_PTR( "Freeing image", ps_surface_in );
+
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );
-   DBG_INFO_PTR( "Freed image", ps_surface_in );
    #elif defined USEDIRECTX
    free( ps_surface_in->surface );
    free( ps_surface_in );
@@ -918,15 +920,11 @@ void graphics_free_spritesheet( GFX_SPRITESHEET* ps_spritesheet_in ) {
 /* Purpose: Free the given tileset buffer.                                    */
 /* Parameters: The tileset to free.                                           */
 void graphics_free_tileset( GFX_TILESET* ps_tileset_in ) {
-   #ifdef USESDL
-   SDL_FreeSurface( ps_tileset_in->image );
-   #elif defined USEDIRECTX
+   if( NULL == ps_tileset_in ) {
+      return;
+   }
+
    graphics_free_image( ps_tileset_in->image );
-   #elif defined USEALLEGRO
-   graphics_free_image( ps_tileset_in->image );
-   #else
-   #error "No surface freeing mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    free( ps_tileset_in );
 }
