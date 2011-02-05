@@ -40,6 +40,8 @@
 
 /* = Includes = */
 
+#include <stdarg.h>
+
 #include "defines.h"
 #include "cache.h"
 #include "graphics.h"
@@ -121,6 +123,14 @@ typedef struct {
 
 /* = Macros = */
 
+/* XXX: Don't mind this. We're just thinking to ourselves... */
+/* #define STVN_COMMAND( cmd_name, ... ) \
+   void stvn_##cmd_name##_implement( __VA_ARGS__ ) { \
+   } \
+   \
+   void stvn_##cmd_name##_load( __VA_ARGS__ ) { \
+   } */
+
 /* Purpose: Select the appropriate cache for the given scope and set the      *
  *          given key to the given value within it.                           */
 #define STVN_CACHE_SET( key, value, scope, pg_addr, gc_addr, pl_addr, lc_addr ) \
@@ -141,37 +151,33 @@ typedef struct {
 
 /* Purpose: Parse an int attribute into the property specified by dtype.      */
 #define STVN_PARSE_CMD_DAT_INT( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
-   ); \
-   s_command_tmp.data[di].dtype = \
-      atoi( (const char*)ps_command_attr->data );
+   if( NULL != ezxml_attr( ps_xml_command, #dtype ) ) { \
+      s_command_tmp.data[di].dtype = \
+         atoi( ezxml_attr( ps_xml_command, #dtype ) ); \
+   }
 
 /* Purpose: Parse a float attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
-   ); \
+   ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) );\
    s_command_tmp.data[di].dtype = \
-      atof( (const char*)ps_command_attr->data );
+      atof( (const char*)ps_command_attr->data ); \
+   bdestroy( ps_command_attr );
 
 /* Purpose: Parse a string attribute into the property specified by dtype.    */
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
-   ); \
-   s_command_tmp.data[di].dtype = \
-      bstrcpy( ps_command_attr );
+   ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
+   if( BSTR_ERR != ps_command_attr  && NULL != ps_command_attr ) { \
+      s_command_tmp.data[di].dtype = \
+         bstrcpy( ps_command_attr ); \
+      bdestroy( ps_command_attr ); \
+   }
 
 /* Purpose: Parse a scope attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_SCOPE( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
-   ); \
-   if( 0 == strcmp( (const char*)ps_command_attr->data, "local" ) ) { \
+   if( 0 == strcmp( ezxml_attr( ps_xml_command, #dtype ), "local" ) ) { \
       s_command_tmp.data[di].dtype = COND_SCOPE_LOCAL; \
       DBG_INFO( "Setting scope: local" ); \
-   } else if( 0 == strcmp( (const char*)ps_command_attr->data, "global" ) ) { \
+   } else if( 0 == strcmp( ezxml_attr( ps_xml_command, #dtype ), "global" ) ) { \
       s_command_tmp.data[di].dtype = COND_SCOPE_GLOBAL; \
       DBG_INFO( "Setting scope: global" ); \
    } else { \
@@ -181,20 +187,18 @@ typedef struct {
 
 /* Purpose: Parse a color attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_COL( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_attr( ps_xml_command, #dtype ) \
-   ); \
+   ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
    s_command_tmp.data[di].dtype = \
-      graphics_create_color_html( ps_command_attr );
+      graphics_create_color_html( ps_command_attr ); \
+   bdestroy( ps_command_attr );
 
 /* Purpose: Parse an string body into the property specified by dtype.        */
 #define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
-   bassignformat( \
-      ps_command_attr, "%s", ezxml_txt( ps_xml_command ) \
-   ); \
+   ps_command_attr = bfromcstr( ezxml_txt( ps_xml_command ) ); \
    btrimws( ps_command_attr ); \
    s_command_tmp.data[di].dtype = \
-      bstrcpy( ps_command_attr );
+      bstrcpy( ps_command_attr ); \
+   bdestroy( ps_command_attr );
 
 /* = Function Prototypes = */
 

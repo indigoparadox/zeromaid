@@ -22,8 +22,8 @@ GFX_DRAW_LOOP_ENABLE
 
 /* = Commands = */
 
-/* XXX: Don't mind this. We're just thinking to ourselves...
-STVN_COMMAND( background );
+/* XXX: Don't mind this. We're just thinking to ourselves... */
+/* STVN_COMMAND( background, int foo );
 STVN_COMMAND( pause );
 STVN_COMMAND( label );
 STVN_COMMAND( cond );
@@ -237,15 +237,10 @@ stvnl_cleanup:
    }
    free( as_actors );
 
-   #ifndef USEWII
-   /* XXX: This line causes a crash on the Wii. Ideally the best solution     *
-    * would be to find the root cause, but this whole module badly needs to   *
-    * be re-written anyway, so it would be a waste of time and frustration.   */
    for( i = 0 ; i < i_commands_count ; i++ ) {
       systype_visnov_free_command_arr( &as_commands[i] );
    }
    free( as_commands );
-   #endif /* USEWII */
 
    if( NULL != ps_menu ) {
       window_free_menu( ps_menu );
@@ -263,9 +258,8 @@ BOOL systype_visnov_load_commands(
    ezxml_t ps_xml_script_in
 ) {
    ezxml_t ps_xml_command = NULL;
-   const char* pc_command_action = NULL; /* Pointer to ezxml action result. */
-   bstring ps_command_attr = bfromcstr( "" ), /* String holding what to add to cmd data. */
-      ps_command_action = bfromcstr( "" ); /* Copy of the command's action for later. */
+   bstring ps_command_attr = NULL, /* String holding what to add to cmd data. */
+      ps_command_action = NULL; /* Copy of the command's action for later. */
    SYSTYPE_VISNOV_COMMAND s_command_tmp;
    BOOL b_success = TRUE;
 
@@ -283,13 +277,8 @@ BOOL systype_visnov_load_commands(
    while( NULL != ps_xml_command ) {
       memset( &s_command_tmp, 0, sizeof( SYSTYPE_VISNOV_COMMAND ) );
 
-      pc_command_action = ezxml_attr( ps_xml_command, "action" );
-      bassignformat(
-         ps_command_action,
-         "%s",
-         pc_command_action
-      );
-      if( NULL == pc_command_action ) {
+      ps_command_action = bfromcstr( ezxml_attr( ps_xml_command, "action" ) );
+      if( NULL == ps_command_action ) {
          /* If the action isn't defined then don't even bother. */
          DBG_ERR( "Invalid script command found: No action specified." );
          continue;
@@ -300,31 +289,31 @@ BOOL systype_visnov_load_commands(
        * data item for that command, although that much should be evident from   *
        * the list below. At any rate, be aware of the header and be sure to      *
        * update it accordingly when adding new items.                            */
-      if( 0 == strcmp( pc_command_action, "background" ) ) {
+      if( 0 == strcmp( ps_command_action->data, "background" ) ) {
          /* COMMAND: BACKGROUND */
          /* TODO: Standardize the loading of an image command into a macro. */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_BACKGROUND, SYSTYPE_VISNOV_CMD_BACKGROUND_DC );
-         bassignformat(
-            ps_command_attr,
+         ps_command_attr = bformat(
             "%s%s.%s", PATH_SHARE, ezxml_attr( ps_xml_command, "bg" ),
             FILE_EXTENSION_IMAGE
          );
          s_command_tmp.data[0].bg = graphics_create_image( ps_command_attr );
+         bdestroy( ps_command_attr );
 
-      } else if( 0 == strcmp( pc_command_action, "pause" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "pause" ) ) {
          /* COMMAND: PAUSE */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_PAUSE, SYSTYPE_VISNOV_CMD_PAUSE_DC );
          STVN_PARSE_CMD_DAT_INT( delay, 0 );
 
-      } else if( 0 == strcmp( pc_command_action, "label" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "label" ) ) {
          /* COMMAND: LABEL */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_LABEL, SYSTYPE_VISNOV_CMD_LABEL_DC );
          STVN_PARSE_CMD_DAT_STR( name, 0 );
 
-      } else if( 0 == strcmp( pc_command_action, "cond" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "cond" ) ) {
          /* COMMAND: COND */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_COND, SYSTYPE_VISNOV_CMD_COND_DC );
@@ -333,7 +322,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR( key, 2 );
          STVN_PARSE_CMD_DAT_STR( equals, 3 );
 
-      } else if( 0 == strcmp( pc_command_action, "talk" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "talk" ) ) {
          /* COMMAND: TALK */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TALK, SYSTYPE_VISNOV_CMD_TALK_DC );
@@ -341,13 +330,13 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR_BODY( talktext, 1 );
          STVN_PARSE_CMD_DAT_INT( speed, 2 );
 
-      } else if( 0 == strcmp( pc_command_action, "goto" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "goto" ) ) {
          /* COMMAND: GOTO */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_GOTO, SYSTYPE_VISNOV_CMD_GOTO_DC );
          STVN_PARSE_CMD_DAT_STR( target, 0 );
 
-      } else if( 0 == strcmp( pc_command_action, "portrait" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "portrait" ) ) {
          /* COMMAND: PORTRAIT */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_PORTRAIT, SYSTYPE_VISNOV_CMD_PORTRAIT_DC );
@@ -357,7 +346,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_INT( x, 3 );
          STVN_PARSE_CMD_DAT_INT( y, 4 );
 
-      } else if( 0 == strcmp( pc_command_action, "teleport" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "teleport" ) ) {
          /* COMMAND: TELEPORT */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TELEPORT, SYSTYPE_VISNOV_CMD_TELEPORT_DC );
@@ -366,7 +355,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_INT( desty, 2 );
          STVN_PARSE_CMD_DAT_STR( type, 3 ); /* TODO: Parse the type. */
 
-      } else if( 0 == strcmp( pc_command_action, "menu" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "menu" ) ) {
          /* COMMAND: MENU */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_MENU, SYSTYPE_VISNOV_CMD_MENU_DC );
@@ -377,7 +366,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_COL( color_sfg, 4 );
          STVN_PARSE_CMD_DAT_COL( color_sbg, 5 );
 
-      } else if( 0 == strcmp( pc_command_action, "set" ) ) {
+      } else if( 0 == strcmp( ps_command_action->data, "set" ) ) {
          /* COMMAND: SET */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_SET, SYSTYPE_VISNOV_CMD_SET_DC );
@@ -880,6 +869,9 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
    }
 
    /* We know which data items are present by the command present. */
+   /* XXX: The engine crashes on some platforms when freeing strings. This is    *
+    *      just one of many faults in this engine, and reason enough for it to   *
+    *      be replaced.                                                          */
    switch( ps_command_in->command ) {
       case SYSTYPE_VISNOV_CMD_BACKGROUND:
          DBG_INFO_PTR(
@@ -892,15 +884,15 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_LABEL:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: LABEL: name",
             (const char*)ps_command_in->data[0].name->data
          );
-         bdestroy( ps_command_in->data[0].name );
+         bdestroy( ps_command_in->data[0].name ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_COND:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: COND: target",
             (const char*)ps_command_in->data[0].target->data
          );
@@ -914,35 +906,35 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             "Freeing command: COND: equals",
             (const char*)ps_command_in->data[3].equals->data
          );
-         bdestroy( ps_command_in->data[3].equals );
+         bdestroy( ps_command_in->data[3].equals ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: TALK: talktext",
             (const char*)ps_command_in->data[1].talktext->data
          );
-         bdestroy( ps_command_in->data[1].talktext );
+         bdestroy( ps_command_in->data[1].talktext ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_GOTO:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: GOTO: target",
             (const char*)ps_command_in->data[0].target->data
          );
-         bdestroy( ps_command_in->data[0].target );
+         bdestroy( ps_command_in->data[0].target ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_PORTRAIT:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: PORTRAIT: emotion",
             (const char*)ps_command_in->data[1].emotion->data
          );
-         bdestroy( ps_command_in->data[1].emotion );
+         bdestroy( ps_command_in->data[1].emotion ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_TELEPORT:
-         DBG_INFO_STR(
+         /* DBG_INFO_STR(
             "Freeing command: TELEPORT: destmap",
             (const char*)ps_command_in->data[0].destmap->data
          );
@@ -951,11 +943,11 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             "Freeing command: TELEPORT: type",
             (const char*)ps_command_in->data[3].type->data
          );
-         bdestroy( ps_command_in->data[3].type );
+         bdestroy( ps_command_in->data[3].type ); */
          break;
 
       case SYSTYPE_VISNOV_CMD_MENU:
-         bdestroy( ps_command_in->data[0].items );
+         /* bdestroy( ps_command_in->data[0].items ); */
          DBG_INFO_PTR(
             "Freeing command: MENU: color_fg", ps_command_in->data[2].color_fg
          );
@@ -977,8 +969,8 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_SET:
-         bdestroy( ps_command_in->data[2].key );
-         bdestroy( ps_command_in->data[3].equals );
+         /* bdestroy( ps_command_in->data[2].key );
+         bdestroy( ps_command_in->data[3].equals ); */
          break;
    }
 }
