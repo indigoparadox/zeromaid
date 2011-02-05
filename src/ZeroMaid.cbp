@@ -161,6 +161,7 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DOUTTOFILE" />
+					<Add option="-DUSEIFFYBDESTROY" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />

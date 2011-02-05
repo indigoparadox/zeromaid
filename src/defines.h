@@ -128,6 +128,15 @@ typedef int COND_SCOPE;
    #endif /* USEWII && USEDEBUG && USENET */
 #endif /* OUTTOFILE */
 
+/* Some platforms have trouble when we try to clean up all of our strings for *
+ * some reason. These currently seem to include the Wii and some Linux x86    *
+ * installations.                                                             */
+#ifdef USEIFFYBDESTROY
+   #define iffy_bdestroy( target )
+#else
+   #define iffy_bdestroy( target ) bdestroy( target )
+#endif
+
 /* = Macros = */
 
 /* The path separator can be a slash or a backslash, so deal with it. */
