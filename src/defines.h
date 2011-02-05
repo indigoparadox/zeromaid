@@ -20,6 +20,7 @@
 /* = Includes = */
 
 #include <stdio.h>
+#include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
 
