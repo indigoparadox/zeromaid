@@ -884,15 +884,15 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_LABEL:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: LABEL: name",
             (const char*)ps_command_in->data[0].name->data
          );
-         bdestroy( ps_command_in->data[0].name ); */
+         bdestroy( ps_command_in->data[0].name );
          break;
 
       case SYSTYPE_VISNOV_CMD_COND:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: COND: target",
             (const char*)ps_command_in->data[0].target->data
          );
@@ -906,35 +906,35 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             "Freeing command: COND: equals",
             (const char*)ps_command_in->data[3].equals->data
          );
-         bdestroy( ps_command_in->data[3].equals ); */
+         bdestroy( ps_command_in->data[3].equals );
          break;
 
       case SYSTYPE_VISNOV_CMD_TALK:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: TALK: talktext",
             (const char*)ps_command_in->data[1].talktext->data
          );
-         bdestroy( ps_command_in->data[1].talktext ); */
+         bdestroy( ps_command_in->data[1].talktext );
          break;
 
       case SYSTYPE_VISNOV_CMD_GOTO:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: GOTO: target",
             (const char*)ps_command_in->data[0].target->data
          );
-         bdestroy( ps_command_in->data[0].target ); */
+         bdestroy( ps_command_in->data[0].target );
          break;
 
       case SYSTYPE_VISNOV_CMD_PORTRAIT:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: PORTRAIT: emotion",
             (const char*)ps_command_in->data[1].emotion->data
          );
-         bdestroy( ps_command_in->data[1].emotion ); */
+         bdestroy( ps_command_in->data[1].emotion );
          break;
 
       case SYSTYPE_VISNOV_CMD_TELEPORT:
-         /* DBG_INFO_STR(
+         DBG_INFO_STR(
             "Freeing command: TELEPORT: destmap",
             (const char*)ps_command_in->data[0].destmap->data
          );
@@ -943,11 +943,11 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
             "Freeing command: TELEPORT: type",
             (const char*)ps_command_in->data[3].type->data
          );
-         bdestroy( ps_command_in->data[3].type ); */
+         bdestroy( ps_command_in->data[3].type );
          break;
 
       case SYSTYPE_VISNOV_CMD_MENU:
-         /* bdestroy( ps_command_in->data[0].items ); */
+         bdestroy( ps_command_in->data[0].items );
          DBG_INFO_PTR(
             "Freeing command: MENU: color_fg", ps_command_in->data[2].color_fg
          );
@@ -969,8 +969,8 @@ void systype_visnov_free_command_arr( SYSTYPE_VISNOV_COMMAND* ps_command_in ) {
          break;
 
       case SYSTYPE_VISNOV_CMD_SET:
-         /* bdestroy( ps_command_in->data[2].key );
-         bdestroy( ps_command_in->data[3].equals ); */
+         bdestroy( ps_command_in->data[2].key );
+         bdestroy( ps_command_in->data[3].equals );
          break;
    }
 }

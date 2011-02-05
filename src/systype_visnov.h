@@ -158,18 +158,16 @@ typedef struct {
 
 /* Purpose: Parse a float attribute into the property specified by dtype.     */
 #define STVN_PARSE_CMD_DAT_FLT( dtype, di ) \
-   ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) );\
-   s_command_tmp.data[di].dtype = \
-      atof( (const char*)ps_command_attr->data ); \
-   bdestroy( ps_command_attr );
+   if( NULL != ezxml_attr( ps_xml_command, #dtype ) ) { \
+      s_command_tmp.data[di].dtype = \
+         atof( ezxml_attr( ps_xml_command, #dtype ) ); \
+   }
 
 /* Purpose: Parse a string attribute into the property specified by dtype.    */
 #define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
-   ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
-   if( BSTR_ERR != ps_command_attr  && NULL != ps_command_attr ) { \
+   if( NULL != ezxml_attr( ps_xml_command, #dtype ) ) { \
       s_command_tmp.data[di].dtype = \
-         bstrcpy( ps_command_attr ); \
-      bdestroy( ps_command_attr ); \
+         bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
    }
 
 /* Purpose: Parse a scope attribute into the property specified by dtype.     */
@@ -190,15 +188,16 @@ typedef struct {
    ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
    s_command_tmp.data[di].dtype = \
       graphics_create_color_html( ps_command_attr ); \
-   bdestroy( ps_command_attr );
+   bdestroy( ps_command_attr ); \
+   ps_command_attr = NULL;
 
 /* Purpose: Parse an string body into the property specified by dtype.        */
 #define STVN_PARSE_CMD_DAT_STR_BODY( dtype, di ) \
-   ps_command_attr = bfromcstr( ezxml_txt( ps_xml_command ) ); \
-   btrimws( ps_command_attr ); \
-   s_command_tmp.data[di].dtype = \
-      bstrcpy( ps_command_attr ); \
-   bdestroy( ps_command_attr );
+   if( NULL != ezxml_txt( ps_xml_command ) ) { \
+      s_command_tmp.data[di].dtype = \
+         bfromcstr( ezxml_txt( ps_xml_command ) ); \
+      btrimws( s_command_tmp.data[di].dtype ); \
+   }
 
 /* = Function Prototypes = */
 
