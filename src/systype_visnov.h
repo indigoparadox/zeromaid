@@ -52,84 +52,9 @@
 
 /* = Definitons = */
 
-/* Each command is denoted by a numerical opcode, and then a data count (or   *
- * "DC") which specifies the size of the data array. The items in the data    *
- * array should then be accessed via their numerical indexes ("DI") as out-   *
- * lined in the SYSTYPE_VISNOV_DATA union definition below.                   */
-typedef int SYSTYPE_VISNOV_CMD;
-#define SYSTYPE_VISNOV_CMD_NULL 0
-#define SYSTYPE_VISNOV_CMD_BACKGROUND 1
-#define SYSTYPE_VISNOV_CMD_BACKGROUND_DC 1
-#define SYSTYPE_VISNOV_CMD_PAUSE 2
-#define SYSTYPE_VISNOV_CMD_PAUSE_DC 1
-#define SYSTYPE_VISNOV_CMD_LABEL 3
-#define SYSTYPE_VISNOV_CMD_LABEL_DC 1
-#define SYSTYPE_VISNOV_CMD_COND 4
-#define SYSTYPE_VISNOV_CMD_COND_DC 3
-#define SYSTYPE_VISNOV_CMD_TALK 5
-#define SYSTYPE_VISNOV_CMD_TALK_DC 3
-#define SYSTYPE_VISNOV_CMD_GOTO 6
-#define SYSTYPE_VISNOV_CMD_GOTO_DC 1
-#define SYSTYPE_VISNOV_CMD_PORTRAIT 7
-#define SYSTYPE_VISNOV_CMD_PORTRAIT_DC 5
-#define SYSTYPE_VISNOV_CMD_TELEPORT 8
-#define SYSTYPE_VISNOV_CMD_TELEPORT_DC 4
-#define SYSTYPE_VISNOV_CMD_MENU 9
-#define SYSTYPE_VISNOV_CMD_MENU_DC 6
-#define SYSTYPE_VISNOV_CMD_SET 10
-#define SYSTYPE_VISNOV_CMD_SET_DC 4
-
-/* TODO: MUSIC, MENU */
-
-/* = Type and Struct Definitions = */
-
-/* == Command Stuff == */
-
-typedef union {
-   int null;   /* Can be used to space out DIs that can't be reconciled. */
-   GFX_COLOR
-      * color_fg,    /* DI 2 - MENU */
-      * color_bg,    /* DI 3 - MENU */
-      * color_sfg,   /* DI 4 - MENU */
-      * color_sbg;   /* DI 5 - MENU */
-   bstring name,     /* DI 0 - LABEL */
-      emotion,       /* DI 1 - PORTRAIT */
-      key,           /* DI 2 - COND, SET */
-      equals,        /* DI 3 - COND, SET */
-      destmap,       /* DI 0 - TELEPORT */
-      talktext,      /* DI 1 - TALK */
-      target,        /* DI 0 - GOTO, COND */
-      items,         /* DI 0 - MENU */
-      type;          /* DI 3 - TELEPORT */
-   COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
-   GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
-   int serial,       /* DI 0 - PORTRAIT, TALK */
-      x,             /* DI 3 - PORTRAIT */
-      y,             /* DI 4 - PORTRAIT */
-      delay,         /* DI 0 - PAUSE*/
-      destx,         /* DI 1 - TELEPORT */
-      desty,         /* DI 2 - TELEPORT */
-      speed;         /* DI 2 - TALK */
-   float zoom;       /* DI 2 - PORTRAIT */
-} SYSTYPE_VISNOV_DATA;
-
-/* "data" is a dynamic array, but a count is not necessary as the required    *
- * attributes are guaranteed to be available by DI as specified in the        *
- * SYSTYPE_VISNOV_DATA struct definition above.                               */
-typedef struct {
-   SYSTYPE_VISNOV_CMD command;
-   SYSTYPE_VISNOV_DATA* data;
-} SYSTYPE_VISNOV_COMMAND;
+typedef int SYSTYPE_VISNOV_COMMAND_OPCODE;
 
 /* = Macros = */
-
-/* XXX: Don't mind this. We're just thinking to ourselves... */
-/* #define STVN_COMMAND( cmd_name, ... ) \
-   void stvn_##cmd_name##_implement( __VA_ARGS__ ) { \
-   } \
-   \
-   void stvn_##cmd_name##_load( __VA_ARGS__ ) { \
-   } */
 
 /* Purpose: Select the appropriate cache for the given scope and set the      *
  *          given key to the given value within it.                           */
@@ -164,10 +89,9 @@ typedef struct {
    }
 
 /* Purpose: Parse a string attribute into the property specified by dtype.    */
-#define STVN_PARSE_CMD_DAT_STR( dtype, di ) \
+#define STVN_PARSE_CMD_DAT_STR( dtype, target_in ) \
    if( NULL != ezxml_attr( ps_xml_command, #dtype ) ) { \
-      s_command_tmp.data[di].dtype = \
-         bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
+      target_in = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
    }
 
 /* Purpose: Parse a scope attribute into the property specified by dtype.     */
@@ -199,10 +123,23 @@ typedef struct {
       btrimws( s_command_tmp.data[di].dtype ); \
    }
 
+/* = Type and Struct Definitions = */
+
+typedef struct _SYSTYPE_VISNOV_COMMAND {
+   void (*callback_load)(ezxml_t*);
+   void (*callback_exec)(struct _SYSTYPE_VISNOV_COMMAND*);
+   SYSTYPE_VISNOV_COMMAND_OPCODE command;
+   struct _SYSTYPE_VISNOV_COMMAND* next,
+      * previous;
+   int index;
+} SYSTYPE_VISNOV_COMMAND;
+
+#include "systype_visnov_commands.h"
+
 /* = Function Prototypes = */
 
 int systype_visnov_loop( CACHE_CACHE* );
-BOOL systype_visnov_load_commands( SYSTYPE_VISNOV_COMMAND**, int*, ezxml_t );
+SYSTYPE_VISNOV_COMMAND* systype_visnov_load_commands( ezxml_t );
 int systype_visnov_exec_background(
    SYSTYPE_VISNOV_COMMAND*, GFX_SURFACE**, int
 );
