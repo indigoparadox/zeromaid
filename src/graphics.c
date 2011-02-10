@@ -761,6 +761,23 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    GFX_SURFACE* ps_surface_fader = NULL;
    int i_alpha = 255;
    Uint32 i_color_temp = 0;
+   #ifdef USESDLGL
+   GLuint i_texture = NULL; /* Handle for OpenGL texture object. */
+   GLenum e_texture_format = NULL;
+   GLint i_nofcolors;
+   #endif /* USESDLGL */
+
+   #ifdef USESDLGL
+   /* Generate and bind OpenGL texture object. */
+   glGenTextures( 1, &i_texture );
+   glBindTexture( GL_TEXTURE_2D, i_texture );
+
+   /* Setup OpenGL texture's stretching properties. */
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+   glTexImage2D( GL_TEXTURE_2D, 0, nofcolors, surface-&gt;w, surface-&gt;h, 0,
+   texture_format, GL_UNSIGNED_BYTE, surface-&gt;pixels );
+   #endif /* USESDLGL */
 
    /* Create a temporary copy of the screen to fade with. */
    ps_surface_screen_copy = SDL_CreateRGBSurface(

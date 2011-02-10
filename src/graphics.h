@@ -26,6 +26,9 @@
 #elif defined __unix__
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
+#ifdef USESDLGL
+#include <SDL/SDL_opengl.h>
+#endif /* SDLGL */
 #elif defined USEWII
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
