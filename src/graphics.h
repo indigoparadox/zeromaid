@@ -56,13 +56,21 @@
 #define GFX_TRANS_FADE_IN 0
 #define GFX_TRANS_FADE_OUT 1
 
+#define GFX_TRANS_FX_FADE 0 /* Simple, modest, fade. */
+#define GFX_TRANS_FX_BLIP 1 /* An old CRTube blip effect. */
+
 #define GFX_ALPHA_MAX 255
 #define GFX_ALPHA_FADE_INC 25
 #define GFX_ALPHA_FADE_STEP 50
 
+#define GFX_BLIP_HEIGHT_INC 10
+#define GFX_BLIP_WAIT_TIME 50
+
 #define GFX_TILE_DEFAULT_SIZE 32
 
 /* = Type and Struct Definitions = */
+
+typedef int GFX_TRANS_EFFECT;
 
 #ifdef USESDL
 typedef SDL_Surface GFX_SURFACE;
@@ -165,7 +173,7 @@ void graphics_draw_text( int, int, bstring, GFX_FONT*, GFX_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
 void graphics_draw_blank( GFX_COLOR* );
-void graphics_draw_transition( int, GFX_COLOR* );
+void graphics_draw_transition( GFX_TRANS_EFFECT, int, GFX_COLOR* );
 void graphics_do_update( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 int graphics_get_font_height( GFX_FONT* );
