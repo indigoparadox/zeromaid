@@ -74,7 +74,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
 
    /* Draw the initial playing map and fade the screen in. */
    tilemap_draw( ps_map, &s_viewport, TRUE );
-   graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
+   graphics_draw_transition( GFX_TRANS_FX_FADE, GFX_TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
@@ -225,7 +225,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
 sal_cleanup:
 
    /* Fade out the playing map screen. */
-   graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
+   graphics_draw_transition( GFX_TRANS_FX_FADE, GFX_TRANS_FADE_OUT, ps_color_fade );
 
    /* Clean up! */
    #ifndef USEWII

@@ -47,17 +47,19 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
       #ifdef USEALLEGRO
       graphics_do_update();
       #endif /* USEALLEGRO */
-      graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
+      graphics_draw_transition(
+         GFX_TRANS_FX_BLIP, ps_title_iter->i_trans, ps_color_fade
+      );
    }
    while( 1 ) {
       GFX_DRAW_LOOP_START
 
       /* Load the next title screen or reduce the delay on this one. */
       if( NULL != ps_title_iter && 1 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
-         graphics_draw_transition( ps_title_iter->o_trans, ps_color_fade );
+         graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->o_trans, ps_color_fade );
          ps_title_iter = ps_title_iter->next;
          graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
-         graphics_draw_transition( ps_title_iter->i_trans, ps_color_fade );
+         graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->i_trans, ps_color_fade );
 
          /* Every new title resets the menu regardless of anything. */
          i_menu_selected = 0;
@@ -158,7 +160,9 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
 
 slt_cleanup:
 
-   graphics_draw_transition( ps_title_iter->o_trans, ps_color_fade );
+   graphics_draw_transition(
+      GFX_TRANS_FX_BLIP, ps_title_iter->o_trans, ps_color_fade
+   );
 
    /* Clean up! */
    ps_title_iter = ps_title_screens;

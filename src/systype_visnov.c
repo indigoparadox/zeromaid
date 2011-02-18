@@ -216,7 +216,7 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
 stvnl_cleanup:
 
    /* Fade out the playing map screen. */
-   graphics_draw_transition( GFX_TRANS_FADE_OUT, ps_color_fade );
+   graphics_draw_transition( GFX_TRANS_FX_FADE, GFX_TRANS_FADE_OUT, ps_color_fade );
 
    /* We won't free the bg pointer inside of the scene struct because it      *
     * points to an image which is also pointed to by one of the commands      *
@@ -408,7 +408,9 @@ int systype_visnov_exec_background(
    ps_color_fade = graphics_create_color( 0, 0, 0 );
    *pps_bg_in = ps_command_in->data->bg;
    graphics_draw_blit_tile( *pps_bg_in, NULL, NULL );
-   graphics_draw_transition( GFX_TRANS_FADE_IN, ps_color_fade );
+   graphics_draw_transition(
+      GFX_TRANS_FX_FADE, GFX_TRANS_FADE_IN, ps_color_fade
+   );
    free( ps_color_fade );
 
    return ++i_command_cursor_in;

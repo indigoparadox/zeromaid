@@ -749,7 +749,9 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
 
 /* Purpose: Fade the screen in or out.                                        */
 /* Parameters: Whether to fade in or out, the color from/to which to fade.    */
-void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
+void graphics_draw_transition(
+   GFX_TRANS_EFFECT i_fx_type_in, int i_fade_io, GFX_COLOR* ps_color_in
+) {
    if( NULL == ps_color_in ) {
       DBG_ERR( "Invalid color passed." );
       return;
@@ -759,7 +761,8 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    GFX_SURFACE* ps_surface_screen_copy = NULL;
    GFX_SURFACE* ps_surface_fader = NULL;
-   int i_alpha = 255;
+   int i_alpha = 255,
+      i_blip_height = ps_screen->h;
    Uint32 i_color_temp = 0;
 
    /* Create a temporary copy of the screen to fade with. */
@@ -779,45 +782,72 @@ void graphics_draw_transition( int i_fade_io, GFX_COLOR* ps_color_in ) {
    }
    SDL_BlitSurface( ps_screen, NULL, ps_surface_screen_copy, NULL ) ;
 
-   /* Create a surface of the requested color to fade with. */
-   ps_surface_fader = SDL_CreateRGBSurface(
-      ps_screen->flags|SDL_SRCALPHA,
-      ps_screen->w,
-      ps_screen->h,
-      ps_screen->format->BitsPerPixel,
-      ps_screen->format->Rmask,
-      ps_screen->format->Gmask,
-      ps_screen->format->Bmask,
-      ps_screen->format->Amask
-   );
-   if( NULL == ps_surface_fader ) {
-      DBG_ERR( "Could not allocate screen fader surface." );
-      SDL_FreeSurface( ps_surface_screen_copy );
-      return;
-   }
-   i_color_temp = SDL_MapRGB(
-      ps_screen->format,
-      ps_color_in->r,
-      ps_color_in->g,
-      ps_color_in->b
-   );
-   SDL_FillRect( ps_surface_fader, NULL, i_color_temp );
+   switch( i_fx_type_in ) {
+      case GFX_TRANS_FX_BLIP:
+         /* Perform the blip. */
+         while( 0 < i_blip_height ) {
+            if( GFX_TRANS_FADE_OUT == i_fade_io ) {
+               /* TODO: Blip out. */
+            } else {
+               /* TODO: Blip in. */
+            }
 
-   /* Perform the actual fade. */
-   while( 0 < i_alpha ) {
-      if( GFX_TRANS_FADE_OUT == i_fade_io ) {
-         SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(GFX_ALPHA_MAX - i_alpha) );
-      } else {
-         SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(i_alpha) );
-      }
+            /* TODO: Perform the blip iteration. */
+            /* SDL_BlitSurface( ps_surface_screen_copy, NULL, ps_screen, NULL );
+            SDL_BlitSurface( ps_surface_fader, NULL, ps_screen, NULL ); */
 
-      SDL_BlitSurface( ps_surface_screen_copy, NULL, ps_screen, NULL );
-      SDL_BlitSurface( ps_surface_fader, NULL, ps_screen, NULL );
+            SDL_Flip( ps_screen );
+            SDL_Delay( GFX_BLIP_WAIT_TIME );
 
-      SDL_Flip( ps_screen );
-      SDL_Delay( GFX_ALPHA_FADE_STEP );
+            i_blip_height -= GFX_BLIP_HEIGHT_INC;
+         }
+         break;
 
-      i_alpha -= GFX_ALPHA_FADE_INC;
+
+         break;
+
+      default: /* GFX_TRANS_FX_FADE */
+         /* Create a surface of the requested color to fade with. */
+         ps_surface_fader = SDL_CreateRGBSurface(
+            ps_screen->flags|SDL_SRCALPHA,
+            ps_screen->w,
+            ps_screen->h,
+            ps_screen->format->BitsPerPixel,
+            ps_screen->format->Rmask,
+            ps_screen->format->Gmask,
+            ps_screen->format->Bmask,
+            ps_screen->format->Amask
+         );
+         if( NULL == ps_surface_fader ) {
+            DBG_ERR( "Could not allocate screen fader surface." );
+            SDL_FreeSurface( ps_surface_screen_copy );
+            return;
+         }
+         i_color_temp = SDL_MapRGB(
+            ps_screen->format,
+            ps_color_in->r,
+            ps_color_in->g,
+            ps_color_in->b
+         );
+         SDL_FillRect( ps_surface_fader, NULL, i_color_temp );
+
+         /* Perform the actual fade. */
+         while( 0 < i_alpha ) {
+            if( GFX_TRANS_FADE_OUT == i_fade_io ) {
+               SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(GFX_ALPHA_MAX - i_alpha) );
+            } else {
+               SDL_SetAlpha( ps_surface_fader, SDL_SRCALPHA, (Uint8)(i_alpha) );
+            }
+
+            SDL_BlitSurface( ps_surface_screen_copy, NULL, ps_screen, NULL );
+            SDL_BlitSurface( ps_surface_fader, NULL, ps_screen, NULL );
+
+            SDL_Flip( ps_screen );
+            SDL_Delay( GFX_ALPHA_FADE_STEP );
+
+            i_alpha -= GFX_ALPHA_FADE_INC;
+         }
+         break;
    }
 
    /* Clean up. */
