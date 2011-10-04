@@ -185,7 +185,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
 
    /* Mobiles should have a image drawing information. */
    if( 0 >= ps_mob_out->pixel_size ) {
-      ps_mob_out->pixel_size = GFX_TILE_DEFAULT_SIZE;
+      ps_mob_out->pixel_size = GEO_TILE_DEFAULT_SIZE;
    }
    if( 0 >= ps_mob_out->pixel_mult_percent ) {
       ps_mob_out->pixel_mult_percent = 100;
@@ -281,8 +281,8 @@ BOOL mobile_load_ai(
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
  *          viewport.                                                         */
 /* Parameters: The mobile to draw, the current viewport.                      */
-void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
-   GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
+void mobile_draw( MOBILE_MOBILE* ps_mob_in, GEO_RECTANGLE* ps_viewport_in ) {
+   GEO_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
 

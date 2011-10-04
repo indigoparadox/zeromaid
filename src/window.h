@@ -62,7 +62,7 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   GFX_COLOR fg, bg, sfg, sbg;
+   GEO_COLOR fg, bg, sfg, sbg;
 } WINDOW_MENU_COLORS;
 
 typedef struct {

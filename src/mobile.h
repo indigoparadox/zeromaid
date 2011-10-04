@@ -61,7 +61,7 @@ typedef int MOBILE_MOVE;
 typedef struct {
    bstring id;
    GFX_SURFACE* image;
-   GFX_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
+   GEO_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
 } MOBILE_EMOTION;
 
 typedef struct {
@@ -97,7 +97,7 @@ BOOL mobile_load_mobiles( MOBILE_MOBILE**, int*, ezxml_t, TILEMAP_TILEMAP* );
 MOBILE_MOBILE* mobile_load_mobile( bstring );
 BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
 BOOL mobile_load_ai( MOBILE_MOBILE*, MOBILE_AI, bstring );
-void mobile_draw( MOBILE_MOBILE*, GFX_RECTANGLE* );
+void mobile_draw( MOBILE_MOBILE*, GEO_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );
 void mobile_free( MOBILE_MOBILE* );

@@ -87,7 +87,7 @@ typedef int SYSTYPE_VISNOV_CMD;
 
 typedef union {
    int null;   /* Can be used to space out DIs that can't be reconciled. */
-   GFX_COLOR
+   GEO_COLOR
       * color_fg,    /* DI 2 - MENU */
       * color_bg,    /* DI 3 - MENU */
       * color_sfg,   /* DI 4 - MENU */
@@ -187,7 +187,7 @@ typedef struct {
 #define STVN_PARSE_CMD_DAT_COL( dtype, di ) \
    ps_command_attr = bfromcstr( ezxml_attr( ps_xml_command, #dtype ) ); \
    s_command_tmp.data[di].dtype = \
-      graphics_create_color_html( ps_command_attr ); \
+      geometry_create_color_html( ps_command_attr ); \
    bdestroy( ps_command_attr ); \
    ps_command_attr = NULL;
 

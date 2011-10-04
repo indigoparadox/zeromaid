@@ -238,8 +238,8 @@ int main( int argc, char* argv[] ) {
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
    graphics_create_screen(
-      GFX_SCREENWIDTH,
-      GFX_SCREENHEIGHT,
+      GEO_SCREENWIDTH,
+      GEO_SCREENHEIGHT,
       GFX_SCREENDEPTH,
       ps_title
    );

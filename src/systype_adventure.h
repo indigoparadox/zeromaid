@@ -50,11 +50,11 @@ BOOL systype_adventure_mobile_walk(
 void systype_adventure_menu_show( WINDOW_MENU**, CACHE_CACHE* );
 void systype_adventure_menu_test( void );
 void systype_adventure_viewport_scroll(
-   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
+   GEO_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
    WINDOW_MENU*, TILEMAP_DIR
 );
 void systype_adventure_viewport_draw(
-   GFX_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
+   GEO_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
    WINDOW_MENU*, BOOL
 );
 

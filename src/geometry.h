@@ -14,59 +14,57 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef TILEMAP_H
-#define TILEMAP_H
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
 
 /* = Includes = */
 
+#ifdef USESDL
+#ifdef __APPLE__
+#include <SDL/SDL.h>
+#include <SDL_ttf/SDL_ttf.h>
+#elif defined __unix__
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
+#elif defined USEWII
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
+#else
+#include <SDL.h>
+#include <SDL_ttf.h>
+#endif /* __APPLE__, __unix__, USEWII */
+#elif defined USEDIRECTX
+#include <windows.h>
+#include <ddraw.h>
+#include "ddutil.h"
+#elif defined USEALLEGRO
+#include <allegro.h>
+#endif /* USESDL, USEDIRECTX, USEALLEGRO */
+
 #include "defines.h"
 #include "util.h"
-#include "graphics.h"
-#include "event.h"
 
 /* = Definitions = */
 
-#define TILEMAP_ANIM_FRAMES 1 /* Max index of animation frames. */
-#define TILEMAP_ANIM_DRAWS 10 /* Max index of drawing cycles per frame. */
+/* TODO: Make the screen size variable at runtime. */
+#define GEO_SCREENWIDTH 640
+#define GEO_SCREENHEIGHT 480
 
-typedef int TILEMAP_DIR;
-#define TILEMAP_DIR_NULL 0
-#define TILEMAP_DIR_NORTH 1
-#define TILEMAP_DIR_SOUTH 2
-#define TILEMAP_DIR_EAST 3
-#define TILEMAP_DIR_WEST 4
+#define GEO_TILE_DEFAULT_SIZE 32
 
 /* = Type and Struct Definitions = */
 
-typedef struct {
-   int gid,
-      dirty; /* Should this tile be redrawn next cycle? */
-} TILEMAP_TILE;
-
-typedef struct {
-   GFX_TILESET* tileset;
-   GEO_RECTANGLE* viewport;
-   TILEMAP_TILE* tiles; /* Pointer to a flexible array of tiles. */
-   bstring proper_name,
-      music_path,
-      sys_name;
-   short int time_moves;
-   BYTE light_str;
-   int tile_w, tile_h,
-      tiles_count; /* Number of tiles in the tile list. */
-} TILEMAP_TILEMAP;
+#ifdef USESDL
+typedef SDL_Rect GEO_RECTANGLE;
+typedef SDL_Color GEO_COLOR;
+#else
+typedef struct { int x, y, w, h; } GEO_RECTANGLE;
+typedef struct { int r, g, b; } GEO_COLOR;
+#endif /* USESDL */
 
 /* = Function Prototypes = */
 
-TILEMAP_TILEMAP* tilemap_create_map( bstring, bstring );
-int tilemap_get_tile_x( int, TILEMAP_TILEMAP* );
-int tilemap_get_tile_y( int, TILEMAP_TILEMAP* );
-int tilemap_dir_get_add_x( TILEMAP_DIR );
-int tilemap_dir_get_add_y( TILEMAP_DIR );
-TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
-void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
-void tilemap_draw( TILEMAP_TILEMAP*, GEO_RECTANGLE*, BOOL );
-void tilemap_free( TILEMAP_TILEMAP* );
+GEO_COLOR* geometry_create_color( unsigned char, unsigned char, unsigned char );
+GEO_COLOR* geometry_create_color_html( bstring );
 
-#endif /* TILEMAP_H */
-
+#endif /* GEOMETRY_H */

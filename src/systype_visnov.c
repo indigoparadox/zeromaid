@@ -51,8 +51,8 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
       i, j, /* Loop iterators. */
       i_locals_count = 0, /* Local variable count. */
       i_actors_onscreen_count = 0;
-   GFX_COLOR* ps_color_fade = NULL;
-   GFX_RECTANGLE s_rect_actor;
+   GEO_COLOR* ps_color_fade = NULL;
+   GEO_RECTANGLE s_rect_actor;
    bstring ps_scene_path = NULL;
    ezxml_t ps_xml_scene = NULL;
    EVENT_EVENT s_event;
@@ -75,9 +75,9 @@ int systype_visnov_loop( CACHE_CACHE* ps_cache_in ) {
    ps_xml_scene = ezxml_parse_file( (const char*)ps_scene_path->data );
 
    /* Initialize what we need to use functions to initialize. */
-   memset( &s_rect_actor, 0, sizeof( GFX_RECTANGLE ) );
+   memset( &s_rect_actor, 0, sizeof( GEO_RECTANGLE ) );
    memset( &s_event, 0, sizeof( EVENT_EVENT ) );
-   ps_color_fade = graphics_create_color( 0, 0, 0 );
+   ps_color_fade = geometry_create_color( 0, 0, 0 );
    b_commands_loaded = systype_visnov_load_commands(
       &as_commands,
       &i_commands_count,
@@ -403,9 +403,9 @@ int systype_visnov_exec_background(
    GFX_SURFACE** pps_bg_in,
    int i_command_cursor_in
 ) {
-   GFX_COLOR* ps_color_fade = NULL;
+   GEO_COLOR* ps_color_fade = NULL;
 
-   ps_color_fade = graphics_create_color( 0, 0, 0 );
+   ps_color_fade = geometry_create_color( 0, 0, 0 );
    *pps_bg_in = ps_command_in->data->bg;
    graphics_draw_blit_tile( *pps_bg_in, NULL, NULL );
    graphics_draw_transition(
@@ -793,10 +793,10 @@ int systype_visnov_exec_menu(
    }
 
    /* Setup the new menu colors. */
-   memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GFX_COLOR ) );
+   memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GEO_COLOR ) );
 
    /* Append the menu struct and clean up. It's all right to just free  *
     * it since the dynamic stuff pointed to it will be pointed to by    *
