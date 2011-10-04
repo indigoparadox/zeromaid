@@ -227,8 +227,8 @@ wcm_cleanup:
  *          if no index is given or the index is invalid.                     */
 void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
    static GFX_SURFACE* tps_text_window_bg = NULL;
-   static GFX_COLOR ts_color_text;
-   static GFX_RECTANGLE ts_rect_window;
+   static GEO_COLOR ts_color_text;
+   static GEO_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
    int i_lines_printed = 0,
       i_buffer_result = BSTR_OK,
@@ -260,10 +260,10 @@ void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
       }
 
       /* Setup the color. */
-      memset( &ts_color_text, 0, sizeof( GFX_COLOR ) );
+      memset( &ts_color_text, 0, sizeof( GEO_COLOR ) );
 
       /* Setup the window rectangle. */
-      memset( &ts_rect_window, 0, sizeof( GFX_RECTANGLE ) );
+      memset( &ts_rect_window, 0, sizeof( GEO_RECTANGLE ) );
       ts_rect_window.w = tps_text_window_bg->w;
       ts_rect_window.h = tps_text_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;
@@ -333,9 +333,9 @@ wdt_cleanup:
 /* Parameters: The list of menus to draw and the number of menus in the list. */
 void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
    static GFX_SURFACE* tps_menu_window_bg = NULL;
-   static GFX_RECTANGLE ts_rect_window;
+   static GEO_RECTANGLE ts_rect_window;
    static BOOL tb_success = TRUE; /* Were we able to setup window drawing? */
-   GFX_COLOR* ps_color = NULL;
+   GEO_COLOR* ps_color = NULL;
    bstring ps_bg_path = NULL;
    int i, /* Loop iterator. */
       i_menuitem_height;
@@ -356,7 +356,7 @@ void window_draw_menu( WINDOW_MENU* ps_menu_in ) {
       }
 
       /* Setup the window rectangle. */
-      memset( &ts_rect_window, 0, sizeof( GFX_RECTANGLE ) );
+      memset( &ts_rect_window, 0, sizeof( GEO_RECTANGLE ) );
       ts_rect_window.w = tps_menu_window_bg->w;
       ts_rect_window.h = tps_menu_window_bg->h;
       ts_rect_window.x = (GFX_GET_SCREEN_WIDTH - ts_rect_window.w) / 2;

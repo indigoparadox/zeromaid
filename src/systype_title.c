@@ -26,7 +26,7 @@ TITLE_ERROR_ENABLE
 /* Return: The code for the next action to take.                              */
 int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
    int i_menu_selected = 0, i = 0, i_act_return = RETURN_ACTION_QUIT;
-   GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
+   GEO_COLOR* ps_color_fade = geometry_create_color( 0, 0, 0 );
    SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
    SYSTYPE_TITLE_TITLESCREEN* ps_title_iter = ps_title_screens;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
@@ -280,14 +280,14 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       /* ATTRIB: FG COLOR */
       ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_titlescreen_iter, "fgcolor" ) );
       if( NULL != ps_string_attrib ) {
-         ps_titlescreen_iter->fg_color = graphics_create_color_html( ps_string_attrib );
+         ps_titlescreen_iter->fg_color = geometry_create_color_html( ps_string_attrib );
       }
       bdestroy( ps_string_attrib );
 
       /* ATTRIB: FG HIGHLIGHT COLOR */
       ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_titlescreen_iter, "fghighlight" ) );
       if( NULL != ps_string_attrib ) {
-         ps_titlescreen_iter->fg_highlight = graphics_create_color_html( ps_string_attrib );
+         ps_titlescreen_iter->fg_highlight = geometry_create_color_html( ps_string_attrib );
       }
       bdestroy( ps_string_attrib );
 
@@ -375,7 +375,7 @@ BOOL systype_title_load_titlescreen_text(
       /* ATTRIB: FG COLOR */
       ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_text_iter, "fgcolor" ) );
       if( NULL != ps_string_attrib ) {
-         ps_text_iter->fg_color = graphics_create_color_html( ps_string_attrib );
+         ps_text_iter->fg_color = geometry_create_color_html( ps_string_attrib );
       }
       bdestroy( ps_string_attrib );
 
@@ -575,8 +575,8 @@ void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],
    GFX_FONT* ps_font_in,
-   GFX_COLOR* ps_color_in,
-   GFX_COLOR* ps_highlight_in
+   GEO_COLOR* ps_color_in,
+   GEO_COLOR* ps_highlight_in
 ) {
    static int i = 0,
       i_x = SYSTYPE_TITLE_MENU_X_START,

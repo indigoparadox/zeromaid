@@ -32,8 +32,8 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ps_path_mobiles = NULL;
    ezxml_t ps_xml_mobiles = NULL;
    TILEMAP_TILEMAP* ps_map = NULL;
-   GFX_COLOR* ps_color_fade = NULL;
-   GFX_RECTANGLE s_viewport;
+   GEO_COLOR* ps_color_fade = NULL;
+   GEO_RECTANGLE s_viewport;
    MOBILE_MOBILE* as_mobile_list; /* An array of NPCs and other mobiles. */
    EVENT_EVENT s_event;
    WINDOW_MENU* ps_menu = NULL;
@@ -44,7 +44,7 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       bformat( "%s%s.tmx", PATH_SHARE , ps_cache_in->map_name->data );
    ps_map = tilemap_create_map( ps_cache_in->map_name, ps_path_map );
    bdestroy( ps_path_map );
-   ps_color_fade = graphics_create_color( 0, 0, 0 );
+   ps_color_fade = geometry_create_color( 0, 0, 0 );
 
    /* Verify the sanity of loaded data. */
    if( NULL == ps_map ) {
@@ -55,8 +55,8 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    /* Setup structures we need to run. */
    s_viewport.x = 0;
    s_viewport.y = 0;
-   s_viewport.w = GFX_SCREENWIDTH;
-   s_viewport.h = GFX_SCREENHEIGHT;
+   s_viewport.w = GEO_SCREENWIDTH;
+   s_viewport.h = GEO_SCREENHEIGHT;
 
    /* Load the mobiles for this map. */
    ps_path_mobiles = bformat(
@@ -416,10 +416,10 @@ void systype_adventure_menu_show(
    /* Create the menu for adventure mode. */
 
    /* Setup the new menu colors. */
-   /* memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GFX_COLOR ) );
-   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GFX_COLOR ) ); */
+   /* memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GEO_COLOR ) );
+   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GEO_COLOR ) ); */
 
    /* Append the menu struct and clean up. It's all right to just free  *
     * it since the dynamic stuff pointed to it will be pointed to by    *
@@ -437,7 +437,7 @@ void systype_adventure_menu_test( void ) {
  *          continuing to draw and refresh, a la the old Zelda games for the  *
  *          NES.                                                              */
 void systype_adventure_viewport_scroll(
-   GFX_RECTANGLE* ps_viewport_in,
+   GEO_RECTANGLE* ps_viewport_in,
    CACHE_CACHE* ps_cache_in,
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,
@@ -472,7 +472,7 @@ void systype_adventure_viewport_scroll(
 
 /* Purpose: Draw the current viewport.                                        */
 void systype_adventure_viewport_draw(
-   GFX_RECTANGLE* ps_viewport_in,
+   GEO_RECTANGLE* ps_viewport_in,
    CACHE_CACHE* ps_cache_in,
    MOBILE_MOBILE as_mobiles_in[],
    int i_mobiles_count_in,

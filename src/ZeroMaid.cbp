@@ -411,6 +411,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ezxml\ezxml.h" />
+		<Unit filename="geometry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="geometry.h" />
 		<Unit filename="graphics.c">
 			<Option compilerVar="CC" />
 		</Unit>
