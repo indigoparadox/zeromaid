@@ -451,18 +451,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_adventure.h" />
-		<Unit filename="systype_platform.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="systype_platform.h" />
 		<Unit filename="systype_title.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_title.h" />
-		<Unit filename="systype_visnov.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="systype_visnov.h" />
 		<Unit filename="tilemap.c">
 			<Option compilerVar="CC" />
 		</Unit>
