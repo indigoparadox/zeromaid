@@ -14,24 +14,9 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef SYSTYPE_PLATFORM_H
-#define SYSTYPE_PLATFORM_H
+#ifndef SYSLOOP_TITLE_CLIENT_H
+#define SYSLOOP_TITLE_CLIENT_H
 
-/* = Includes = */
+#include "graphics.h"
 
-#include "defines.h"
-//#include "graphics.h"
-#include "event.h"
-#include "mobile.h"
-#include "cache.h"
-
-/* = Definitions = */
-
-#define SYSTYPE_PLATFORM_JUMP_INIT 32
-#define SYSTYPE_PLATFORM_JUMP_ACCEL 4
-SYSTYPE_PLATFORM_H
-/* = Function Prototypes = */
-
-int systype_platform_loop( CACHE_CACHE* );
-
-#endif /* SYSTYPE_PLATFORM_H */
+#endif /* SYSLOOP_TITLE_CLIENT_H */

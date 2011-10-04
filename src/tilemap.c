@@ -225,14 +225,14 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
  *             animation or dirtiness and just redraw everything.             */
 void tilemap_draw(
    TILEMAP_TILEMAP* ps_map_in,
-   GFX_RECTANGLE* ps_viewport_in,
+   GEO_RECTANGLE* ps_viewport_in,
    BOOL b_force_in
 ) {
    int i_tile_start_x = 0, i_tile_start_y = 0, /* Tile coordinates within     */
       i_tile_width = 0, i_tile_height = 0,     /* which to draw.              */
       x_tile, y_tile, /* Loop iterators. */
       i_tiledata_index;
-   GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
+   GEO_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
    GFX_TILEDATA* ps_tiledata = NULL; /* Data on the tile being drawn. */

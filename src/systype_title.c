@@ -26,7 +26,7 @@ TITLE_ERROR_ENABLE
 /* Return: The code for the next action to take.                              */
 int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
    int i_menu_selected = 0, i = 0, i_act_return = RETURN_ACTION_QUIT;
-   GFX_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
+   GEO_COLOR* ps_color_fade = graphics_create_color( 0, 0, 0 );
    SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
    SYSTYPE_TITLE_TITLESCREEN* ps_title_iter = ps_title_screens;
    SYSTYPE_TITLE_TEXT* ps_text_iter = NULL;
@@ -574,10 +574,13 @@ stls_cleanup:
 void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],
-   GFX_FONT* ps_font_in,
-   GFX_COLOR* ps_color_in,
-   GFX_COLOR* ps_highlight_in
+   // ZZZ: GFX_FONT* ps_font_in,
+   GEO_COLOR* ps_color_in,
+   GEO_COLOR* ps_highlight_in
 ) {
+   #ifdef USESERVER
+
+   #else
    static int i = 0,
       i_x = SYSTYPE_TITLE_MENU_X_START,
       i_y = SYSTYPE_TITLE_MENU_Y_START;
@@ -603,6 +606,7 @@ void systype_title_show_menu(
          );
       }
    }
+   #endif /* USESERVER */
 }
 
 /* Purpose: Free the memory held by the given title screen. */
