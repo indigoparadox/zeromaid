@@ -36,8 +36,6 @@
 #include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
-#include "systype_visnov.h"
-#include "systype_platform.h"
 
 #ifdef USEWII
 #include <network.h>
@@ -273,16 +271,6 @@ int main( int argc, char* argv[] ) {
                   (const char*)ps_cache->game_type->data )
             ) {
                i_last_return = systype_adventure_loop( ps_cache );
-            } else if(
-               NULL != ps_cache->game_type && 0 == strcmp( SYSTEM_TYPE_VISNOV,
-                  (const char*)ps_cache->game_type->data )
-            ) {
-               i_last_return = systype_visnov_loop( ps_cache );
-            } else if(
-               NULL != ps_cache->game_type && 0 == strcmp( SYSTEM_TYPE_PLATFORM,
-                  (const char*)ps_cache->game_type->data )
-            ) {
-               i_last_return = systype_platform_loop( ps_cache );
             } else {
                i_last_return = systype_title_loop( ps_cache );
                TITLE_ERROR_SET( "Invalid game type specified" );
