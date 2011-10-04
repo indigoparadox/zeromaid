@@ -21,7 +21,8 @@
 
 #include "defines.h"
 #include "util.h"
-#include "graphics.h"
+//#include "graphics.h"
+#include "geometry.h"
 #include "event.h"
 
 /* = Definitions = */
@@ -44,8 +45,8 @@ typedef struct {
 } TILEMAP_TILE;
 
 typedef struct {
-   GFX_TILESET* tileset;
-   GFX_RECTANGLE* viewport;
+   // ZZZ: GFX_TILESET* tileset;
+   // ZZZ: GEO_RECTANGLE* viewport;
    TILEMAP_TILE* tiles; /* Pointer to a flexible array of tiles. */
    bstring proper_name,
       music_path,
@@ -65,7 +66,7 @@ int tilemap_dir_get_add_x( TILEMAP_DIR );
 int tilemap_dir_get_add_y( TILEMAP_DIR );
 TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
 void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
-void tilemap_draw( TILEMAP_TILEMAP*, GFX_RECTANGLE*, BOOL );
+void tilemap_draw( TILEMAP_TILEMAP*, GEO_RECTANGLE*, BOOL );
 void tilemap_free( TILEMAP_TILEMAP* );
 
 #endif /* TILEMAP_H */

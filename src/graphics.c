@@ -385,15 +385,15 @@ gct_cleanup:
 /* Purpose: Generate a color for the given parameters.                        */
 /* Parameters: Red, green, blue, with 255 being the strongest.                */
 /* Return: A pointer to the specified color struct.                           */
-GFX_COLOR* graphics_create_color(
+GEO_COLOR* graphics_create_color(
    unsigned char i_red_in,
    unsigned char i_green_in,
    unsigned char i_blue_in
 ) {
-   GFX_COLOR* ps_color_out = NULL;
+   GEO_COLOR* ps_color_out = NULL;
 
    #if defined USESDL || defined USEDIRECTX || defined USEALLEGRO
-   ps_color_out = (GFX_COLOR*)calloc( 1, sizeof( GFX_COLOR ) );
+   ps_color_out = (GEO_COLOR*)calloc( 1, sizeof( GEO_COLOR ) );
    if( NULL == ps_color_out ) {
       DBG_ERR( "Unable to allocate color." );
    }
@@ -410,7 +410,7 @@ GFX_COLOR* graphics_create_color(
 /* Purpose: Parse a color from HTML #XXXXXX notation.                         */
 /* Parameters: A string containing the color to parse.                        */
 /* Return: The requested color.                                               */
-GFX_COLOR* graphics_create_color_html( bstring ps_color_in ) {
+GEO_COLOR* graphics_create_color_html( bstring ps_color_in ) {
    int i_red = 0, i_green = 0, i_blue = 0;
    char ac_color_iter[3] = { '\0' };
    char* pc_color_in = bdata( ps_color_in );
@@ -488,7 +488,7 @@ void graphics_draw_text(
    int i_y_in,
    bstring ps_string_in,
    GFX_FONT* ps_font_in,
-   GFX_COLOR* ps_color_in
+   GEO_COLOR* ps_color_in
 ) {
    #ifdef USESDL
    GFX_SURFACE* ps_type_render_out = NULL;
@@ -553,8 +553,8 @@ gdt_cleanup:
 /* Parameters: Source surface, source and destination regions.                */
 void graphics_draw_blit_tile(
    GFX_SURFACE* ps_src_in,
-   GFX_RECTANGLE* ps_srcreg_in,
-   GFX_RECTANGLE* ps_destreg_in
+   GEO_RECTANGLE* ps_srcreg_in,
+   GEO_RECTANGLE* ps_destreg_in
 ) {
    if( NULL == ps_src_in ) {
       return;
@@ -580,7 +580,7 @@ void graphics_draw_blit_tile(
    /* If the source region rectangle is null, we must want to blit the whole  *
     * source.                                                                 */
    if( NULL == ps_srcreg_in ) {
-      ps_srcreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_srcreg_in = calloc( 1, sizeof( GEO_RECTANGLE ) );
       ps_srcreg_in->x = 0;
       ps_srcreg_in->y = 0;
       ps_srcreg_in->w = ps_src_in->w;
@@ -591,7 +591,7 @@ void graphics_draw_blit_tile(
    /* If the destination region rectangle is null, we must want to blit the   *
     * surface to as much space as it will take.                               */
    if( NULL == ps_destreg_in ) {
-      ps_destreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_destreg_in = calloc( 1, sizeof( GEO_RECTANGLE ) );
       ps_destreg_in->x = 0;
       ps_destreg_in->y = 0;
       ps_destreg_in->w = ps_src_in->w;
@@ -637,8 +637,8 @@ gdbt_cleanup:
 /* Parameters: Source surface, source and destination regions.                */
 void graphics_draw_blit_sprite(
    GFX_SURFACE* ps_src_in,
-   GFX_RECTANGLE* ps_srcreg_in,
-   GFX_RECTANGLE* ps_destreg_in
+   GEO_RECTANGLE* ps_srcreg_in,
+   GEO_RECTANGLE* ps_destreg_in
 ) {
    #ifdef USESDL
    graphics_draw_blit_tile( ps_src_in, ps_srcreg_in, ps_destreg_in );
@@ -652,7 +652,7 @@ void graphics_draw_blit_sprite(
    /* If the source region rectangle is null, we must want to blit the whole  *
     * source.                                                                 */
    if( NULL == ps_srcreg_in ) {
-      ps_srcreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_srcreg_in = calloc( 1, sizeof( GEO_RECTANGLE ) );
       ps_srcreg_in->x = 0;
       ps_srcreg_in->y = 0;
       ps_srcreg_in->w = ps_src_in->w;
@@ -663,7 +663,7 @@ void graphics_draw_blit_sprite(
    /* If the destination region rectangle is null, we must want to blit the   *
     * surface to as much space as it will take.                               */
    if( NULL == ps_destreg_in ) {
-      ps_destreg_in = calloc( 1, sizeof( GFX_RECTANGLE ) );
+      ps_destreg_in = calloc( 1, sizeof( GEO_RECTANGLE ) );
       ps_destreg_in->x = 0;
       ps_destreg_in->y = 0;
       ps_destreg_in->w = ps_src_in->w;
@@ -700,7 +700,7 @@ gdbs_cleanup:
 
 /* Purpose: Blank the screen.                                                 */
 /* Parameters: The color to blank the screen.                                 */
-void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
+void graphics_draw_blank( GEO_COLOR* ps_color_in ) {
    #ifdef USESDL
    GFX_SURFACE* ps_screen = SDL_GetVideoSurface();
    Uint32 i_color_temp;
@@ -750,7 +750,7 @@ void graphics_draw_blank( GFX_COLOR* ps_color_in ) {
 /* Purpose: Fade the screen in or out.                                        */
 /* Parameters: Whether to fade in or out, the color from/to which to fade.    */
 void graphics_draw_transition(
-   GFX_TRANS_EFFECT i_fx_type_in, int i_fade_io, GFX_COLOR* ps_color_in
+   GFX_TRANS_EFFECT i_fx_type_in, int i_fade_io, GEO_COLOR* ps_color_in
 ) {
    if( NULL == ps_color_in ) {
       DBG_ERR( "Invalid color passed." );

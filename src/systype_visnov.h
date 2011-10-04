@@ -44,7 +44,7 @@
 
 #include "defines.h"
 #include "cache.h"
-#include "graphics.h"
+// #include "graphics.h"
 #include "event.h"
 #include "util.h"
 #include "window.h"
@@ -87,7 +87,7 @@ typedef int SYSTYPE_VISNOV_CMD;
 
 typedef union {
    int null;   /* Can be used to space out DIs that can't be reconciled. */
-   GFX_COLOR
+   GEO_COLOR
       * color_fg,    /* DI 2 - MENU */
       * color_bg,    /* DI 3 - MENU */
       * color_sfg,   /* DI 4 - MENU */
@@ -100,9 +100,10 @@ typedef union {
       talktext,      /* DI 1 - TALK */
       target,        /* DI 0 - GOTO, COND */
       items,         /* DI 0 - MENU */
-      type;          /* DI 3 - TELEPORT */
+      type,          /* DI 3 - TELEPORT */
+      bg_filename;   /* DI 0 - BACKGROUND */
    COND_SCOPE scope; /* DI 1 - COND, MENU, SET */
-   GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
+   // ZZZ: GFX_SURFACE* bg;  /* DI 0 - BACKGROUND */
    int serial,       /* DI 0 - PORTRAIT, TALK */
       x,             /* DI 3 - PORTRAIT */
       y,             /* DI 4 - PORTRAIT */
@@ -204,7 +205,7 @@ typedef struct {
 int systype_visnov_loop( CACHE_CACHE* );
 BOOL systype_visnov_load_commands( SYSTYPE_VISNOV_COMMAND**, int*, ezxml_t );
 int systype_visnov_exec_background(
-   SYSTYPE_VISNOV_COMMAND*, GFX_SURFACE**, int
+   SYSTYPE_VISNOV_COMMAND*, bstring**, int
 );
 int systype_visnov_exec_pause( SYSTYPE_VISNOV_COMMAND*, int );
 int systype_visnov_exec_cond(

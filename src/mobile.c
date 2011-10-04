@@ -147,14 +147,11 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "sprite_sheet" ) ) {
          /* ATTRIB: SPRITESHEET */
-         ps_path_temp = bformat(
-            "%s%s.%s",
-            PATH_SHARE,
-            ezxml_attr( ps_xml_prop_iter, "value" ),
-            FILE_EXTENSION_IMAGE
-         );
-         ps_mob_out->spritesheet = graphics_create_spritesheet( ps_path_temp );
-         bdestroy( ps_path_temp );
+         ps_mob_out->spritesheet_filename =
+            bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
+
+         // ZZZ: ps_mob_out->spritesheet = graphics_create_spritesheet( ps_path_temp );
+         //bdestroy( ps_path_temp );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "ai_adv_normal" ) ) {
          /* AI: ADVENTURE NORMAL */
@@ -234,14 +231,14 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
       s_emotion_tmp.id = bformat( "%s", pc_attr );
 
       /* ATTRIB: IMAGE */
-      pc_attr = ezxml_attr( ps_xml_emote_iter, "src" );
-      bassignformat(
-         ps_attr_temp,
-         "%s%s.%s", PATH_SHARE, pc_attr, FILE_EXTENSION_IMAGE
+      s_emotion_tmp.image_filename = bformat(
+         "%s",
+         ezxml_attr( ps_xml_emote_iter, "src" )
       );
-      s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
-      if( NULL == pc_attr || NULL == s_emotion_tmp.image ) {
-         /* There's no image, so this emotion is useless. */
+      // ZZZ: s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
+
+      if( NULL == s_emotion_tmp.image_filename ) {
+         // There's no image, so this emotion is useless.
          DBG_ERR( "Portrait not found; invalid emotion." );
          ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
          b_success = FALSE;
@@ -281,8 +278,8 @@ BOOL mobile_load_ai(
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
  *          viewport.                                                         */
 /* Parameters: The mobile to draw, the current viewport.                      */
-void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
-   GFX_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
+void mobile_draw( MOBILE_MOBILE* ps_mob_in, GEO_RECTANGLE* ps_viewport_in ) {
+   GEO_RECTANGLE s_tile_rect, s_screen_rect; /* Blit the tile from/to. */
    static int ti_anim_frame = 0;
    static int ti_frame_draws = 0;
 
@@ -328,11 +325,11 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GFX_RECTANGLE* ps_viewport_in ) {
       s_tile_rect.y = ps_mob_in->current_animation * ps_mob_in->pixel_size;
 
       /* Draw the tile! */
-      graphics_draw_blit_sprite(
+      /* ZZZ: graphics_draw_blit_sprite(
          ps_mob_in->spritesheet->image,
          &s_tile_rect,
          &s_screen_rect
-      );
+      ); */
    }
 }
 
@@ -358,13 +355,15 @@ void mobile_free_arr( MOBILE_MOBILE* ps_mob_in ) {
    }
 
    for( i = 0 ; i < ps_mob_in->emotions_count ; i++ ) {
-      graphics_free_image( ps_mob_in->emotions[i].image );
+      // ZZZ: graphics_free_image( ps_mob_in->emotions[i].image );
+      bdestroy( ps_mob_in->emotions[i].image_filename );
       bdestroy( ps_mob_in->emotions[i].id );
    }
    free( ps_mob_in->emotions );
    bdestroy( ps_mob_in->proper_name );
    bdestroy( ps_mob_in->mobile_type );
-   graphics_free_spritesheet( ps_mob_in->spritesheet );
+   bdestroy( ps_mob_in->spritesheet_filename );
+   // ZZZ: graphics_free_spritesheet( ps_mob_in->spritesheet );
 }
 
 

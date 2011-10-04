@@ -22,7 +22,6 @@
 #include <stdio.h>
 
 #include "defines.h"
-#include "graphics.h"
 #include "event.h"
 #include "cache.h"
 
@@ -49,17 +48,20 @@
 /* = Type and Struct Definitions = */
 
 typedef struct _SYSTYPE_TITLE_TEXT {
-   bstring text;
-   GFX_FONT* font;
-   GFX_COLOR* fg_color;
+   bstring text,
+      font_filename;
+   // ZZZ: GFX_FONT* font;
+   GEO_COLOR* fg_color;
    int x, y;
    struct _SYSTYPE_TITLE_TEXT* next;
 } SYSTYPE_TITLE_TEXT;
 
 typedef struct _SYSTYPE_TITLE_TITLESCREEN {
-   GFX_FONT* menu_font;
-   GFX_SURFACE* bg_image;
-   GFX_COLOR* bg_color, * fg_color, * fg_highlight;
+   bstring menu_font_filename,
+      bg_image_filename;
+   // ZZZ: GFX_FONT* menu_font;
+   // ZZZ: GFX_SURFACE* bg_image;
+   GEO_COLOR* bg_color, * fg_color, * fg_highlight;
    int i_trans, o_trans, delay;
    short int show_menu;
    SYSTYPE_TITLE_TEXT* text_node;
@@ -74,7 +76,7 @@ BOOL systype_title_load_titlescreen_text( SYSTYPE_TITLE_TEXT**, ezxml_t );
 ezxml_t systype_title_load_system( void );
 BOOL systype_title_load_team( CACHE_CACHE* );
 BOOL systype_title_load_start( CACHE_CACHE* );
-void systype_title_show_menu( int, bstring[], GFX_FONT*, GFX_COLOR*, GFX_COLOR* );
+void systype_title_show_menu( int, bstring[], bstring, GEO_COLOR*, GEO_COLOR* );
 void systype_title_free_titlescreen( SYSTYPE_TITLE_TITLESCREEN* );
 
 /* = Macros = */

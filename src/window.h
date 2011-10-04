@@ -62,14 +62,15 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   GFX_COLOR fg, bg, sfg, sbg;
+   GEO_COLOR fg, bg, sfg, sbg;
 } WINDOW_MENU_COLORS;
 
 typedef struct {
    bstring desc, /* The description to display on-screen for this item. */
       key, /* The key to set if this item is selected. */
-      value; /* The value to set it to if this item is selected. */
-   GFX_FONT* font;
+      value, /* The value to set it to if this item is selected. */
+      font_filename;
+   // ZZZ: GFX_FONT* font;
 } WINDOW_MENU_ITEM;
 
 typedef struct {

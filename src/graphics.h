@@ -48,9 +48,7 @@
 
 #define GFX_FPS 30
 
-/* TODO: Make the screen size variable at runtime. */
-#define GFX_SCREENWIDTH 640
-#define GFX_SCREENHEIGHT 480
+/* TODO: Make the screen depth variable at runtime. */
 #define GFX_SCREENDEPTH 16
 
 #define GFX_TRANS_FADE_IN 0
@@ -66,16 +64,12 @@
 #define GFX_BLIP_HEIGHT_INC 10
 #define GFX_BLIP_WAIT_TIME 50
 
-#define GFX_TILE_DEFAULT_SIZE 32
-
 /* = Type and Struct Definitions = */
 
 typedef int GFX_TRANS_EFFECT;
 
 #ifdef USESDL
 typedef SDL_Surface GFX_SURFACE;
-typedef SDL_Rect GFX_RECTANGLE;
-typedef SDL_Color GFX_COLOR;
 typedef TTF_Font GFX_FONT;
 #elif defined USEDIRECTX
 typedef struct {
@@ -83,37 +77,14 @@ typedef struct {
    int w,
       h;
 } GFX_SURFACE;
-typedef struct { int x, y, w, h; } GFX_RECTANGLE;
-typedef struct { int r, g, b; } GFX_COLOR;
 #elif defined USEALLEGRO
 typedef BITMAP GFX_SURFACE;
-typedef struct { int x, y, w, h; } GFX_RECTANGLE;
-typedef struct { int r, g, b; } GFX_COLOR;
 typedef FONT GFX_FONT;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
-/* We might be able to speed up operations using TILEDATA structs by making   *
- * them tree-able, but there probably won't be very many tiles for a map and  *
- * we feel the simplicity gained this way is worthwhile.                      */
-typedef struct _GFX_TILEDATA {
-   unsigned int gid;
-   short int animated,
-      hindrance;
-} GFX_TILEDATA;
 
-typedef struct {
-   unsigned int pixel_size;
-   GFX_SURFACE* image;
-   GFX_TILEDATA* tile_list;
-   int tile_list_count;
-} GFX_TILESET;
-
-typedef struct {
-   unsigned int pixel_size;
-   GFX_SURFACE* image;
-} GFX_SPRITESHEET;
 
 /* = Macros = */
 
@@ -166,14 +137,14 @@ BOOL graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
 GFX_SPRITESHEET* graphics_create_spritesheet( bstring );
 GFX_TILESET* graphics_create_tileset( bstring );
-GFX_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
-GFX_COLOR* graphics_create_color_html( bstring );
+GEO_COLOR* graphics_create_color( unsigned char, unsigned char, unsigned char );
+GEO_COLOR* graphics_create_color_html( bstring );
 GFX_FONT* graphics_create_font( bstring, int );
-void graphics_draw_text( int, int, bstring, GFX_FONT*, GFX_COLOR* );
-void graphics_draw_blit_tile( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blit_sprite( GFX_SURFACE*, GFX_RECTANGLE*, GFX_RECTANGLE* );
-void graphics_draw_blank( GFX_COLOR* );
-void graphics_draw_transition( GFX_TRANS_EFFECT, int, GFX_COLOR* );
+void graphics_draw_text( int, int, bstring, GFX_FONT*, GEO_COLOR* );
+void graphics_draw_blit_tile( GFX_SURFACE*, GEO_RECTANGLE*, GEO_RECTANGLE* );
+void graphics_draw_blit_sprite( GFX_SURFACE*, GEO_RECTANGLE*, GEO_RECTANGLE* );
+void graphics_draw_blank( GEO_COLOR* );
+void graphics_draw_transition( GFX_TRANS_EFFECT, int, GEO_COLOR* );
 void graphics_do_update( void );
 GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 int graphics_get_font_height( GFX_FONT* );

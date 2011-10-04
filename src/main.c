@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #ifdef USESDL
 #ifdef __APPLE__
@@ -33,7 +34,7 @@
 
 #include "defines.h"
 #include "cache.h"
-#include "graphics.h"
+//#include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
 #include "systype_visnov.h"
