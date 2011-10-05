@@ -55,7 +55,9 @@
 #endif /* USEWII */
 
 DBG_MAIN
+#ifndef USESERVER
 GFX_DRAW_LOOP_DECLARE
+#endif /* !USESERVER */
 
 /* = Global Variables = */
 
@@ -78,6 +80,9 @@ typedef struct {
 /* = Function Prototypes = */
 
 void* main_server( void* );
+#ifndef USESERVER
+void* main_client( void* );
+#endif /* USESERVER */
 
 /* = Functions = */
 
@@ -105,6 +110,29 @@ int main( int argc, char* argv[] ) {
    pthread_t ps_thread_server,
       ps_thread_client;
 
+   /* == Pre-System Init == */
+   /* This is stuff that should be taken care of before we start accessing    *
+    * files and stuff.                                                        */
+
+   #ifdef USEWII
+   /* Push output down to where it can be seen on a TV screen. */
+   printf( "\n\n\n\n" );
+   #endif /* USEWII */
+
+   /* Setup the random number generator. */
+   srand( time( NULL ) );
+
+   /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
+   #ifdef USEWII
+   dolfsInit( &zeromaid_wii_data );
+   #endif /* USEWII */
+
+   #ifdef OUTTOFILE
+   gps_debug = fopen( DEBUG_OUT_PATH, "a" );
+   #endif /* OUTTOFILE */
+
+   /* == End Pre-System Init == */
+
    // XXX
    /* MAIN_PARAMS* ps_params_server = calloc(
       1, sizeof( MAIN_PARAMS )
@@ -123,36 +151,29 @@ int main( int argc, char* argv[] ) {
       );
       goto main_cleanup;
    }
-   /* pthread_join(
-      ps_thread_server,
+
+   #ifndef USESERVER
+   // Create the client thread.
+   i_thread_error = pthread_create(
+      &ps_thread_client,
+      NULL,
+      &main_client,
       NULL
-   ); */
-
-   /* == Pre-System Init == */
-   /* This is stuff that should be taken care of before we start accessing    *
-    * files and stuff.                                                        */
-
-   #ifdef USEWII
-   /* Push output down where it can be seen on a TV screen. */
-   printf( "\n\n\n\n" );
-   #endif /* USEWII */
-
-   /* Setup the random number generator. */
-   srand( time( NULL ) );
-
-   /* Setup the loop timer. */
-   GFX_DRAW_LOOP_INIT
-
-   /* If we're on the Wii, start the dolfs ramdisk and the gamepad input. */
-   #ifdef USEWII
-   dolfsInit( &zeromaid_wii_data );
-   #endif /* USEWII */
-
-   #ifdef OUTTOFILE
-   gps_debug = fopen( DEBUG_OUT_PATH, "a" );
-   #endif /* OUTTOFILE */
-
-   /* == End Pre-System Init == */
+   );
+   if( i_thread_error ) {
+      DBG_ERR(
+         "Unable to create server thread, error code: %d",
+         i_thread_error
+      );
+      goto main_cleanup;
+   }
+   #endif /* !USESERVER */
+   // TODO: Change this to server once communication protocol is in place and
+   //       server controls the game flow.
+   pthread_join(
+      ps_thread_client,
+      NULL
+   );
 
    /* == System Init == */
    /* This is stuff that pokes and prods at the game data files to start the  *
@@ -381,3 +402,10 @@ void* main_server( void* arg ) {
 
    // pthread_exit( NULL );
 }
+
+#ifndef USESERVER
+void* main_client( void* arg ) {
+   /* Setup the loop timer. */
+   GFX_DRAW_LOOP_INIT
+}
+#endif /* !USESERVER */
