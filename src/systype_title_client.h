@@ -14,39 +14,17 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef SYSTYPE_ADVENTURE_H
-#define SYSTYPE_ADVENTURE_H
-
-/* = Includes = */
-
-#include "defines.h"
-#include "tilemap.h"
-#include "mobile.h"
-#include "cache.h"
-#include "window.h"
-
-/* = Definitions = */
-
-/* The viewport width/height both have to be divisible by this or scrolling   *
- * won't work and weird bugs will happen.                                     */
-#define SYSTYPE_ADVENTURE_SCROLL_SPEED 160
+#ifndef SYSLOOP_TITLE_CLIENT_H
+#define SYSLOOP_TITLE_CLIENT_H
 
 /* = Type and Struct Definitions = */
 
-typedef struct {
-   MOBILE_MOBILE* mobile;
-   int speed; /* The number of pixels to move per cycle. */
-   TILEMAP_DIR direction; /* The direction being walked in. */
-} SYSTYPE_ADVENTURE_WALK;
-
 /* = Function Prototypes = */
 
-int systype_adventure_loop( CACHE_CACHE* );
-BOOL systype_adventure_mobile_walk(
-   MOBILE_MOBILE*, TILEMAP_DIR, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*
+int systype_title_client_loop( CACHE_CACHE* );
+void systype_title_client_show_menu(
+   int, bstring[], SYSTYPE_TITLE_TITLESCREEN*
 );
-void systype_adventure_menu_show( WINDOW_MENU**, CACHE_CACHE* );
-void systype_adventure_menu_test( void );
+void systype_title_client_free_titlescreen( SYSTYPE_TITLE_TITLESCREEN* );
 
-
-#endif /* SYSTYPE_ADVENTURE_H */
+#endif /* !SYSLOOP_TITLE_CLIENT_H

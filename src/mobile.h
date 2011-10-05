@@ -20,7 +20,7 @@
 /* = Includes = */
 
 #include "defines.h"
-#include "graphics.h"
+//#include "graphics.h"
 #include "tilemap.h"
 
 /* = Defines = */
@@ -60,9 +60,24 @@ typedef int MOBILE_MOVE;
 
 typedef struct {
    bstring id;
+
+   #ifndef USESERVER
    GFX_SURFACE* image;
+   #endif /* !USESERVER */
+   bstring image_filename;
+
    GEO_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
 } MOBILE_EMOTION;
+
+typedef struct {
+   unsigned int pixel_size;
+
+   #ifndef USESERVER
+   GFX_SURFACE* image;
+   #endif /* !USESERVER */
+   bstring image_filename;
+
+} MOBILE_SPRITESHEET;
 
 typedef struct {
    int opcode;
@@ -88,11 +103,17 @@ typedef struct {
    int pixel_mult_percent; /* The size to expand the mobile to when blitted. */
    bstring proper_name, /* The name to display for this mobile. */
       mobile_type; /* The system mobile type of this mobile. */
-   GFX_SPRITESHEET* spritesheet;
+
+   #ifndef USESERVER
+   MOBILE_SPRITESHEET* spritesheet;
+   #endif /* !USESERVER */
+   bstring spritesheet_filename;
+
 } MOBILE_MOBILE;
 
 /* = Function Prototypes = */
 
+MOBILE_SPRITESHEET* mobile_create_spritesheet( bstring );
 BOOL mobile_load_mobiles( MOBILE_MOBILE**, int*, ezxml_t, TILEMAP_TILEMAP* );
 MOBILE_MOBILE* mobile_load_mobile( bstring );
 BOOL mobile_load_emotion( MOBILE_MOBILE*, ezxml_t );
@@ -101,6 +122,7 @@ void mobile_draw( MOBILE_MOBILE*, GEO_RECTANGLE* );
 void mobile_execute_ai( MOBILE_MOBILE*, MOBILE_AI );
 void mobile_free_arr( MOBILE_MOBILE* );
 void mobile_free( MOBILE_MOBILE* );
+void mobile_free_spritesheet( MOBILE_SPRITESHEET* );
 
 /* = Macros = */
 

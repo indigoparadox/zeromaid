@@ -21,8 +21,8 @@
 
 #include "defines.h"
 #include "util.h"
-#include "graphics.h"
 #include "event.h"
+#include "geometry.h"
 
 /* = Definitions = */
 
@@ -38,13 +38,34 @@ typedef int TILEMAP_DIR;
 
 /* = Type and Struct Definitions = */
 
+/* We might be able to speed up operations using TILEDATA structs by making   *
+ * them tree-able, but there probably won't be very many tiles for a map and  *
+ * we feel the simplicity gained this way is worthwhile.                      */
+typedef struct _GFX_TILEDATA {
+   unsigned int gid;
+   short int animated,
+      hindrance;
+} TILEMAP_TILEDATA;
+
+typedef struct {
+   unsigned int pixel_size;
+
+   #ifndef USESERVER
+   GFX_SURFACE* image;
+   #endif /* !USESERVER */
+   bstring image_filename;
+
+   TILEMAP_TILEDATA* tile_list;
+   int tile_list_count,
+      serial;
+} TILEMAP_TILESET;
+
 typedef struct {
    int gid,
       dirty; /* Should this tile be redrawn next cycle? */
 } TILEMAP_TILE;
 
 typedef struct {
-   GFX_TILESET* tileset;
    GEO_RECTANGLE* viewport;
    TILEMAP_TILE* tiles; /* Pointer to a flexible array of tiles. */
    bstring proper_name,
@@ -52,6 +73,7 @@ typedef struct {
       sys_name;
    short int time_moves;
    BYTE light_str;
+   TILEMAP_TILESET* tileset;
    int tile_w, tile_h,
       tiles_count; /* Number of tiles in the tile list. */
 } TILEMAP_TILEMAP;
@@ -59,14 +81,17 @@ typedef struct {
 /* = Function Prototypes = */
 
 TILEMAP_TILEMAP* tilemap_create_map( bstring, bstring );
+TILEMAP_TILESET* tilemap_create_tileset( bstring );
 int tilemap_get_tile_x( int, TILEMAP_TILEMAP* );
 int tilemap_get_tile_y( int, TILEMAP_TILEMAP* );
 int tilemap_dir_get_add_x( TILEMAP_DIR );
 int tilemap_dir_get_add_y( TILEMAP_DIR );
 TILEMAP_TILE* tilemap_get_tile( int, int, TILEMAP_TILEMAP* );
+TILEMAP_TILEDATA* tilemap_get_tiledata( int, TILEMAP_TILESET* );
 void tilemap_load_layer( TILEMAP_TILEMAP*, ezxml_t );
 void tilemap_draw( TILEMAP_TILEMAP*, GEO_RECTANGLE*, BOOL );
 void tilemap_free( TILEMAP_TILEMAP* );
+void tilemap_free_tileset( TILEMAP_TILESET* );
 
 #endif /* TILEMAP_H */
 

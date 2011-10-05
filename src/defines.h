@@ -98,6 +98,9 @@ typedef int COND_SCOPE;
 
 #define TITLE_ERROR_ENABLE extern bstring gps_title_error;
 
+#define TRANS_FADE_IN 0
+#define TRANS_FADE_OUT 1
+
 /* Added indentation here to make it less confusing. */
 #ifdef OUTTOFILE
    #ifdef USEWII

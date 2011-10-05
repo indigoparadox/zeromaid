@@ -14,16 +14,15 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#include "systype_adventure.h"
+#include "systype_adventure_client.h"
 
 DBG_ENABLE
+GFX_DRAW_LOOP_ENABLE
 TITLE_ERROR_ENABLE
-
-/* = Functions = */
 
 /* Purpose: Adventure game loop.                                              */
 /* Return: The code for the next action to take.                              */
-int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
+int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
    int i_act_return = RETURN_ACTION_TITLE,
       i = 0, /* Loop iterator. */
       i_mobile_count = 0; /* Counter for the NPC array below. */
@@ -72,8 +71,8 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
    ezxml_free( ps_xml_mobiles );
 
    /* Draw the initial playing map and fade the screen in. */
-   //tilemap_draw( ps_map, &s_viewport, TRUE );
-   //graphics_draw_transition( GFX_TRANS_FX_FADE, TRANS_FADE_IN, ps_color_fade );
+   tilemap_draw( ps_map, &s_viewport, TRUE );
+   graphics_draw_transition( GFX_TRANS_FX_FADE, TRANS_FADE_IN, ps_color_fade );
    DBG_INFO( "Running adventure game loop..." );
 
    /* DEBUG */
@@ -85,10 +84,10 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       ps_map->tileset->pixel_size; */
 
    while( 1 ) {
-      //GFX_DRAW_LOOP_START
+      GFX_DRAW_LOOP_START
 
       /* Listen for events. */
-      //event_do_poll( &s_event, TRUE );
+      event_do_poll( &s_event, TRUE );
       if( s_event.state[EVENT_ID_MENU] ) {
          if( NULL == ps_menu ) {
             systype_adventure_menu_show( &ps_menu, ps_cache_in );
@@ -160,7 +159,6 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
          NULL, TILEMAP_DIR_NULL, as_mobile_list, i_mobile_count, ps_map
       );
 
-      #if 0
       /* If the player is out of the viewport then scroll the viewport to     *
        * accomodate.                                                          */
       if(
@@ -196,7 +194,6 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
             ps_menu, TILEMAP_DIR_WEST
          );
       }
-      #endif /* 0 */
 
       /* All tiles with mobiles on them are dirty. */
       for( i = 0 ; i < i_mobile_count ; i++ ) {
@@ -215,18 +212,18 @@ int systype_adventure_loop( CACHE_CACHE* ps_cache_in ) {
       )->dirty = TRUE;
 
       /* Draw the viewport. */
-      /* systype_adventure_viewport_draw(
+      systype_adventure_viewport_draw(
          &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
          ps_menu, FALSE
-      ); */
+      );
 
-      //GFX_DRAW_LOOP_END
+      GFX_DRAW_LOOP_END
    }
 
 sal_cleanup:
 
    /* Fade out the playing map screen. */
-   //graphics_draw_transition( GFX_TRANS_FX_FADE, TRANS_FADE_OUT, ps_color_fade );
+   graphics_draw_transition( GFX_TRANS_FX_FADE, TRANS_FADE_OUT, ps_color_fade );
 
    /* Clean up! */
    #ifndef USEWII
@@ -244,195 +241,73 @@ sal_cleanup:
    return i_act_return;
 }
 
-/* Purpose: Start the mobile walking in the given direction. Note that this   *
- *          function does NOT check to see if the mobile is already moving,   *
- *          and problems can arise if it is and it hasn't been accounted for. */
-/* Parameters: The mobile to walk, the direction to walk in                   */
-/* Return: A boolean indicating whether or not the mobile was able to -start- *
- *         walking.                                                           */
-BOOL systype_adventure_mobile_walk(
-   MOBILE_MOBILE* ps_mob_in,
-   TILEMAP_DIR i_dir_in,
-   MOBILE_MOBILE as_mob_npc_in[],
-   int i_mob_npc_count_in,
-   TILEMAP_TILEMAP* ps_map_in
+/* Purpose: Scroll the screen in the given direction, pausing the game but    *
+ *          continuing to draw and refresh, a la the old Zelda games for the  *
+ *          NES.                                                              */
+void systype_adventure_client_viewport_scroll(
+   GEO_RECTANGLE* ps_viewport_in,
+   CACHE_CACHE* ps_cache_in,
+   MOBILE_MOBILE as_mobiles_in[],
+   int i_mobiles_count_in,
+   TILEMAP_TILEMAP* ps_map_in,
+   WINDOW_MENU* ps_menu_in,
+   TILEMAP_DIR i_dir_in
 ) {
-   static SYSTYPE_ADVENTURE_WALK* tas_walking_ops = NULL; /* Walking mobiles. */
-   static int ti_walking_ops_count = 0;
-   int i, j, /* Loop iterators. */
-      i_speed = 4, /* The speed at which a new walk will start. */
-      i_tile_px_sz = 0; /* Pixel size of the given map's tiles. */
-   TILEMAP_TILE* ps_tile_dest = NULL; /* The tile to walk onto. */
-   TILEMAP_TILEDATA* ps_tiledata_dest = NULL;
+   /* Figure out the desired X and Y of the viewport. */
+   int i_x_dest = ps_viewport_in->x +
+         (ps_viewport_in->w * tilemap_dir_get_add_x( i_dir_in )),
+      i_y_dest = ps_viewport_in->y +
+         (ps_viewport_in->h * tilemap_dir_get_add_y( i_dir_in ));
 
-   /* Set the tile pixel size if we can. */
-   if( NULL != ps_map_in ) {
-      i_tile_px_sz = ps_map_in->tileset->pixel_size;
+   /* Move the viewport. */
+   while( ps_viewport_in->x != i_x_dest || ps_viewport_in->y != i_y_dest ) {
+      GFX_DRAW_LOOP_START
+
+      ps_viewport_in->x +=
+         (tilemap_dir_get_add_x( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
+      ps_viewport_in->y +=
+         (tilemap_dir_get_add_y( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
+
+      systype_adventure_viewport_draw(
+         ps_viewport_in, ps_cache_in, as_mobiles_in, i_mobiles_count_in, ps_map_in,
+         ps_menu_in, TRUE
+      );
+
+      GFX_DRAW_LOOP_END
    }
 
-   /* If the special "cleaning" direction was given, then clean up the static *
-    * move lists.                                                             */
-   if( GEN_OPCODE_CLEAN == i_dir_in ) {
-      free( tas_walking_ops );
-      return FALSE;
-   }
-
-   /* We're not allowed to go off the edge of the map. */
-   if(
-      (TILEMAP_DIR_NORTH == i_dir_in && ps_mob_in->pixel_y <= 0) ||
-
-      (TILEMAP_DIR_SOUTH == i_dir_in &&
-      ps_mob_in->pixel_y >= (ps_map_in->tile_h * i_tile_px_sz) - i_tile_px_sz) ||
-
-      (TILEMAP_DIR_EAST == i_dir_in &&
-      ps_mob_in->pixel_x >= (ps_map_in->tile_w * i_tile_px_sz) - i_tile_px_sz) ||
-
-      (TILEMAP_DIR_WEST == i_dir_in && ps_mob_in->pixel_x <= 0)
-   ) {
-      return FALSE;
-   }
-
-   if( NULL == ps_mob_in && TILEMAP_DIR_NULL == i_dir_in ) {
-      /* If this function was called with a NULL direction then go through    *
-       * the table of already walking mobiles and advance them.               */
-      for( i = 0 ; i < ti_walking_ops_count ; i++ ) {
-         /* Move the mobile by the iterated movement's speed. */
-
-         tas_walking_ops[i].mobile->pixel_x +=
-            (tilemap_dir_get_add_x( tas_walking_ops[i].direction ) *
-            tas_walking_ops[i].speed);
-         tas_walking_ops[i].mobile->pixel_y +=
-            (tilemap_dir_get_add_y( tas_walking_ops[i].direction ) *
-            tas_walking_ops[i].speed);
-
-         /* Mark the tile being moved onto as dirty. */
-         tilemap_get_tile(
-            (tas_walking_ops[i].mobile->pixel_x /
-               ps_map_in->tileset->pixel_size) +
-                  tilemap_dir_get_add_x( tas_walking_ops[i].direction ),
-            (tas_walking_ops[i].mobile->pixel_y /
-               ps_map_in->tileset->pixel_size) +
-                  tilemap_dir_get_add_y( tas_walking_ops[i].direction ),
-            ps_map_in
-         )->dirty = TRUE;
-
-         /* If the mobile has reached a tile boundary then stop walking. */
-         if(
-            0 == tas_walking_ops[i].mobile->pixel_x %
-               tas_walking_ops[i].mobile->pixel_size &&
-            0 == tas_walking_ops[i].mobile->pixel_y %
-               tas_walking_ops[i].mobile->pixel_size
-         ) {
-            tas_walking_ops[i].mobile->moving = FALSE;
-
-            /* Shift the whole list up by one and then delete the empty last  *
-             * entry.                                                         */
-            for( j = i + 1 ; j < ti_walking_ops_count ; j++ ) {
-               memcpy(
-                  &tas_walking_ops[j - 1],
-                  &tas_walking_ops[j],
-                  sizeof( SYSTYPE_ADVENTURE_WALK )
-               );
-            }
-            ti_walking_ops_count--;
-            tas_walking_ops = (SYSTYPE_ADVENTURE_WALK*)realloc(
-               tas_walking_ops,
-               ti_walking_ops_count * sizeof( SYSTYPE_ADVENTURE_WALK )
-            );
-         }
-      }
-      return FALSE;
-   }
-
-   /* Check for collisions around the given mobile. */
-   for( i = 0 ; i < i_mob_npc_count_in ; i++ ) {
-      if(
-         (TILEMAP_DIR_NORTH == i_dir_in && /* Moving north and mobile is in   */
-         as_mob_npc_in[i].pixel_y >        /* closest north tile.             */
-            (ps_mob_in->pixel_y - (2 * ps_mob_in->pixel_size)) &&
-         as_mob_npc_in[i].pixel_y < ps_mob_in->pixel_y &&
-         as_mob_npc_in[i].pixel_x == ps_mob_in->pixel_x) ||
-
-         (TILEMAP_DIR_SOUTH == i_dir_in && /* Moving south and mobile is in   */
-         as_mob_npc_in[i].pixel_y <        /* closest south tile.             */
-            (ps_mob_in->pixel_y + (2 * ps_mob_in->pixel_size)) &&
-         as_mob_npc_in[i].pixel_y >= ps_mob_in->pixel_y + ps_mob_in->pixel_size &&
-         as_mob_npc_in[i].pixel_x == ps_mob_in->pixel_x) ||
-
-         (TILEMAP_DIR_EAST == i_dir_in && /* Moving east and mobile is in     */
-         as_mob_npc_in[i].pixel_x <       /* closest east tile.               */
-            (ps_mob_in->pixel_x + (2 * ps_mob_in->pixel_size)) &&
-         as_mob_npc_in[i].pixel_x >= ps_mob_in->pixel_x + ps_mob_in->pixel_size &&
-         as_mob_npc_in[i].pixel_y == ps_mob_in->pixel_y) ||
-
-         (TILEMAP_DIR_WEST == i_dir_in && /* Moving west and mobile is in     */
-         as_mob_npc_in[i].pixel_x >       /* closest west tile.               */
-            (ps_mob_in->pixel_x - (2 * ps_mob_in->pixel_size)) &&
-         as_mob_npc_in[i].pixel_x < ps_mob_in->pixel_x &&
-         as_mob_npc_in[i].pixel_y == ps_mob_in->pixel_y)
-      ) {
-         /* A mobile collision occurred, so fail walking. */
-         return FALSE;
-      }
-   }
-
-   /* Figure out the next tile on the map we'll end up on. */
-   ps_tile_dest = tilemap_get_tile(
-      (ps_mob_in->pixel_x / ps_mob_in->pixel_size) +
-         tilemap_dir_get_add_x( i_dir_in ),
-      (ps_mob_in->pixel_y / ps_mob_in->pixel_size) +
-         tilemap_dir_get_add_y( i_dir_in ),
-      ps_map_in
-   );
-
-   /* Check the map for collisions and terrain slowing. */
-   ps_tiledata_dest =
-      tilemap_get_tiledata( ps_tile_dest->gid, ps_map_in->tileset );
-   if( ps_tiledata_dest->hindrance >= ps_map_in->tileset->pixel_size ) {
-      /* The hindrance is too high to move. */
-      return FALSE;
-   }
-
-   /* The specified mobile is neither walking already nor otherwise moving,   *
-    * so start walking and add the mobile to the list of walking mobiles.     */
-   ti_walking_ops_count++;
-   tas_walking_ops = (SYSTYPE_ADVENTURE_WALK*)realloc(
-      tas_walking_ops,
-      ti_walking_ops_count * sizeof( SYSTYPE_ADVENTURE_WALK )
-   );
-   tas_walking_ops[ti_walking_ops_count - 1].direction = i_dir_in;
-   tas_walking_ops[ti_walking_ops_count - 1].mobile = ps_mob_in;
-   tas_walking_ops[ti_walking_ops_count - 1].speed =
-      i_speed / ps_map_in->tileset->tile_list[ps_tile_dest->gid - 1].hindrance;
-   ps_mob_in->moving = TRUE;
-
-   return TRUE;
 }
 
-void systype_adventure_menu_show(
-   WINDOW_MENU** pps_menu_in,
-   CACHE_CACHE* ps_cache_in
+/* Purpose: Draw the current viewport.                                        */
+void systype_adventure_client_viewport_draw(
+   GEO_RECTANGLE* ps_viewport_in,
+   CACHE_CACHE* ps_cache_in,
+   MOBILE_MOBILE as_mobiles_in[],
+   int i_mobiles_count_in,
+   TILEMAP_TILEMAP* ps_map_in,
+   WINDOW_MENU* ps_menu_in,
+   BOOL b_force_redraw_in
 ) {
-   bstring ps_items = bformat( "Test" );
-   /* Create the menu for adventure mode. */
+   int i; /* Loop iterator. */
 
-   /* Setup the new menu colors. */
-   /* memcpy( &s_colors_tmp.fg, ps_command_in->data[2].color_fg, sizeof( GEO_COLOR ) );
-   memcpy( &s_colors_tmp.bg, ps_command_in->data[3].color_bg, sizeof( GEO_COLOR ) );
-   memcpy( &s_colors_tmp.sfg, ps_command_in->data[4].color_sfg, sizeof( GEO_COLOR ) );
-   memcpy( &s_colors_tmp.sbg, ps_command_in->data[5].color_sbg, sizeof( GEO_COLOR ) ); */
+   /* Loop through and draw all on-screen items. */
+   tilemap_draw( ps_map_in, ps_viewport_in, b_force_redraw_in ); /* Map. */
+   for( i = 0 ; i < i_mobiles_count_in ; i++ ) {
+      mobile_execute_ai( &as_mobiles_in[i], MOBILE_AI_ADV_NORMAL );
+      mobile_draw( &as_mobiles_in[i], ps_viewport_in ); /* NPCs */
+   }
+   mobile_draw(
+      &ps_cache_in->player_team[ps_cache_in->player_team_front], ps_viewport_in
+   ); /* PCs */
 
-   /* Append the menu struct and clean up. It's all right to just free  *
-    * it since the dynamic stuff pointed to it will be pointed to by    *
-    * the copy on the menu stack.                                       */
-   *pps_menu_in = window_create_menu(
-      ps_items, 0, &systype_adventure_menu_test, NULL
-   );
+   /* Draw windows and menus. */
+   /* TODO: Display a status window at the bottom of the screen most of the   *
+    *       time until there's something new to read in the text log. Also,   *
+    *       implement scrollback.                                             */
+   /* window_draw_text( 0, ps_cache_in ); */
+   if( NULL != ps_menu_in ) {
+      window_draw_menu( ps_menu_in );
+   }
+
+   graphics_do_update();
 }
-
-void systype_adventure_menu_test( void ) {
-   DBG_INFO( "Test menu selected." );
-}
-
-
-
