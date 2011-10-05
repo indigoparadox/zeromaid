@@ -281,11 +281,12 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
             ps_font_path_iter, SYSTYPE_TITLE_MENU_SIZE_DEFAULT
          );
          #endif /* USESERVER */
-         ps_titlescreen_iter = bformat(
+         ps_titlescreen_iter->menu_font_filename = bformat(
             "%s",
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
 
+         // XXX: FFFF
          bdestroy( ps_font_path_iter );
       }
 

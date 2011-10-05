@@ -33,14 +33,9 @@
 
 #include "defines.h"
 #include "cache.h"
-//#include "graphics.h"
-#include "systype_title.h"
-#include "systype_adventure.h"
-
-#ifndef USESERVER
+#include "graphics.h"
 #include "systype_title_client.h"
 #include "systype_adventure_client.h"
-#endif /* !USESERVER */
 
 #ifdef USEWII
 #include <network.h>
@@ -264,7 +259,7 @@ int main( int argc, char* argv[] ) {
    }
 
    /* Start the loop that loads the other gameplay loops. */
-   i_last_return = systype_title_loop( ps_cache );
+   i_last_return = systype_title_client_loop( ps_cache );
    while( RETURN_ACTION_QUIT != i_last_return ) {
 
       switch( i_last_return ) {
@@ -275,7 +270,7 @@ int main( int argc, char* argv[] ) {
                0 == strcmp( SYSTEM_TYPE_ADVENTURE,
                   (const char*)ps_cache->game_type->data )
             ) {
-               i_last_return = systype_adventure_loop( ps_cache );
+               i_last_return = systype_adventure_client_loop( ps_cache );
             } else {
                i_last_return = systype_title_loop( ps_cache );
                TITLE_ERROR_SET( "Invalid game type specified" );
@@ -287,7 +282,7 @@ int main( int argc, char* argv[] ) {
             break;
 
          default:
-            i_last_return = systype_title_loop( ps_cache );
+            i_last_return = systype_title_client_loop( ps_cache );
             break;
       }
    }

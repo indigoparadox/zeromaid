@@ -44,7 +44,6 @@
 #include "defines.h"
 #include "util.h"
 #include "geometry.h"
-#include "tilemap.h"
 
 /* = Definitions = */
 

@@ -17,6 +17,11 @@
 #ifndef SYSLOOP_TITLE_CLIENT_H
 #define SYSLOOP_TITLE_CLIENT_H
 
+/* = Includes = */
+
+#include "graphics.h"
+#include "systype_title.h"
+
 /* = Type and Struct Definitions = */
 
 /* = Function Prototypes = */
@@ -27,4 +32,4 @@ void systype_title_client_show_menu(
 );
 void systype_title_client_free_titlescreen( SYSTYPE_TITLE_TITLESCREEN* );
 
-#endif /* !SYSLOOP_TITLE_CLIENT_H
+#endif /* !SYSLOOP_TITLE_CLIENT_H */

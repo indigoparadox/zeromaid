@@ -18,7 +18,6 @@
 
 #include "defines.h"
 #include "cache.h"
-//#include "graphics.h"
 #include "systype_title.h"
 #include "systype_adventure.h"
 
@@ -29,6 +28,14 @@ bstring gps_title_error;
 /* = Includes = */
 
 int main( int argc, char* argv[] ) {
+
+   /* Setup the random number generator. */
+   srand( time( NULL ) );
+
+   #ifdef OUTTOFILE
+   gps_debug = fopen( DEBUG_OUT_PATH, "a" );
+   #endif /* OUTTOFILE */
+
    return 0;
 }
 
