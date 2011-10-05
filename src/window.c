@@ -65,8 +65,8 @@ BOOL window_init( void ) {
       WINDOW_TEXT_DEFAULT_SIZE
    );
    if( NULL == tgps_default_text_font ) {
-      DBG_ERR_STR(
-         "Unable to load window default text font",
+      DBG_ERR(
+         "Unable to load window default text font: %s",
          ps_default_font_path->data
       );
       b_success = FALSE;
@@ -80,8 +80,8 @@ BOOL window_init( void ) {
       WINDOW_MENU_DEFAULT_SIZE
    );
    if( NULL == tgps_default_menu_font ) {
-      DBG_ERR_STR(
-         "Unable to load window default menu font",
+      DBG_ERR(
+         "Unable to load window default menu font: %s",
          ps_default_font_path->data
       );
       b_success = FALSE;
@@ -139,7 +139,7 @@ CACHE_LOG_ENTRY* window_create_text(
       wct_cleanup, &s_entry_tmp
    );
 
-   DBG_INFO_STR( "Text window created", ps_text_in->data );
+   DBG_INFO( "Text window created: %s", ps_text_in->data );
 
 wct_cleanup:
 

@@ -20,6 +20,8 @@
 /* = Includes = */
 
 #include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
@@ -110,8 +112,12 @@ typedef int COND_SCOPE;
    #endif /* USEWII */
    #define DEBUG_HANDLE_INFO gps_debug
    #define DEBUG_HANDLE_ERR gps_debug
-   #define DBG_MAIN FILE* gps_debug;
-   #define DBG_ENABLE extern FILE* gps_debug;
+   #define DBG_MAIN \
+      FILE* gps_debug; \
+      pthread_mutex_t gps_debug_mutex = PTHREAD_MUTEX_INITIALIZER;
+   #define DBG_ENABLE \
+      extern FILE* gps_debug; \
+      extern pthread_mutex_t gps_debug_mutex;
 #else
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
       #define DEBUG_HANDLE_INFO stdout
@@ -147,6 +153,22 @@ typedef int COND_SCOPE;
    ((strrchr(__FILE__, '\\') ? : __FILE__- 1) + 1)
 #define FILE_SHORT \
    ((strrchr(FILE_SHORT_B, '/') ? : FILE_SHORT_B- 1) + 1)
+
+#define DBG_INFO( ... ) \
+   pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
+   fprintf( DEBUG_HANDLE_INFO, "\n" ); \
+   fflush( DEBUG_HANDLE_INFO ); \
+   pthread_mutex_unlock( &gps_debug_mutex );
+
+#define DBG_ERR( ... ) \
+   pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
+   fprintf( DEBUG_HANDLE_ERR, "\n" ); \
+   fflush( DEBUG_HANDLE_ERR ); \
+   pthread_mutex_unlock( &gps_debug_mutex );
+
+#if 0
 
 /* The debug macros use normal C strings instead of bstrings since they'll    *
  * usually be printing literals and there are some tricky deallocation issues *
@@ -267,6 +289,8 @@ typedef int COND_SCOPE;
    fflush( DEBUG_HANDLE_INFO );
 
 #endif /* USEWII && USEDEBUG && USENET */
+
+#endif /* 0 */
 
 /* Set a new error to display on the title screen. */
 #define TITLE_ERROR_SET( message ) \

@@ -40,7 +40,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_path_in ) ) {
-      DBG_ERR_STR( "Unable to load map", ps_path_in->data );
+      DBG_ERR( "Unable to load map: %s", ps_path_in->data );
       return NULL;
    }
    ps_xml_map = ezxml_parse_file( (const char*)ps_path_in->data );
@@ -89,8 +89,8 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
             ps_map_out->tile_h = atoi( ezxml_attr( ps_xml_layer, "height" ) );
             tilemap_load_layer( ps_map_out, ps_xml_layer );
          } else {
-            DBG_INFO_STR(
-               "Found unrecognized map layer",
+            DBG_INFO(
+               "Found unrecognized map layer: %s",
                ezxml_attr( ps_xml_layer, "name" )
             );
          }
@@ -100,7 +100,7 @@ TILEMAP_TILEMAP* tilemap_create_map( bstring ps_name_in, bstring ps_path_in ) {
       }
 
    } else {
-      DBG_ERR_STR( "Unable to load tile data", ps_tiledata_path->data );
+      DBG_ERR( "Unable to load tile data: %s", ps_tiledata_path->data );
    }
 
    /* Clean up. */
@@ -127,11 +127,11 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
    GFX_SURFACE* ps_surface = NULL;
    #endif /* !USESERVER */
 
-   DBG_INFO_STR( "Loading tile data", ps_path_in->data );
+   DBG_INFO( "Loading tile data: %s", ps_path_in->data );
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_path_in ) ) {
-      DBG_ERR_STR( "Unable to load tile data", ps_path_in->data );
+      DBG_ERR( "Unable to load tile data: %s", ps_path_in->data );
       return NULL;
    }
    ps_xml_tileset = ezxml_parse_file( (const char*)ps_path_in->data );
@@ -146,7 +146,7 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
 
    if( NULL == ps_surface ) {
       /* There was a problem somewhere. */
-      DBG_ERR_STR( "Unable to load tile image", ps_image_path->data );
+      DBG_ERR( "Unable to load tile image: %s", ps_image_path->data );
       goto gct_cleanup;
    }
    #endif /* !USESERVER */
@@ -242,9 +242,9 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
 
    /* Figure out the file size. */
    ps_tileset_out->pixel_size = atoi( ezxml_attr( ps_xml_tileset, "tileheight" ) );
-   DBG_INFO_INT( "Found tile size", ps_tileset_out->pixel_size );
+   DBG_INFO( "Found tile size: %d", ps_tileset_out->pixel_size );
 
-   DBG_INFO_STR_PTR( "Loaded tile data", ps_path_in->data, ps_tileset_out );
+   DBG_INFO( "Loaded tile data: %s, %p", ps_path_in->data, ps_tileset_out );
 
 gct_cleanup:
 
@@ -328,8 +328,8 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
    ezxml_t ps_xml_tile = NULL, ps_xml_data = NULL;
    //unsigned int i_row_count = 0; /* The current tile row. *//
 
-   DBG_INFO_STR(
-      "Loading background layer for map",
+   DBG_INFO(
+      "Loading background layer for map: %s",
       ps_map_in->proper_name->data
    );
 

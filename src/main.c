@@ -25,6 +25,8 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+//#include <pthread.h>
+//#include <semaphore.h>
 
 #ifdef USESDL
 #ifdef __APPLE__
@@ -67,12 +69,23 @@ SDL_Joystick* gps_joystick_current;
 
 bstring gps_title_error;
 
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   FILE* debug_file;
+} MAIN_PARAMS;
+
+/* = Function Prototypes = */
+
+void* main_server( void* );
+
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
    int i_last_return, /* Contains the last loop-returned value. */
       i_error_level = 0, /* The program error level returned to the shell. */
-      i; /* Loop counter. */
+      i, /* Loop counter. */
+      i_thread_error;
    bstring ps_system_path,
       ps_title;
    CACHE_CACHE* ps_cache = NULL;
@@ -89,6 +102,31 @@ int main( int argc, char* argv[] ) {
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
+   pthread_t ps_thread_server,
+      ps_thread_client;
+
+   // XXX
+   /* MAIN_PARAMS* ps_params_server = calloc(
+      1, sizeof( MAIN_PARAMS )
+   );
+   ps_params_server->debug_file = gps_debug; */
+   i_thread_error = pthread_create(
+      &ps_thread_server,
+      NULL,
+      &main_server,
+      NULL
+   );
+   if( i_thread_error ) {
+      DBG_ERR(
+         "Unable to create server thread, error code: %d",
+         i_thread_error
+      );
+      goto main_cleanup;
+   }
+   /* pthread_join(
+      ps_thread_server,
+      NULL
+   ); */
 
    /* == Pre-System Init == */
    /* This is stuff that should be taken care of before we start accessing    *
@@ -146,15 +184,15 @@ int main( int argc, char* argv[] ) {
    btrimws( ps_new_share_path );
    fclose( ps_file_default );
    if( chdir( ps_new_share_path->data ) ) {
-      DBG_ERR_STR( "Unable to change to directory", ps_new_share_path->data );
+      DBG_ERR( "Unable to change to directory: %s", ps_new_share_path->data );
       goto main_cleanup;
    }
-   DBG_INFO_STR( "Directory changed", ps_new_share_path->data );
+   DBG_INFO( "Directory changed: %s", ps_new_share_path->data );
    #endif /* USEMULTIMODS */
 
    /* If the system file doesn't exist in this directory, we're hosed. */
    if( !zm_file_exists( ps_system_path ) ) {
-      DBG_ERR_STR( "Unable to find system file", ps_system_path->data );
+      DBG_ERR( "Unable to find system file: %s", ps_system_path->data );
       i_error_level = ERROR_LEVEL_NOSYS;
       goto main_cleanup;
    }
@@ -166,6 +204,7 @@ int main( int argc, char* argv[] ) {
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
    /* Setup the Wii network debugging infrastructure. */
 	if( if_config( ac_ipaddr_text, ac_netmask_text, ac_gateway_text, TRUE ) ) {
+	   /* Use printf here because debug output won't work without the network. */
 	   printf( "Unable to setup network." );
 	   sleep( 5 );
 		goto main_cleanup;
@@ -186,10 +225,10 @@ int main( int argc, char* argv[] ) {
    for( i = 0 ; i < 10 ; i++ ) {
       gps_joystick_current = SDL_JoystickOpen( i );
       if( NULL != gps_joystick_current ) {
-         DBG_INFO_INT( "Opened SDL joystick", i );
+         DBG_INFO( "Opened SDL joystick: %d", i );
          break;
       } else {
-         DBG_ERR_INT( "Failed to open SDL joystick", i );
+         DBG_ERR( "Failed to open SDL joystick: %d", i );
       }
    }
    TTF_Init();
@@ -237,7 +276,7 @@ int main( int argc, char* argv[] ) {
    ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
    pc_title = ezxml_attr( ps_xml_system, "name" );
    ps_title = bformat( "%s", pc_title );
-   DBG_INFO_STR( "System selected", pc_title );
+   DBG_INFO( "System selected: %s", pc_title );
    ezxml_free( ps_xml_system );
 
    /* Set up the display. */
@@ -281,8 +320,8 @@ int main( int argc, char* argv[] ) {
             } else {
                i_last_return = systype_title_loop( ps_cache );
                TITLE_ERROR_SET( "Invalid game type specified" );
-               DBG_ERR_STR(
-                  "Invalid game type specified",
+               DBG_ERR(
+                  "Invalid game type specified: %s",
                   ps_cache->game_type->data
                );
             }
@@ -297,6 +336,8 @@ int main( int argc, char* argv[] ) {
 main_cleanup:
 
    GFX_DRAW_LOOP_FREE
+
+   //pthread_exit( NULL );
 
    event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
 
@@ -334,3 +375,9 @@ main_cleanup:
 #ifdef USEALLEGRO
 END_OF_MAIN();
 #endif // USEALLEGRO
+
+void* main_server( void* arg ) {
+   DBG_INFO( "Server thread started." );
+
+   // pthread_exit( NULL );
+}

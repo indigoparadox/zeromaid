@@ -104,7 +104,10 @@ int* event_load_assignments( int i_input_type_in ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_events_path ) ) {
-      DBG_ERR_STR( "Unable to find events file.", ps_events_path->data );
+      DBG_ERR(
+         "Unable to find events file: %s",
+         ps_events_path->data
+      );
       goto ela_cleanup;
    } else {
       ps_xml_events = ezxml_parse_file( (const char*)ps_events_path->data );
@@ -113,9 +116,8 @@ int* event_load_assignments( int i_input_type_in ) {
    /* Try to open the section for the current input engine. */
    ps_xml_engine = ezxml_child( ps_xml_events, EVENT_INPUT_ENGINE );
    if( NULL == ps_xml_engine ) {
-      DBG_ERR_STR(
-         "Invalid events data format",
-         "Missing <" EVENT_INPUT_ENGINE "> element."
+      DBG_ERR(
+         "Invalid events data format: Missing <" EVENT_INPUT_ENGINE "> element."
       );
       goto ela_cleanup;
    }
@@ -158,8 +160,8 @@ int* event_load_assignments( int i_input_type_in ) {
          /* The assignment seems legit. */
          ai_input_events_out[i_event_target] = i_event_assignment;
 
-         DBG_INFO_INT_INT(
-            "Input event assigned",
+         DBG_INFO(
+            "Input event assigned: %d, %d",
             atoi( ezxml_attr( ps_xml_input_iter, "id" ) ),
             atoi( ezxml_attr( ps_xml_input_iter, "assignment" ) )
          )
@@ -403,7 +405,7 @@ void event_do_poll_sdl_joystick_buttons(
    for( i = 0 ; i < SDL_JOYBUTTONS_MAX ; i++ ) {
       if( i == ps_event_in->jbutton.button ) {
          as_joybuttons_in[i] = TRUE;
-         DBG_INFO_INT( "Button", ps_event_in->jbutton.button );
+         DBG_INFO( "Button: %d", ps_event_in->jbutton.button );
       } else {
          as_joybuttons_in[i] = FALSE;
       }
@@ -419,7 +421,7 @@ void event_do_poll_sdl_joystick_hats(
    /* Get the joyhat state from SDL. */
    i_joyhat_state = SDL_JoystickGetHat( gps_joystick_current, 0 );
 
-   DBG_INFO_INT( "Joyhat", i_joyhat_state );
+   DBG_INFO( "Joyhat: %d", i_joyhat_state );
 
    /* Set all positions to zero and light up the one that's being pressed. */
    memset( as_joyhat_in, FALSE, sizeof( Uint8 ) * SDL_JOYHATPOS_MAX );
