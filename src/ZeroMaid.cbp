@@ -501,22 +501,7 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug-Windows-i686-Server" />
-		</Unit>
-		<Unit filename="main_client.c">
-			<Option compilerVar="CC" />
 			<Option target="Debug-Windows-i686-SDL" />
-			<Option target="Release-Windows-i686-SDL" />
-			<Option target="Debug-Windows-i686-Allegro" />
-			<Option target="Release-Windows-i686-Allegro" />
-			<Option target="Debug-Windows-i686-DirectX" />
-			<Option target="Debug-Linux-i686-SDL" />
-			<Option target="Release-Linux-i686-SDL" />
-			<Option target="Debug-Linux-PPC-SDL" />
-			<Option target="Debug-Linux-i686-Allegro" />
-			<Option target="Debug-DOS-i386-Allegro" />
-			<Option target="Debug-Wii-PPC-DKPWin" />
-			<Option target="Release-Wii-PPC-DKPWin" />
-			<Option target="Debug-NDS-ARM-DKPWin" />
 		</Unit>
 		<Unit filename="mobile.c">
 			<Option compilerVar="CC" />
@@ -544,6 +529,10 @@
 			<Option target="Release-Linux-i686-SDL" />
 			<Option target="Debug-Windows-i686-Server" />
 		</Unit>
+		<Unit filename="server.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="server.h" />
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />
 		</Unit>
