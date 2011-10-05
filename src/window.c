@@ -20,8 +20,13 @@ DBG_ENABLE
 
 /* = Global Variables = */
 
+#ifndef USESERVER
 static GFX_FONT* tgps_default_text_font = NULL,
    * tgps_default_menu_font = NULL;
+#endif /* !USESERVER */
+static bstring tgps_default_text_font_filename,
+   tgps_default_menu_font_filename;
+
 static WINDOW_MENU_COLORS* tgps_default_menu_colors = NULL;
 
 /* = Functions = */
@@ -52,6 +57,7 @@ BOOL window_init( void ) {
       b_success = FALSE;
    }
 
+   #ifndef USESERVER
    /* Attempt to load the default text font. */
    ps_default_font_path = bfromcstr( WINDOW_TEXT_DEFAULT_FONT );
    window_set_text_font(
@@ -80,6 +86,7 @@ BOOL window_init( void ) {
       );
       b_success = FALSE;
    }
+   #endif /* !USESERVER */
 
 wi_cleanup:
 
@@ -93,6 +100,7 @@ wi_cleanup:
  *          module and  then window_init() at the beginning of the next one,  *
  *          maybe.                                                            */
 void window_cleanup( void ){
+   #ifndef USESERVER
    if( NULL != tgps_default_text_font ) {
       graphics_free_font( tgps_default_text_font );
    }
@@ -104,6 +112,10 @@ void window_cleanup( void ){
    if( NULL != tgps_default_menu_colors ) {
       free( tgps_default_menu_colors );
    }
+   #endif /* USESERVER */
+
+   bdestroy( tgps_default_text_font_filename );
+   bdestroy( tgps_default_menu_font_filename );
 }
 
 /* Purpose: Create a text log entry with it at the end of the given list.     */
@@ -223,6 +235,7 @@ wcm_cleanup:
    return ps_menu_out;
 }
 
+#ifndef USESERVER
 /* Purpose: Draw the selected text window on-screen, or the top-most window   *
  *          if no index is given or the index is invalid.                     */
 void window_draw_text( int i_index_in, CACHE_CACHE* ps_cache_in ) {
@@ -389,6 +402,7 @@ wdm_cleanup:
 
    return;
 }
+#endif /* !USESERVER */
 
 /* Purpose: Set the font to use for drawing window text instead of the        *
  * default font.                                                              */
@@ -402,10 +416,18 @@ void window_set_text_font(
       PATH_SHARE "%s." FILE_EXTENSION_FONT,
       ps_font_name_in->data
    );
+
+   #ifndef USESERVER
    tgps_default_text_font = graphics_create_font(
       // TODO: XML should control menu size.
       ps_font_path, i_size_in
    );
+   #endif /* !USESERVER */
+   tgps_default_text_font_filename = bformat(
+      "%s",
+      ps_font_name_in->data
+   );
+
    bdestroy( ps_font_path );
 }
 
@@ -421,10 +443,18 @@ void window_set_menu_font(
       PATH_SHARE "%s." FILE_EXTENSION_FONT,
       ps_font_name_in->data
    );
+
+   #ifndef USESERVER
    tgps_default_menu_font = graphics_create_font(
       // TODO: XML should control menu size.
       ps_font_path, i_size_in
    );
+   #endif /* !USESERVER */
+   tgps_default_menu_font_filename = bformat(
+      "%s",
+      ps_font_name_in->data
+   );
+
    bdestroy( ps_font_path );
 }
 

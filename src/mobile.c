@@ -20,6 +20,40 @@ DBG_ENABLE
 
 /* = Functions = */
 
+/* Purpose: Create a spritesheet that can be used to populate a mobile or     *
+ *          foreground object.                                                */
+/* Parameters: File system path to the spritesheet data file.                 */
+/* Return: A spritesheet struct with the image and data prescribed by the     *
+ *         data file.                                                         */
+MOBILE_SPRITESHEET* mobile_create_spritesheet( bstring ps_path_in ) {
+   MOBILE_SPRITESHEET* ps_spritesheet_out =
+      (MOBILE_SPRITESHEET*)calloc( sizeof( MOBILE_SPRITESHEET ), 1 );
+
+   /* Create the spritesheet structure. */
+   if( NULL == ps_spritesheet_out ) {
+      DBG_ERR( "Unable to allocate spritesheet." );
+      goto gcs_cleanup;
+   }
+
+   /* Load the spritesheet image. */
+   #ifndef USESERVER
+   ps_spritesheet_out->image = graphics_create_image( ps_path_in );
+   if( NULL == ps_spritesheet_out ) {
+      /* graphics_create_image() should handle any error output. */
+      free( ps_spritesheet_out );
+      ps_spritesheet_out = NULL;
+      goto gcs_cleanup;
+   }
+   #endif /* !USESERVER */
+
+   /* TODO: Figure out the pixel size automatically. */
+   ps_spritesheet_out->pixel_size = 32;
+
+gcs_cleanup:
+
+   return ps_spritesheet_out;
+}
+
 /* Purpose: Load the mobiles for this map into the given dynamic array.       */
 /* Parameters: The address of number of mobiles in the output array, the XML  *
  *             branch from which to load the mobiles, and the tilemap to      *
@@ -153,7 +187,15 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
             ezxml_attr( ps_xml_prop_iter, "value" ),
             FILE_EXTENSION_IMAGE
          );
-         ps_mob_out->spritesheet = graphics_create_spritesheet( ps_path_temp );
+
+         #ifndef USESERVER
+         ps_mob_out->spritesheet = mobile_create_spritesheet( ps_path_temp );
+         #endif /* !USESERVER */
+         ps_mob_out->spritesheet_filename = bformat(
+            "%s",
+            ezxml_attr( ps_xml_prop_iter, "value" )
+         );
+
          bdestroy( ps_path_temp );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "ai_adv_normal" ) ) {
@@ -239,8 +281,19 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
          ps_attr_temp,
          "%s%s.%s", PATH_SHARE, pc_attr, FILE_EXTENSION_IMAGE
       );
+
+      #ifndef USESERVER
       s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
+      #endif /* !USESERVER */
+      s_emotion_tmp.image_filename = bformat(
+         "%s", pc_attr
+      );
+
+      #ifndef USESERVER
       if( NULL == pc_attr || NULL == s_emotion_tmp.image ) {
+      #else
+      if( NULL == pc_attr ) {
+      #endif /* !USESERVER */
          /* There's no image, so this emotion is useless. */
          DBG_ERR( "Portrait not found; invalid emotion." );
          ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
@@ -278,6 +331,7 @@ BOOL mobile_load_ai(
    return TRUE;
 }
 
+#ifndef USESERVER
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
  *          viewport.                                                         */
 /* Parameters: The mobile to draw, the current viewport.                      */
@@ -335,6 +389,7 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GEO_RECTANGLE* ps_viewport_in ) {
       );
    }
 }
+#endif /* !USESERVER */
 
 /* Purpose: Execute the next instruction in the mobile's AI.                  */
 /* Parameters: The mobile to act and the ID of the list to execute from.      */
@@ -358,19 +413,35 @@ void mobile_free_arr( MOBILE_MOBILE* ps_mob_in ) {
    }
 
    for( i = 0 ; i < ps_mob_in->emotions_count ; i++ ) {
+      #ifndef USESERVER
       graphics_free_image( ps_mob_in->emotions[i].image );
+      #endif /* !USESERVER */
+      bdestroy( ps_mob_in->emotions[i].image_filename );
       bdestroy( ps_mob_in->emotions[i].id );
    }
    free( ps_mob_in->emotions );
    bdestroy( ps_mob_in->proper_name );
    bdestroy( ps_mob_in->mobile_type );
-   graphics_free_spritesheet( ps_mob_in->spritesheet );
+   #ifndef USESERVER
+   mobile_free_spritesheet( ps_mob_in->spritesheet );
+   #endif /* !USESERVER */
+   bdestroy( ps_mob_in->spritesheet_filename );
 }
-
 
 /* Purpose: Free the given mobile's sub-pointers.                             */
 /* Parameters: The mobile pointer to free.                                    */
 void mobile_free( MOBILE_MOBILE* ps_mob_in ) {
    mobile_free_arr( ps_mob_in );
    free( ps_mob_in );
+}
+
+/* Purpose: Free the given spritesheet buffer.                                */
+/* Parameters: The spritesheet to free.                                       */
+void mobile_free_spritesheet( MOBILE_SPRITESHEET* ps_spritesheet_in ) {
+   if( NULL != ps_spritesheet_in ) {
+      #ifndef USESERVER
+      graphics_free_image( ps_spritesheet_in->image );
+      #endif /* !USESERVER */
+      free( ps_spritesheet_in );
+   }
 }

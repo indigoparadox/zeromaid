@@ -44,15 +44,13 @@
 #include "defines.h"
 #include "util.h"
 #include "geometry.h"
+#include "tilemap.h"
 
 /* = Definitions = */
 
 #define GFX_FPS 30
 
 #define GFX_SCREENDEPTH 16
-
-#define GFX_TRANS_FADE_IN 0
-#define GFX_TRANS_FADE_OUT 1
 
 #define GFX_TRANS_FX_FADE 0 /* Simple, modest, fade. */
 #define GFX_TRANS_FX_BLIP 1 /* An old CRTube blip effect. */
@@ -83,27 +81,6 @@ typedef FONT GFX_FONT;
 #else
 #error "No graphics types defined for this platform!"
 #endif /* USESDL, USEDIRECTX, USEALLEGRO */
-
-/* We might be able to speed up operations using TILEDATA structs by making   *
- * them tree-able, but there probably won't be very many tiles for a map and  *
- * we feel the simplicity gained this way is worthwhile.                      */
-typedef struct _GFX_TILEDATA {
-   unsigned int gid;
-   short int animated,
-      hindrance;
-} GFX_TILEDATA;
-
-typedef struct {
-   unsigned int pixel_size;
-   GFX_SURFACE* image;
-   GFX_TILEDATA* tile_list;
-   int tile_list_count;
-} GFX_TILESET;
-
-typedef struct {
-   unsigned int pixel_size;
-   GFX_SURFACE* image;
-} GFX_SPRITESHEET;
 
 /* = Macros = */
 
@@ -154,8 +131,6 @@ typedef struct {
 
 BOOL graphics_create_screen( int, int, int, bstring );
 GFX_SURFACE* graphics_create_image( bstring );
-GFX_SPRITESHEET* graphics_create_spritesheet( bstring );
-GFX_TILESET* graphics_create_tileset( bstring );
 GFX_FONT* graphics_create_font( bstring, int );
 void graphics_draw_text( int, int, bstring, GFX_FONT*, GEO_COLOR* );
 void graphics_draw_blit_tile( GFX_SURFACE*, GEO_RECTANGLE*, GEO_RECTANGLE* );
@@ -163,11 +138,8 @@ void graphics_draw_blit_sprite( GFX_SURFACE*, GEO_RECTANGLE*, GEO_RECTANGLE* );
 void graphics_draw_blank( GEO_COLOR* );
 void graphics_draw_transition( GFX_TRANS_EFFECT, int, GEO_COLOR* );
 void graphics_do_update( void );
-GFX_TILEDATA* graphics_get_tiledata( int, GFX_TILESET* );
 int graphics_get_font_height( GFX_FONT* );
 void graphics_free_image( GFX_SURFACE* );
-void graphics_free_spritesheet( GFX_SPRITESHEET* );
-void graphics_free_tileset( GFX_TILESET* );
 void graphics_free_font( GFX_FONT* );
 
 #endif /* GRAPHICS_H */

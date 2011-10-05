@@ -30,7 +30,8 @@ GEO_COLOR* geometry_create_color(
 ) {
    GEO_COLOR* ps_color_out = NULL;
 
-   #if defined USESDL || defined USEDIRECTX || defined USEALLEGRO
+   /* This should be safe for any available graphics platform, but just note  *
+    * that maybe it might have to be tweaked if others are added.             */
    ps_color_out = (GEO_COLOR*)calloc( 1, sizeof( GEO_COLOR ) );
    if( NULL == ps_color_out ) {
       DBG_ERR( "Unable to allocate color." );
@@ -38,9 +39,6 @@ GEO_COLOR* geometry_create_color(
    ps_color_out->r = i_red_in;
    ps_color_out->g = i_green_in;
    ps_color_out->b = i_blue_in;
-   #else
-   #error "No color creation mechanism defined for this platform!"
-   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    return ps_color_out;
 }

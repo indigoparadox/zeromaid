@@ -384,6 +384,31 @@
 					<Add directory="C:\lib\devkitPro\sdlnds\lib" />
 				</Linker>
 			</Target>
+			<Target title="Debug-Windows-i686-Server">
+				<Option platforms="Windows;" />
+				<Option output="..\bin\Debug-Windows-i686-SDL\ZeroMaid" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\..\Maid" />
+				<Option object_output="..\obj\Debug-Windows-i686-SDL" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-DUSEDEBUG" />
+					<Add option="-DUSEMUSIC" />
+					<Add option="-DUSEMULTIMODS" />
+					<Add option="-DUSESERVER" />
+					<Add option="-DEZXML_NOMMAP" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add option="-pg" />
+					<Add library="mingw32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -405,8 +430,35 @@
 		<Unit filename="defines.h" />
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
 		</Unit>
-		<Unit filename="event.h" />
+		<Unit filename="event.h">
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
 		<Unit filename="ezxml\ezxml.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -417,10 +469,54 @@
 		<Unit filename="geometry.h" />
 		<Unit filename="graphics.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
 		</Unit>
-		<Unit filename="graphics.h" />
+		<Unit filename="graphics.h">
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-Server" />
+		</Unit>
+		<Unit filename="main_client.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
 		</Unit>
 		<Unit filename="mobile.c">
 			<Option compilerVar="CC" />
@@ -446,15 +542,78 @@
 			<Option target="Debug-Linux-i686-Allegro" />
 			<Option target="Debug-Linux-PPC-SDL" />
 			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Windows-i686-Server" />
 		</Unit>
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_adventure.h" />
+		<Unit filename="systype_adventure_client.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
+		<Unit filename="systype_adventure_client.h">
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
 		<Unit filename="systype_title.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="systype_title.h" />
+		<Unit filename="systype_title_client.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
+		<Unit filename="systype_title_client.h">
+			<Option target="Debug-Windows-i686-SDL" />
+			<Option target="Release-Windows-i686-SDL" />
+			<Option target="Debug-Windows-i686-Allegro" />
+			<Option target="Release-Windows-i686-Allegro" />
+			<Option target="Debug-Windows-i686-DirectX" />
+			<Option target="Debug-Linux-i686-SDL" />
+			<Option target="Release-Linux-i686-SDL" />
+			<Option target="Debug-Linux-PPC-SDL" />
+			<Option target="Debug-Linux-i686-Allegro" />
+			<Option target="Debug-DOS-i386-Allegro" />
+			<Option target="Debug-Wii-PPC-DKPWin" />
+			<Option target="Release-Wii-PPC-DKPWin" />
+			<Option target="Debug-NDS-ARM-DKPWin" />
+		</Unit>
 		<Unit filename="tilemap.c">
 			<Option compilerVar="CC" />
 		</Unit>
