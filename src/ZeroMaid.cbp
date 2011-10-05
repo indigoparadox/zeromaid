@@ -21,12 +21,15 @@
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
 					<Add option="-DEZXML_NOMMAP" />
+					<Add option="-DOUTTOFILE" />
 					<Add directory="$(#sdl_mingw)\include" />
+					<Add directory="$(#pthreads)\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
 					<Add option="-pg" />
 					<Add library="mingw32" />
+					<Add library="pthreadGC2" />
 					<Add library="SDLmain" />
 					<Add library="SDL.dll" />
 					<Add library="user32" />
@@ -36,6 +39,7 @@
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
 					<Add directory="$(#sdl_mingw)\lib" />
+					<Add directory="$(#pthreads)\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release-Windows-i686-SDL">
@@ -529,10 +533,6 @@
 			<Option target="Release-Linux-i686-SDL" />
 			<Option target="Debug-Windows-i686-Server" />
 		</Unit>
-		<Unit filename="server.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="server.h" />
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />
 		</Unit>
