@@ -48,7 +48,7 @@ BOOL graphics_create_screen(
    if( NULL == SDL_SetVideoMode(
       i_width_in, i_height_in, i_depth_in, SDL_HWSURFACE | SDL_DOUBLEBUF
    ) ) {
-      DBG_ERR_STR( "Unable to setup screen", SDL_GetError() );
+      DBG_ERR( "Unable to setup screen: %s", SDL_GetError() );
       b_success = FALSE;
       goto gcs_cleanup;
    } else {
@@ -143,9 +143,13 @@ GFX_SURFACE* graphics_create_image( bstring ps_path_in ) {
 
       ps_image = SDL_DisplayFormatAlpha( ps_temp );
 
-      DBG_INFO_STR_PTR( "Loaded image", (const char*)ps_path_in->data, ps_image );
+      DBG_INFO(
+         "Loaded image: %s, %p",
+         (const char*)ps_path_in->data,
+         ps_image
+      );
    } else {
-      DBG_ERR_STR( "Failed to load image", ps_path_in->data );
+      DBG_ERR( "Failed to load image: %s", ps_path_in->data );
       goto gci_cleanup;
    }
    #elif defined USEDIRECTX
@@ -247,13 +251,13 @@ GFX_FONT* graphics_create_font( bstring ps_font_path_in, int i_size_in ) {
    #endif /* USESDL, USEALLEGRO */
 
    if( NULL == ps_font_out ) {
-      DBG_ERR_STR( "Unable to load font", ps_font_path_proc->data );
+      DBG_ERR( "Unable to load font: %s", ps_font_path_proc->data );
 
       #ifdef USESDL
-      DBG_ERR_STR( "SDL TTF Error was", TTF_GetError() );
+      DBG_ERR( "SDL TTF Error was: %s", TTF_GetError() );
       #endif /* USESDL */
    } else {
-      DBG_INFO_STR( "Font loaded", ps_font_path_proc->data );
+      DBG_INFO( "Font loaded: %s", ps_font_path_proc->data );
    }
 
 gcf_cleanup:
@@ -691,7 +695,7 @@ void graphics_free_image( GFX_SURFACE* ps_surface_in ) {
       return;
    }
 
-   DBG_INFO_PTR( "Freeing image", ps_surface_in );
+   DBG_INFO( "Freeing image: %p", ps_surface_in );
 
    #ifdef USESDL
    SDL_FreeSurface( ps_surface_in );

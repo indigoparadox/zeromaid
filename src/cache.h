@@ -80,7 +80,7 @@ typedef struct {
       array_ptr = ps_cache_in->locals; \
       counter_ptr = &cache_ptr->locals_count; \
    } else { \
-      DBG_ERR_INT( "Unable to Load; Unknown variable scope", scope ); \
+      DBG_ERR( "Unable to Load; Unknown variable scope: %d", scope ); \
    }
 
 /* Purpose: Save the convenience pointer given earlier back to the correct    *
@@ -93,7 +93,7 @@ typedef struct {
    } else if( COND_SCOPE_LOCAL == scope ) { \
       ps_cache_in->locals = array_ptr; \
    } else { \
-      DBG_ERR_INT( "Unable to save; Unknown variable scope", scope ); \
+      DBG_ERR( "Unable to save; Unknown variable scope: %d", scope ); \
    }
 
 /* = Function Prototypes = */

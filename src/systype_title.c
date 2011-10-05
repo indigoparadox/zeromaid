@@ -194,12 +194,18 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    /* Load and verify down to the level of the title data. */
    ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM );
    if( NULL == ps_xml_system ) {
-      DBG_ERR_STR( "Unable to parse system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
+      DBG_ERR(
+         "Unable to parse system configuration: "
+         PATH_SHARE "/" PATH_FILE_SYSTEM
+      );
       goto stlt_cleanup;
    }
    ps_xml_title = ezxml_child( ps_xml_system, "title" );
    if( NULL == ps_xml_title ) {
-      DBG_ERR_STR( "Unable to parse title data in system configuration", PATH_SHARE "/" PATH_FILE_SYSTEM );
+      DBG_ERR(
+         "Unable to parse title data in system configuration: "
+         PATH_SHARE "/" PATH_FILE_SYSTEM
+      );
       goto stlt_cleanup;
    }
 
@@ -248,8 +254,8 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       if( NULL != pc_ezxml_attr ) {
          ps_titlescreen_iter->delay = atoi( pc_ezxml_attr );
          if( 0 != ps_titlescreen_iter->delay ) {
-            DBG_INFO_STR(
-               "Title screen: Set delay",
+            DBG_INFO(
+               "Title screen: Set delay: %s",
                ezxml_attr( ps_xml_titlescreen_iter, "delay" )
             );
          }
@@ -425,8 +431,8 @@ BOOL systype_title_load_titlescreen_text(
       }
 
       /* Report. */
-      DBG_INFO_INT_INT(
-         "Loaded text node (x, y)",
+      DBG_INFO(
+         "Loaded text node (x, y): %d, %d",
          ps_text_iter->x,
          ps_text_iter->y
       );
@@ -446,7 +452,7 @@ ezxml_t systype_title_load_system( void ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_system_path ) ) {
-      DBG_ERR_STR( "Unable to find system file.", ps_system_path->data );
+      DBG_ERR( "Unable to find system file: %s", ps_system_path->data );
       return NULL;
    } else {
       return ezxml_parse_file( (const char*)ps_system_path->data );
@@ -474,14 +480,14 @@ BOOL systype_title_load_team( CACHE_CACHE* ps_cache_in ) {
    /* Load the team XML node. */
    ps_xml_story = ezxml_child( ps_xml_system, "story" );
    if( NULL == ps_xml_story ) {
-      DBG_ERR_STR( "Invalid system data format", "Missing <story> element." );
+      DBG_ERR( "Invalid system data format: Missing <story> element." );
       b_success = FALSE;
       goto stlt_cleanup;
    }
    ps_xml_team = ezxml_child( ps_xml_story, "team" );
    if( NULL == ps_xml_team ) {
-      DBG_ERR_STR(
-         "Invalid system data format",
+      DBG_ERR(
+         "Invalid system data format: "
          "Missing <team> element."
       );
       b_success = FALSE;
@@ -551,14 +557,14 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    /* Load the single-player story data. */
    ps_xml_story = ezxml_child( ps_xml_system, "story" );
    if( NULL == ps_xml_story ) {
-      DBG_ERR_STR( "Invalid system data format", "Missing <story> element." );
+      DBG_ERR( "Invalid system data format: Missing <story> element." );
       b_success = FALSE;
       goto stls_cleanup;
    }
    ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
    if( NULL == ps_xml_smap ) {
-      DBG_ERR_STR(
-         "Invalid system data format",
+      DBG_ERR(
+         "Invalid system data format: "
          "Missing <startmap> element."
       );
       b_success = FALSE;
@@ -568,7 +574,7 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    /* Load the starting map. */
    if( NULL != ezxml_attr( ps_xml_smap, "type" ) ) {
       CACHE_SYSTEM_TYPE_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "type" ) );
-      DBG_INFO_STR( "Game type selected", ezxml_attr( ps_xml_smap, "type" ) );
+      DBG_INFO( "Game type selected: %s", ezxml_attr( ps_xml_smap, "type" ) );
    } else {
       DBG_ERR( "No game type specefied." );
       b_success = FALSE;

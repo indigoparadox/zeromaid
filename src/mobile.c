@@ -148,7 +148,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
 
    /* Verify the XML file exists and open or abort accordingly. */
    if( !zm_file_exists( ps_path_temp ) ) {
-      DBG_ERR_STR( "Unable to load mobile data file", ps_path_temp->data );
+      DBG_ERR( "Unable to load mobile data file: %s", ps_path_temp->data );
       return NULL;
    }
    ps_xml_mob = ezxml_parse_file( (const char*)ps_path_temp->data );
@@ -156,7 +156,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
    /* Allocate and verify the mobile to return. */
    ps_mob_out = calloc( 1, sizeof( MOBILE_MOBILE ) );
    if( NULL == ps_mob_out ) {
-      DBG_ERR_STR( "Unable to allocate mobile", ps_type_in->data );
+      DBG_ERR( "Unable to allocate mobile: %s", ps_type_in->data );
       return NULL;
    }
 
@@ -172,12 +172,12 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
          /* ATTRIB: PROPER NAME */
          ps_mob_out->proper_name =
             bformat( "%s", ezxml_attr( ps_xml_prop_iter, "value" ) );
-         DBG_INFO_STR( "Mobile proper name", ps_mob_out->proper_name->data );
+         DBG_INFO( "Mobile proper name: %s", ps_mob_out->proper_name->data );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "hp" ) ) {
          /* ATTRIB: HP */
          ps_mob_out->hp = atoi( ezxml_attr( ps_xml_prop_iter, "value" ) );
-         DBG_INFO_INT( "Mobile HP", ps_mob_out->hp );
+         DBG_INFO( "Mobile HP: %d", ps_mob_out->hp );
 
       } else if( 0 == strcmp( ezxml_attr( ps_xml_prop_iter, "name" ), "sprite_sheet" ) ) {
          /* ATTRIB: SPRITESHEET */
@@ -238,7 +238,7 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
       ps_mob_out->proper_name = bformat( "???" );
    }
 
-   DBG_INFO_STR( "Mobile loaded", ps_mob_out->mobile_type->data );
+   DBG_INFO( "Mobile loaded: %s", ps_mob_out->mobile_type->data );
 
    /* Clean up. */
 
@@ -308,7 +308,7 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
          ps_mob_in->emotions_count, mle_cleanup, &s_emotion_tmp
       );
 
-      DBG_INFO_STR( "Loaded emotion", s_emotion_tmp.id->data );
+      DBG_INFO( "Loaded emotion: %s", s_emotion_tmp.id->data );
 
       /* Go on to the next one. */
       ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
