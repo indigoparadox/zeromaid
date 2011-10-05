@@ -156,6 +156,7 @@ typedef int COND_SCOPE;
 
 #define DBG_INFO( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_INFO, "THREAD %u ", pthread_self() ); \
    fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_INFO, "\n" ); \
    fflush( DEBUG_HANDLE_INFO ); \
@@ -163,6 +164,7 @@ typedef int COND_SCOPE;
 
 #define DBG_ERR( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_ERR, "THREAD %u ", pthread_self() ); \
    fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_ERR, "\n" ); \
    fflush( DEBUG_HANDLE_ERR ); \
