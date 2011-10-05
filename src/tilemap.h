@@ -24,6 +24,10 @@
 #include "event.h"
 #include "geometry.h"
 
+#ifndef USESERVER
+#include "graphics.h"
+#endif /* !USESERVER */
+
 /* = Definitions = */
 
 #define TILEMAP_ANIM_FRAMES 1 /* Max index of animation frames. */

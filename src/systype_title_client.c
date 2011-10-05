@@ -146,9 +146,7 @@ int systype_title_client_loop( CACHE_CACHE* ps_cache_in ) {
             systype_title_show_menu(
                i_menu_selected,
                as_menu_text,
-               ps_title_iter->menu_font,
-               ps_title_iter->fg_color,
-               ps_title_iter->fg_highlight
+               ps_title_iter
             );
          }
       }
@@ -199,8 +197,8 @@ void systype_title_client_show_menu(
             i_x,
             i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
-            ps_font_in,
-            ps_highlight_in
+            ps_titlescreen_in->menu_font,
+            ps_titlescreen_in->fg_highlight
          );
       } else {
          /* The item is not selected. */
@@ -208,8 +206,8 @@ void systype_title_client_show_menu(
             i_x,
             i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
-            ps_font_in,
-            ps_color_in
+            ps_titlescreen_in->menu_font,
+            ps_titlescreen_in->fg_color
          );
       }
    }

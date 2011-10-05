@@ -22,10 +22,7 @@
 #include "defines.h"
 #include "graphics.h"
 #include "event.h"
-#include "tilemap.h"
-#include "mobile.h"
-#include "cache.h"
-#include "window.h"
+#include "systype_adventure.h"
 
 /* = Function Prototypes = */
 
@@ -34,9 +31,9 @@ void systype_adventure_client_viewport_scroll(
    GEO_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
    WINDOW_MENU*, TILEMAP_DIR
 );
-void systype_adventure_viewport_client_draw(
+void systype_adventure_client_viewport_draw(
    GEO_RECTANGLE*, CACHE_CACHE*, MOBILE_MOBILE[], int, TILEMAP_TILEMAP*,
    WINDOW_MENU*, BOOL
 );
 
-#endif /* SYSTYPE_ADVENTURE_CLIENT_H */
+#endif /* !SYSTYPE_ADVENTURE_CLIENT_H */

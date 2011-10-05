@@ -14,6 +14,7 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
+#undef SYSTYPE_ADVENTURE_CLIENT_H
 #include "systype_adventure_client.h"
 
 DBG_ENABLE
@@ -165,7 +166,7 @@ int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y <
          s_viewport.y
       ) { /* North */
-         systype_adventure_viewport_scroll(
+         systype_adventure_client_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
             ps_menu, TILEMAP_DIR_NORTH
          );
@@ -173,7 +174,7 @@ int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_y >=
          s_viewport.y + s_viewport.h
       ) { /* South */
-         systype_adventure_viewport_scroll(
+         systype_adventure_client_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
             ps_menu, TILEMAP_DIR_SOUTH
          );
@@ -181,7 +182,7 @@ int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x >=
          s_viewport.x + s_viewport.w
       ) { /* East */
-         systype_adventure_viewport_scroll(
+         systype_adventure_client_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
             ps_menu, TILEMAP_DIR_EAST
          );
@@ -189,7 +190,7 @@ int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
          ps_cache_in->player_team[ps_cache_in->player_team_front].pixel_x <
          s_viewport.x
       ) { /* West */
-         systype_adventure_viewport_scroll(
+         systype_adventure_client_viewport_scroll(
             &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
             ps_menu, TILEMAP_DIR_WEST
          );
@@ -212,7 +213,7 @@ int systype_adventure_client_loop( CACHE_CACHE* ps_cache_in ) {
       )->dirty = TRUE;
 
       /* Draw the viewport. */
-      systype_adventure_viewport_draw(
+      systype_adventure_client_viewport_draw(
          &s_viewport, ps_cache_in, as_mobile_list, i_mobile_count, ps_map,
          ps_menu, FALSE
       );
@@ -268,7 +269,7 @@ void systype_adventure_client_viewport_scroll(
       ps_viewport_in->y +=
          (tilemap_dir_get_add_y( i_dir_in ) * SYSTYPE_ADVENTURE_SCROLL_SPEED);
 
-      systype_adventure_viewport_draw(
+      systype_adventure_client_viewport_draw(
          ps_viewport_in, ps_cache_in, as_mobiles_in, i_mobiles_count_in, ps_map_in,
          ps_menu_in, TRUE
       );

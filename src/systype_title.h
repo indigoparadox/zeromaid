@@ -22,13 +22,8 @@
 #include <stdio.h>
 
 #include "defines.h"
-//#include "graphics.h"
 #include "event.h"
 #include "cache.h"
-
-#ifndef USESERVER
-#include "systype_title_client.h"
-#endif /* !USESERVER */
 
 /* = Definitions = */
 

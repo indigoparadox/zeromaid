@@ -433,7 +433,7 @@ void tilemap_draw(
             continue;
          }
 
-         ps_tiledata = graphics_get_tiledata(
+         ps_tiledata = tilemap_get_tiledata(
             ps_map_in->tiles[i_tiledata_index].gid,
             ps_map_in->tileset
          );
