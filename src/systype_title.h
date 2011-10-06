@@ -57,9 +57,9 @@ typedef struct _SYSTYPE_TITLE_TEXT {
    GEO_COLOR* fg_color;
    int x, y;
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_FONT* font;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring font_filename;
 
    struct _SYSTYPE_TITLE_TEXT* next;
@@ -73,10 +73,10 @@ typedef struct _SYSTYPE_TITLE_TITLESCREEN {
    int i_trans,
       o_trans;
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_FONT* menu_font;
    GFX_SURFACE* bg_image;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring menu_font_filename,
       bg_image_filename;
 

@@ -61,9 +61,9 @@ typedef int MOBILE_MOVE;
 typedef struct {
    bstring id;
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_SURFACE* image;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring image_filename;
 
    GEO_RECTANGLE image_crop; /* The area to show in an abbreviated dialog. */
@@ -72,9 +72,9 @@ typedef struct {
 typedef struct {
    unsigned int pixel_size;
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_SURFACE* image;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring image_filename;
 
 } MOBILE_SPRITESHEET;
@@ -104,9 +104,9 @@ typedef struct {
    bstring proper_name, /* The name to display for this mobile. */
       mobile_type; /* The system mobile type of this mobile. */
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    MOBILE_SPRITESHEET* spritesheet;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring spritesheet_filename;
 
 } MOBILE_MOBILE;

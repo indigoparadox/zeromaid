@@ -24,9 +24,9 @@
 #include "event.h"
 #include "geometry.h"
 
-#ifndef USESERVER
+#ifdef USECLIENT
 #include "graphics.h"
-#endif /* !USESERVER */
+#endif /* USECLIENT */
 
 /* = Definitions = */
 
@@ -54,9 +54,9 @@ typedef struct _GFX_TILEDATA {
 typedef struct {
    unsigned int pixel_size;
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_SURFACE* image;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring image_filename;
 
    TILEMAP_TILEDATA* tile_list;
