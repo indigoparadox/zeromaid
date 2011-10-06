@@ -14,17 +14,40 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef ROUGHXMPP_H
-#define ROUGHXMPP_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
 /* = Includes = */
 
+#ifdef USESDL
+#ifdef __APPLE__
+#include <SDL/SDL.h>
+#elif defined __unix__
+#include <SDL/SDL.h>
+#elif defined USEWII
+#include <SDL/SDL.h>
+#else
+#include <SDL.h>
+#endif /* __APPLE__, __unix__, USEWII */
+#endif /* USESDL */
+
+#ifdef WIN32
+#  include <winsock2.h>
+#  include <ws2tcpip.h>
+#else
+#  include <sys/socket.h>
+#  include <netdb.h>
+#  include <arpa/inet.h>
+#  include <sys/select.h>
+#endif /* WIN32 */
+
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
-#include "ezxml/ezxml.h"
-
-#endif /* !ROUGHXMPP_H */
+#include "defines.h"
+#include "cache.h"
 
 /* = Function Prototypes = */
 
-int roughxmpp_connect();
+void* client_main( void* );
+
+#endif /* !CLIENT_H */

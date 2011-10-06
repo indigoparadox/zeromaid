@@ -14,6 +14,9 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
+/* TODO: systype_title needs to be obliterated and the parts need to go into  *
+ *       the core of the system loaded before server contact.                 */
+
 #include "systype_title_client.h"
 
 DBG_ENABLE

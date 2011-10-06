@@ -14,17 +14,33 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef ROUGHXMPP_H
-#define ROUGHXMPP_H
+#ifndef SERVER_H
+#define SERVER_H
 
-/* = Includes = */
+#ifdef WIN32
+#  include <winsock2.h>
+#  include <ws2tcpip.h>
+#else
+#  include <sys/socket.h>
+#  include <netdb.h>
+#  include <arpa/inet.h>
+#  include <sys/select.h>
+#endif /* WIN32 */
 
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
-#include "ezxml/ezxml.h"
+#include "defines.h"
 
-#endif /* !ROUGHXMPP_H */
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   int socket_client;
+   bstring client_address;
+} SERVER_HANDLE_PARMS;
 
 /* = Function Prototypes = */
 
-int roughxmpp_connect();
+void* server_main( void* );
+void* server_handle( SERVER_HANDLE_PARMS* );
+
+#endif /* !SERVER_H */
