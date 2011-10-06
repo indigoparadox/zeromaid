@@ -36,6 +36,9 @@
 
 /* = Definitions = */
 
+/* TODO: Make network stuff user-definable at runtime. */
+#define NET_PORT_LISTEN 2551
+
 /* Platform-specific stuff. */
 #define FILE_EXTENSION_IMAGE "bmp"
 #define FILE_EXTENSION_AI "aib"
@@ -172,6 +175,7 @@ typedef int COND_SCOPE;
 
 #define DBG_INFO( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_INFO, "%s: %d: ", FILE_SHORT, __LINE__ ); \
    fprintf( DEBUG_HANDLE_INFO, "THREAD %p ", pthread_self().p ); \
    fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_INFO, "\n" ); \
@@ -180,6 +184,7 @@ typedef int COND_SCOPE;
 
 #define DBG_ERR( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_ERR, "%s: %d: ", FILE_SHORT, __LINE__ ); \
    fprintf( DEBUG_HANDLE_ERR, "THREAD %p ", pthread_self().p ); \
    fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_ERR, "\n" ); \

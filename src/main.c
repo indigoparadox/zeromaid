@@ -40,6 +40,7 @@
 #endif /* __APPLE__, __unix__, USEWII */
 #endif /* USESDL */
 
+#include "roughxmpp.h"
 #include "defines.h"
 #include "cache.h"
 #include "graphics.h"
@@ -259,10 +260,55 @@ END_OF_MAIN();
 #endif // USEALLEGRO
 
 void* main_server( void* arg ) {
+   int i_socket_listener, /* Listener socket handle. */
+      i_bind_result; /* Error code for listening bind. */
+   struct sockaddr_in s_server_address,
+      cli_addr;
+   #ifdef WIN32
+   WORD i_ws_version_requested;
+   WSADATA s_wsa_data;
+   int i_ws_result;
+   #endif /* WIN32 */
+
    DBG_INFO( "Server thread started." );
+
+   #ifdef WIN32
+   i_ws_version_requested = MAKEWORD(2, 2);
+   i_ws_result = WSAStartup( i_ws_version_requested, &s_wsa_data );
+   if ( i_ws_result ) {
+      DBG_ERR( "WSAStartup failed with error: %d", i_ws_result );
+      goto main_server_cleanup;
+   }
+   #endif /* WIN32 */
+
+   i_socket_listener = socket( AF_INET, SOCK_STREAM, 0 );
+   if( 0 > i_socket_listener ) {
+      DBG_ERR( "Unable to open server listener socket: %d", i_socket_listener );
+      goto main_server_cleanup;
+   }
+
+   memset( &s_server_address, '\0', sizeof( struct sockaddr_in ) );
+   s_server_address.sin_family = AF_INET;
+   s_server_address.sin_addr.s_addr = INADDR_ANY;
+   s_server_address.sin_port = NET_PORT_LISTEN;
+
+   i_bind_result = bind(
+      i_socket_listener,
+      (struct sockaddr*)&s_server_address,
+      sizeof( s_server_address )
+   );
+   if( 0 > i_bind_result ) {
+      DBG_ERR( "Unable to listen on port: %d", NET_PORT_LISTEN );
+      goto main_server_cleanup;
+   }
+   DBG_INFO( "Server listening on port: %d", NET_PORT_LISTEN );
 
    /* while( 1 ) {
    } */
+
+main_server_cleanup:
+
+   close( i_socket_listener );
 
    // pthread_exit( NULL );
 }
