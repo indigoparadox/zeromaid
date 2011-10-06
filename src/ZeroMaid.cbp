@@ -39,6 +39,7 @@
 					<Add library="dxguid" />
 					<Add library="SDL_mixer" />
 					<Add library="SDL_ttf" />
+					<Add library="SDL_net" />
 					<Add directory="$(#sdl_mingw)\lib" />
 					<Add directory="$(#pthreads)\lib" />
 				</Linker>
@@ -534,6 +535,14 @@
 			<Option target="Release-Linux-i686-SDL" />
 			<Option target="Debug-Windows-i686-Server" />
 		</Unit>
+		<Unit filename="roughxmpp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="roughxmpp.h" />
+		<Unit filename="server.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="server.h" />
 		<Unit filename="systype_adventure.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -616,10 +625,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="window.h" />
-		<Unit filename="xmppagent\xmppagent.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="xmppagent\xmppagent.h" />
 		<Extensions>
 			<code_completion />
 			<envvars set="default" />

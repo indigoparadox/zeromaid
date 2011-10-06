@@ -16,34 +16,17 @@
 
 /* = Includes = */
 
-#include "defines.h"
-#include "cache.h"
-#include "systype_title.h"
-#include "systype_adventure.h"
-
-/* = Includes = */
-
 #include <stdlib.h>
 #include <unistd.h>
 //#include <pthread.h>
 //#include <semaphore.h>
 
-#ifdef USESDL
-#ifdef __APPLE__
-#include <SDL/SDL.h>
-#elif defined __unix__
-#include <SDL/SDL.h>
-#elif defined USEWII
-#include <SDL/SDL.h>
-#else
-#include <SDL.h>
-#endif /* __APPLE__, __unix__, USEWII */
-#endif /* USESDL */
-
 #include "roughxmpp.h"
 #include "defines.h"
 #include "cache.h"
 #include "graphics.h"
+#include "server.h"
+#include "client.h"
 #include "systype_title_client.h"
 #include "systype_adventure_client.h"
 
@@ -62,14 +45,6 @@ GFX_DRAW_LOOP_DECLARE
 
 /* = Global Variables = */
 
-#ifdef USEDIRECTX
-LPDIRECTINPUT gs_lpdi;
-LPDIRECTINPUTDEVICE gs_keyboard;
-unsigned char gac_keystate[256];
-#elif defined( USESDL )
-SDL_Joystick* gps_joystick_current;
-#endif /* USEDIRECTX, USESDL */
-
 bstring gps_title_error,
    gps_system_path;
 
@@ -83,7 +58,6 @@ pthread_mutex_t gps_system_path_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* = Function Prototypes = */
 
-void* main_server( void* );
 #ifndef USESERVER
 void* main_client( void* );
 #endif /* USESERVER */
@@ -182,7 +156,7 @@ int main( int argc, char* argv[] ) {
    i_thread_error = pthread_create(
       &ps_thread_server,
       NULL,
-      &main_server,
+      &server_main,
       NULL
    );
    if( i_thread_error ) {
@@ -198,7 +172,7 @@ int main( int argc, char* argv[] ) {
    i_thread_error = pthread_create(
       &ps_thread_client,
       NULL,
-      &main_client,
+      &client_main,
       NULL
    );
    if( i_thread_error ) {
@@ -259,216 +233,5 @@ main_cleanup:
 END_OF_MAIN();
 #endif // USEALLEGRO
 
-void* main_server( void* arg ) {
-   int i_socket_listener, /* Listener socket handle. */
-      i_bind_result; /* Error code for listening bind. */
-   struct sockaddr_in s_server_address,
-      cli_addr;
-   #ifdef WIN32
-   WORD i_ws_version_requested;
-   WSADATA s_wsa_data;
-   int i_ws_result;
-   #endif /* WIN32 */
-
-   DBG_INFO( "Server thread started." );
-
-   #ifdef WIN32
-   i_ws_version_requested = MAKEWORD(2, 2);
-   i_ws_result = WSAStartup( i_ws_version_requested, &s_wsa_data );
-   if ( i_ws_result ) {
-      DBG_ERR( "WSAStartup failed with error: %d", i_ws_result );
-      goto main_server_cleanup;
-   }
-   #endif /* WIN32 */
-
-   i_socket_listener = socket( AF_INET, SOCK_STREAM, 0 );
-   if( 0 > i_socket_listener ) {
-      DBG_ERR( "Unable to open server listener socket: %d", i_socket_listener );
-      goto main_server_cleanup;
-   }
-
-   memset( &s_server_address, '\0', sizeof( struct sockaddr_in ) );
-   s_server_address.sin_family = AF_INET;
-   s_server_address.sin_addr.s_addr = INADDR_ANY;
-   s_server_address.sin_port = NET_PORT_LISTEN;
-
-   i_bind_result = bind(
-      i_socket_listener,
-      (struct sockaddr*)&s_server_address,
-      sizeof( s_server_address )
-   );
-   if( 0 > i_bind_result ) {
-      DBG_ERR( "Unable to listen on port: %d", NET_PORT_LISTEN );
-      goto main_server_cleanup;
-   }
-   DBG_INFO( "Server listening on port: %d", NET_PORT_LISTEN );
-
-   /* while( 1 ) {
-   } */
-
-main_server_cleanup:
-
-   close( i_socket_listener );
-
-   // pthread_exit( NULL );
-}
-
 #ifndef USESERVER
-void* main_client( void* arg ) {
-   int i_last_return, /* Contains the last loop-returned value. */
-      /* TODO: Can we return this to the shell, or something? */
-      i_error_level = 0, /* The program error level returned to the shell. */
-      i; /* Loop counter. */
-   bstring ps_title;
-   /* TODO: Only the server should have a cache. */
-   CACHE_CACHE* ps_cache = NULL;
-   ezxml_t ps_xml_system;
-   const char* pc_title;
-   #ifdef USEDIRECTX
-   HWND s_window;
-   #endif /* USEDIRECTX */
-
-   /* Setup the loop timer. */
-   GFX_DRAW_LOOP_INIT
-
-   /* Try to setup the screen and input systems. */
-   #ifdef USESDL
-   SDL_Init( SDL_INIT_JOYSTICK );
-   /* TODO: Figure out the joystick number from a configuration file. */
-   for( i = 0 ; i < 10 ; i++ ) {
-      gps_joystick_current = SDL_JoystickOpen( i );
-      if( NULL != gps_joystick_current ) {
-         DBG_INFO( "Opened SDL joystick: %d", i );
-         break;
-      } else {
-         DBG_ERR( "Failed to open SDL joystick: %d", i );
-      }
-   }
-   TTF_Init();
-   SDL_EnableKeyRepeat( 0, 0 );
-   #elif defined USEDIRECTX
-   /* Initialize DirectX input stuff. */
-   s_window = GetActiveWindow();
-   if( FAILED( DirectInput8Create(
-      GetModuleHandle( NULL ),
-      DIRECTINPUT_VERSION,
-      IID_IDirectInput8,
-      (void**)&gs_lpdi,
-      NULL
-   ) ) ) {
-      // error code
-   }
-   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
-      /* error code */
-   }
-   if( FAILED(
-      gs_keyboard->SetCooperativeLevel(
-         s_window,
-         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
-      )
-   ) ) {
-      /* error code */
-   }
-   if( FAILED( gs_keyboard->Acquire() ) ) {
-      /* error code */
-   }
-   #elif defined USEALLEGRO
-   if( allegro_init() != 0 ) {
-      DBG_ERR( "Unable to initialize Allegro." );
-      i_error_level = ERROR_LEVEL_INITFAIL;
-      goto main_cleanup;
-   }
-   install_keyboard();
-   set_keyboard_rate( 0, 0 );
-   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
-
-   /* Load the game title. */
-   ps_xml_system = ezxml_parse_file( (const char*)gps_system_path->data );
-   pc_title = ezxml_attr( ps_xml_system, "name" );
-   ps_title = bformat( "%s", pc_title );
-   DBG_INFO( "System selected: %s", pc_title );
-   ezxml_free( ps_xml_system );
-
-   /* Set up the display. */
-   DBG_INFO( "Setting up the screen..." );
-   graphics_create_screen(
-      GEO_SCREENWIDTH,
-      GEO_SCREENHEIGHT,
-      GFX_SCREENDEPTH,
-      ps_title
-   );
-
-   /* Load the subsystems which require initialization. */
-   if( !window_init() ) {
-      DBG_ERR( "Unable to initialize window system." );
-      i_error_level = ERROR_LEVEL_WINDOW;
-      goto main_client_cleanup;
-   }
-
-   /* The "cache" is an area in memory which holds all relevant data to the   *
-    * current player/team.                                                    */
-   ps_cache = (CACHE_CACHE*)calloc( 1, sizeof( CACHE_CACHE ) );
-   if( NULL == ps_cache ) {
-      DBG_ERR( "There was a problem allocating the system cache." );
-      i_error_level = ERROR_LEVEL_MALLOC;
-      goto main_client_cleanup;
-   }
-
-   /* Start the loop that loads the other gameplay loops. */
-   i_last_return = systype_title_client_loop( ps_cache );
-   while( RETURN_ACTION_QUIT != i_last_return ) {
-
-      switch( i_last_return ) {
-         case RETURN_ACTION_LOADCACHE:
-            /* Execute the next instruction based on the system cache. */
-            if(
-               NULL != ps_cache->game_type &&
-               0 == strcmp( SYSTEM_TYPE_ADVENTURE,
-                  (const char*)ps_cache->game_type->data )
-            ) {
-               i_last_return = systype_adventure_client_loop( ps_cache );
-            } else {
-               i_last_return = systype_title_loop( ps_cache );
-               TITLE_ERROR_SET( "Invalid game type specified" );
-               DBG_ERR(
-                  "Invalid game type specified: %s",
-                  ps_cache->game_type->data
-               );
-            }
-            break;
-
-         default:
-            i_last_return = systype_title_client_loop( ps_cache );
-            break;
-      }
-   }
-
-   main_client_cleanup:
-
-   GFX_DRAW_LOOP_FREE
-
-   event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
-
-   bdestroy( ps_title );
-
-   window_cleanup();
-
-   #ifdef USESDL
-   SDL_JoystickClose( gps_joystick_current );
-   TTF_Quit();
-   #endif /* USESDL */
-
-   #ifdef USEDIRECTX
-   if( gs_keyboard ) {
-      gs_keyboard->Release();
-   }
-
-   if( gs_lpdi ) {
-      gs_lpdi->Release();
-   }
-   #endif /* USEDIRECTX */
-}
 #endif /* !USESERVER */
