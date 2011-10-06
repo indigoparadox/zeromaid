@@ -55,8 +55,11 @@
 #define SYSTEM_TYPE_PLATFORM "platform"
 
 /* Some platforms don't need BOOL defined. */
-#if ! defined USEWII && ! defined USEDIRECTX
-typedef unsigned int BOOL;
+#if ! defined USEWII && ! defined USEDIRECTX && ! defined BOOL
+/* typedef unsigned int BOOL; */
+/* We use a define here instead of a typedef because we're incompetent and    *
+ * win32 is terrible.                                                         */
+#define BOOL unsigned int
 #endif /* USEWII, USEDIRECTX */
 
 /* Some platforms don't have BOOL, but do have TRUE and FALSE. */
@@ -117,7 +120,8 @@ typedef int COND_SCOPE;
       pthread_mutex_t gps_debug_mutex = PTHREAD_MUTEX_INITIALIZER;
    #define DBG_ENABLE \
       extern FILE* gps_debug; \
-      extern pthread_mutex_t gps_debug_mutex;
+      extern pthread_mutex_t gps_debug_mutex; \
+      pthread_t gps_debug_tid;
 #else
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
       #define DEBUG_HANDLE_INFO stdout
@@ -154,24 +158,6 @@ typedef int COND_SCOPE;
 #define FILE_SHORT \
    ((strrchr(FILE_SHORT_B, '/') ? : FILE_SHORT_B- 1) + 1)
 
-#define DBG_INFO( ... ) \
-   pthread_mutex_lock( &gps_debug_mutex ); \
-   fprintf( DEBUG_HANDLE_INFO, "THREAD %u ", pthread_self() ); \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
-   fprintf( DEBUG_HANDLE_INFO, "\n" ); \
-   fflush( DEBUG_HANDLE_INFO ); \
-   pthread_mutex_unlock( &gps_debug_mutex );
-
-#define DBG_ERR( ... ) \
-   pthread_mutex_lock( &gps_debug_mutex ); \
-   fprintf( DEBUG_HANDLE_ERR, "THREAD %u ", pthread_self() ); \
-   fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
-   fprintf( DEBUG_HANDLE_ERR, "\n" ); \
-   fflush( DEBUG_HANDLE_ERR ); \
-   pthread_mutex_unlock( &gps_debug_mutex );
-
-#if 0
-
 /* The debug macros use normal C strings instead of bstrings since they'll    *
  * usually be printing literals and there are some tricky deallocation issues *
  * otherwise.                                                                 */
@@ -182,117 +168,25 @@ typedef int COND_SCOPE;
    gps_output_buffer = bformat( "%s\n", msg ); \
    net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
 
-/* Print an info message involving a pointer. */
-#define DBG_INFO_PTR( msg, ptr ) \
-   gps_output_buffer = bformat( "%s: %p\n", msg, ptr ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving a string. */
-#define DBG_INFO_STR( msg, string ) \
-   gps_output_buffer = bformat( "%s: %s\n", msg, string ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving two strings. */
-#define DBG_INFO_STR_STR( msg, string1, string2 ) \
-   gps_output_buffer = bformat( "%s: %s, %s\n", msg, string1, string2 ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving a string and a pointer. */
-#define DBG_INFO_STR_PTR( msg, string, ptr ) \
-   gps_output_buffer = bformat( "%s: %s, %p\n", msg, string, ptr ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving a string and a number. */
-#define DBG_INFO_STR_INT( msg, string, number ) \
-   gps_output_buffer = bformat( "%s: %s, %d\n", msg, string, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving a number. */
-#define DBG_INFO_INT( msg, number ) \
-   gps_output_buffer = bformat( "%s: %d\n", msg, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an info message involving two numbers. */
-#define DBG_INFO_INT_INT( msg, number1, number2 ) \
-   gps_output_buffer = bformat( "%s: %d\n", msg, number1, number2 ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an error message. */
-#define DBG_ERR( msg ) \
-   gps_output_buffer = bformat( "ERROR: %s\n", msg ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an error message involving a string. */
-#define DBG_ERR_STR( msg, string ) \
-   gps_output_buffer = bformat( "ERROR: %s: %s\n", msg, string ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
-/* Print an error message involving a number. */
-#define DBG_ERR_INT( msg, number ) \
-   gps_output_buffer = bformat( "ERROR: %s: %d\n", msg, number ); \
-   net_print_string( FILE_SHORT, __LINE__, (const char*)gps_output_buffer->data );
-
 #else
 
-/* Print an info message. */
-#define DBG_INFO( msg ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
-   fflush( DEBUG_HANDLE_INFO );
+#define DBG_INFO( ... ) \
+   pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_INFO, "THREAD %p ", pthread_self().p ); \
+   fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
+   fprintf( DEBUG_HANDLE_INFO, "\n" ); \
+   fflush( DEBUG_HANDLE_INFO ); \
+   pthread_mutex_unlock( &gps_debug_mutex );
 
-/* Print an info message involving a pointer. */
-#define DBG_INFO_PTR( msg, ptr ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %p\n", FILE_SHORT, __LINE__, msg, ptr ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an info message involving a string. */
-#define DBG_INFO_STR( msg, string ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an info message involving two strings. */
-#define DBG_INFO_STR_STR( msg, string1, string2 ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %s\n", FILE_SHORT, __LINE__, msg, string1, string2 ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-
-/* Print an info message involving a string and a pointer. */
-#define DBG_INFO_STR_PTR( msg, string, ptr ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %p\n", FILE_SHORT, __LINE__, msg, string, ptr ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an info message involving a string and a number. */
-#define DBG_INFO_STR_INT( msg, string, number ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %s, %d\n", FILE_SHORT, __LINE__, msg, string, number ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an info message involving a number. */
-#define DBG_INFO_INT( msg, number ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an info message involving two numbers. */
-#define DBG_INFO_INT_INT( msg, number1, number2 ) \
-   fprintf( DEBUG_HANDLE_INFO, "INFO: %s,%d: %s: %d, %d\n", FILE_SHORT, __LINE__, msg, number1, number2 ); \
-   fflush( DEBUG_HANDLE_INFO );
-
-/* Print an error message. */
-#define DBG_ERR( msg ) \
-   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s\n", FILE_SHORT, __LINE__, msg ); \
-   fflush( DEBUG_HANDLE_ERR );
-
-/* Print an error message involving a string. */
-#define DBG_ERR_STR( msg, string ) \
-   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %s\n", FILE_SHORT, __LINE__, msg, string ); \
-   fflush( DEBUG_HANDLE_ERR );
-
-/* Print an error message involving a number. */
-#define DBG_ERR_INT( msg, number ) \
-   fprintf( DEBUG_HANDLE_ERR, "ERROR: %s,%d: %s: %d\n", FILE_SHORT, __LINE__, msg, number ); \
-   fflush( DEBUG_HANDLE_INFO );
+#define DBG_ERR( ... ) \
+   pthread_mutex_lock( &gps_debug_mutex ); \
+   fprintf( DEBUG_HANDLE_ERR, "THREAD %p ", pthread_self().p ); \
+   fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
+   fprintf( DEBUG_HANDLE_ERR, "\n" ); \
+   fflush( DEBUG_HANDLE_ERR ); \
+   pthread_mutex_unlock( &gps_debug_mutex );
 
 #endif /* USEWII && USEDEBUG && USENET */
-
-#endif /* 0 */
 
 /* Set a new error to display on the title screen. */
 #define TITLE_ERROR_SET( message ) \
