@@ -30,6 +30,7 @@
 					<Add option="-pg" />
 					<Add library="mingw32" />
 					<Add library="pthreadGC2" />
+					<Add library="ws2_32" />
 					<Add library="SDLmain" />
 					<Add library="SDL.dll" />
 					<Add library="user32" />
@@ -615,6 +616,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="window.h" />
+		<Unit filename="xmppagent\xmppagent.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="xmppagent\xmppagent.h" />
 		<Extensions>
 			<code_completion />
 			<envvars set="default" />
