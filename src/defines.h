@@ -130,8 +130,13 @@ typedef int COND_SCOPE;
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
       #define DEBUG_HANDLE_INFO stdout
       #define DEBUG_HANDLE_ERR stderr
-      #define DBG_MAIN bstring gps_output_buffer;
-      #define DBG_ENABLE extern bstring gps_output_buffer;
+      #define DBG_MAIN \
+         bstring gps_output_buffer; \
+         pthread_mutex_t gps_debug_mutex = PTHREAD_MUTEX_INITIALIZER;
+      #define DBG_ENABLE \
+         extern bstring gps_output_buffer; \
+         pthread_mutex_t gps_debug_mutex; \
+         pthread_t gps_debug_tid;
       #define DBG_CLOSE
       #define DBG_NET_PORT 5194
       #define DBG_NET_HOST "192.168.250.10"
@@ -139,8 +144,11 @@ typedef int COND_SCOPE;
       #define DEBUG_HANDLE_INFO stdout
       #define DEBUG_HANDLE_ERR stderr
       /* If output is to the console, we don't need to enable. */
-      #define DBG_MAIN
-      #define DBG_ENABLE
+      #define DBG_MAIN \
+         pthread_mutex_t gps_debug_mutex = PTHREAD_MUTEX_INITIALIZER;
+      #define DBG_ENABLE \
+         pthread_mutex_t gps_debug_mutex; \
+         pthread_t gps_debug_tid;
       #define DBG_CLOSE
    #endif /* USEWII && USEDEBUG && USENET */
 #endif /* OUTTOFILE */

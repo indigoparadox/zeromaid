@@ -123,9 +123,9 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
    bstring ps_image_filename = NULL, ps_image_path = NULL,
       ps_gid_string = NULL, ps_prop_string = NULL;
    int i_gid; /* Tile GID iterator. */
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_SURFACE* ps_surface = NULL;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
 
    DBG_INFO( "Loading tile data: %s", ps_path_in->data );
 
@@ -137,7 +137,7 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
    ps_xml_tileset = ezxml_parse_file( (const char*)ps_path_in->data );
 
    /* Load the image file. */
-   #ifndef USESERVER
+   #ifdef USECLIENT
    ps_xml_image = ezxml_child( ps_xml_tileset, "image" );
    ps_image_path = bfromcstr( PATH_SHARE );
    ps_image_filename = bfromcstr( ezxml_attr( ps_xml_image, "source" ) );
@@ -149,15 +149,15 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
       DBG_ERR( "Unable to load tile image: %s", ps_image_path->data );
       goto gct_cleanup;
    }
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
 
    /* Create the tileset struct. */
    ps_tileset_out = (TILEMAP_TILESET*)calloc( 1, sizeof( TILEMAP_TILESET ) );
    if( NULL == ps_tileset_out ) {
       DBG_ERR( "There was a problem allocating tileset memory." );
-      #ifndef USESERVER
+      #ifdef USECLIENT
       graphics_free_image( ps_surface );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       goto gct_cleanup;
    }
 
@@ -232,10 +232,10 @@ TILEMAP_TILESET* tilemap_create_tileset( bstring ps_path_in ) {
       ps_xml_tile = ezxml_next( ps_xml_tile );
    }
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    /* Place the image into the tileset struct. */
    ps_tileset_out->image = ps_surface;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    ps_tileset_out->image_filename = bformat(
       "%s", ezxml_attr( ps_xml_image, "source" )
    );
@@ -372,7 +372,7 @@ void tilemap_load_layer( TILEMAP_TILEMAP* ps_map_in, ezxml_t ps_xml_layer_in ) {
     * the caller.                                                             */
 }
 
-#ifndef USESERVER
+#ifdef USECLIENT
 /* Purpose: Draw the part of the given tile map indicated by its viewport to  *
  *          the screen.                                                       */
 /* Parameters: The tile map to draw, the current viewport, and a boolean      *
@@ -469,7 +469,7 @@ void tilemap_draw(
       }
    }
 }
-#endif /* !USESERVER */
+#endif /* USECLIENT */
 
 /* Purpose: Free the given tile map pointer.                                  */
 /* Parameters: The tile map pointer to free.                                  */
@@ -494,9 +494,9 @@ void tilemap_free_tileset( TILEMAP_TILESET* ps_tileset_in ) {
       return;
    }
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    graphics_free_image( ps_tileset_in->image );
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
 
    free( ps_tileset_in );
 }

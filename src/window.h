@@ -69,9 +69,9 @@ typedef struct {
    bstring desc, /* The description to display on-screen for this item. */
       key, /* The key to set if this item is selected. */
       value; /* The value to set it to if this item is selected. */
-   #ifndef USESERVER
+   #ifdef USECLIENT
    GFX_FONT* font;
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bstring font_filename;
 } WINDOW_MENU_ITEM;
 
@@ -93,7 +93,7 @@ CACHE_LOG_ENTRY* window_create_text( bstring, CACHE_LOG_ENTRY*, int* );
 WINDOW_MENU* window_create_menu(
    bstring, COND_SCOPE, void (*)( void ), WINDOW_MENU_COLORS*
 );
-#ifndef USESERVER
+#ifdef USECLIENT
 void window_draw_text( int, CACHE_CACHE* );
 void window_draw_menu( WINDOW_MENU* );
 #endif /* USESERVER */

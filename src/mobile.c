@@ -36,7 +36,7 @@ MOBILE_SPRITESHEET* mobile_create_spritesheet( bstring ps_path_in ) {
    }
 
    /* Load the spritesheet image. */
-   #ifndef USESERVER
+   #ifdef USECLIENT
    ps_spritesheet_out->image = graphics_create_image( ps_path_in );
    if( NULL == ps_spritesheet_out ) {
       /* graphics_create_image() should handle any error output. */
@@ -44,7 +44,7 @@ MOBILE_SPRITESHEET* mobile_create_spritesheet( bstring ps_path_in ) {
       ps_spritesheet_out = NULL;
       goto gcs_cleanup;
    }
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
 
    /* TODO: Figure out the pixel size automatically. */
    ps_spritesheet_out->pixel_size = 32;
@@ -188,9 +188,9 @@ MOBILE_MOBILE* mobile_load_mobile( bstring ps_type_in ) {
             FILE_EXTENSION_IMAGE
          );
 
-         #ifndef USESERVER
+         #ifdef USECLIENT
          ps_mob_out->spritesheet = mobile_create_spritesheet( ps_path_temp );
-         #endif /* !USESERVER */
+         #endif /* USECLIENT */
          ps_mob_out->spritesheet_filename = bformat(
             "%s",
             ezxml_attr( ps_xml_prop_iter, "value" )
@@ -282,18 +282,18 @@ BOOL mobile_load_emotion( MOBILE_MOBILE* ps_mob_in, ezxml_t ps_xml_emotes_in ) {
          "%s%s.%s", PATH_SHARE, pc_attr, FILE_EXTENSION_IMAGE
       );
 
-      #ifndef USESERVER
+      #ifdef USECLIENT
       s_emotion_tmp.image = graphics_create_image( ps_attr_temp );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       s_emotion_tmp.image_filename = bformat(
          "%s", pc_attr
       );
 
-      #ifndef USESERVER
+      #ifdef USECLIENT
       if( NULL == pc_attr || NULL == s_emotion_tmp.image ) {
       #else
       if( NULL == pc_attr ) {
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
          /* There's no image, so this emotion is useless. */
          DBG_ERR( "Portrait not found; invalid emotion." );
          ps_xml_emote_iter = ezxml_next( ps_xml_emote_iter );
@@ -331,7 +331,7 @@ BOOL mobile_load_ai(
    return TRUE;
 }
 
-#ifndef USESERVER
+#ifdef USECLIENT
 /* Purpose: Draw the given mobile to the screen if it's within the current    *
  *          viewport.                                                         */
 /* Parameters: The mobile to draw, the current viewport.                      */
@@ -389,7 +389,7 @@ void mobile_draw( MOBILE_MOBILE* ps_mob_in, GEO_RECTANGLE* ps_viewport_in ) {
       );
    }
 }
-#endif /* !USESERVER */
+#endif /* USECLIENT */
 
 /* Purpose: Execute the next instruction in the mobile's AI.                  */
 /* Parameters: The mobile to act and the ID of the list to execute from.      */
@@ -413,18 +413,18 @@ void mobile_free_arr( MOBILE_MOBILE* ps_mob_in ) {
    }
 
    for( i = 0 ; i < ps_mob_in->emotions_count ; i++ ) {
-      #ifndef USESERVER
+      #ifdef USECLIENT
       graphics_free_image( ps_mob_in->emotions[i].image );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       bdestroy( ps_mob_in->emotions[i].image_filename );
       bdestroy( ps_mob_in->emotions[i].id );
    }
    free( ps_mob_in->emotions );
    bdestroy( ps_mob_in->proper_name );
    bdestroy( ps_mob_in->mobile_type );
-   #ifndef USESERVER
+   #ifdef USECLIENT
    mobile_free_spritesheet( ps_mob_in->spritesheet );
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    bdestroy( ps_mob_in->spritesheet_filename );
 }
 
@@ -439,9 +439,9 @@ void mobile_free( MOBILE_MOBILE* ps_mob_in ) {
 /* Parameters: The spritesheet to free.                                       */
 void mobile_free_spritesheet( MOBILE_SPRITESHEET* ps_spritesheet_in ) {
    if( NULL != ps_spritesheet_in ) {
-      #ifndef USESERVER
+      #ifdef USECLIENT
       graphics_free_image( ps_spritesheet_in->image );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       free( ps_spritesheet_in );
    }
 }

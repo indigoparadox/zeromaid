@@ -24,11 +24,10 @@
 #include "roughxmpp.h"
 #include "defines.h"
 #include "cache.h"
-#include "graphics.h"
 #include "server.h"
-#include "client.h"
-#include "systype_title_client.h"
-#include "systype_adventure_client.h"
+#ifdef USECLIENT
+# include "client.h"
+#endif /* USECLIENT */
 
 #ifdef USEWII
 #include <network.h>
@@ -39,9 +38,9 @@
 #endif /* USEWII */
 
 DBG_MAIN
-#ifndef USESERVER
+#ifdef USECLIENT
 GFX_DRAW_LOOP_DECLARE
-#endif /* !USESERVER */
+#endif /* USECLIENT */
 
 /* = Global Variables = */
 
@@ -58,7 +57,7 @@ pthread_mutex_t gps_system_path_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* = Function Prototypes = */
 
-#ifndef USESERVER
+#ifdef USECLIENT
 void* main_client( void* );
 #endif /* USESERVER */
 
@@ -167,7 +166,7 @@ int main( int argc, char* argv[] ) {
       goto main_cleanup;
    }
 
-   #ifndef USESERVER
+   #ifdef USECLIENT
    // Create the client thread.
    i_thread_error = pthread_create(
       &ps_thread_client,
@@ -182,11 +181,11 @@ int main( int argc, char* argv[] ) {
       );
       goto main_cleanup;
    }
-   #endif /* !USESERVER */
+   #endif /* USECLIENT */
    // TODO: Change this to server once communication protocol is in place and
    //       server controls the game flow.
    pthread_join(
-      ps_thread_client,
+      ps_thread_server,
       NULL
    );
 
@@ -232,6 +231,3 @@ main_cleanup:
 #ifdef USEALLEGRO
 END_OF_MAIN();
 #endif // USEALLEGRO
-
-#ifndef USESERVER
-#endif /* !USESERVER */

@@ -239,9 +239,9 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
       );
 
-      #ifndef USESERVER
+      #ifdef USECLIENT
       ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_attrib );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       ps_titlescreen_iter->bg_image_filename = bformat(
          "%s",
          ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
@@ -281,7 +281,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
             PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
-         #ifndef USESERVER
+         #ifdef USECLIENT
          ps_titlescreen_iter->menu_font = graphics_create_font(
             // TODO: XML should control menu size.
             ps_font_path_iter, SYSTYPE_TITLE_MENU_SIZE_DEFAULT
@@ -405,10 +405,10 @@ BOOL systype_title_load_titlescreen_text(
          PATH_SHARE "%s." FILE_EXTENSION_FONT,
          ezxml_attr( ps_xml_text_iter, "font" )
       );
-      #ifndef USESERVER
+      #ifdef USECLIENT
       ps_text_iter->font =
          graphics_create_font( ps_font_path_iter, i_text_size_iter );
-      #endif /* !USESERVER */
+      #endif /* USECLIENT */
       ps_text_iter->font_filename = bformat(
          "%s",
          ezxml_attr( ps_xml_text_iter, "font" )

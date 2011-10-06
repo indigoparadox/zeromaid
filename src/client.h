@@ -45,6 +45,9 @@
 #include "bstring/bstrlib.h"
 #include "defines.h"
 #include "cache.h"
+#include "graphics.h"
+#include "systype_title_client.h"
+#include "systype_adventure_client.h"
 
 /* = Function Prototypes = */
 
