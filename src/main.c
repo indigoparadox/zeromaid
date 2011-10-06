@@ -69,13 +69,16 @@ unsigned char gac_keystate[256];
 SDL_Joystick* gps_joystick_current;
 #endif /* USEDIRECTX, USESDL */
 
-bstring gps_title_error;
+bstring gps_title_error,
+   gps_system_path;
+
+pthread_mutex_t gps_system_path_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* = Type and Struct Definitions = */
 
-typedef struct {
-   FILE* debug_file;
-} MAIN_PARAMS;
+/* typedef struct {
+   bstring system_path;
+} MAIN_PARAMS; */
 
 /* = Function Prototypes = */
 
@@ -87,15 +90,8 @@ void* main_client( void* );
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
-   int i_last_return, /* Contains the last loop-returned value. */
-      i_error_level = 0, /* The program error level returned to the shell. */
-      i, /* Loop counter. */
-      i_thread_error;
-   bstring ps_system_path,
-      ps_title;
-   CACHE_CACHE* ps_cache = NULL;
-   ezxml_t ps_xml_system;
-   const char* pc_title;
+   int i_thread_error,
+      i_error_level = 0; /* The program error level returned to the shell. */
    #ifdef USEWII
    char ac_ipaddr_text[16],
       ac_gateway_text[16],
@@ -104,9 +100,6 @@ int main( int argc, char* argv[] ) {
    bstring ps_new_share_path; /* The directory containing shared files. */
    FILE* ps_file_default;
    #endif /* USEWII */
-   #ifdef USEDIRECTX
-   HWND s_window;
-   #endif /* USEDIRECTX */
    pthread_t ps_thread_server,
       ps_thread_client;
 
@@ -132,6 +125,53 @@ int main( int argc, char* argv[] ) {
    #endif /* OUTTOFILE */
 
    /* == End Pre-System Init == */
+
+   /* == System Init == */
+   /* This is stuff that pokes and prods at the game data files to start the  *
+    * game.                                                                   */
+
+   /* Do an initial check for a system file. Note that there's an inverse of  *
+    * this test after the multimods init section. That's not in an else up    *
+    * so that we can give the multimods system a chance to check for a        *
+    * designated mod to load.                                                 */
+   gps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   if( zm_file_exists( gps_system_path ) ) {
+      /* We sound a system file right here, so skip looking for one. */
+      goto main_system_ok;
+   }
+
+   #ifdef USEMULTIMODS
+   /* The first system check didn't work, so open the default.txt file and    *
+    * figure out the name of the game to load.                                */
+   ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
+   if( NULL == ps_file_default ) {
+      DBG_ERR( "Unable to open default system indicator file." );
+      goto main_cleanup;
+   }
+
+   /* Read the mod name and change into its directory. */
+   /* TODO: Use the current directory if no default.txt is present. */
+   ps_new_share_path = bformat( "./" );
+   breada( ps_new_share_path, (bNread)fread, ps_file_default );
+   btrimws( ps_new_share_path );
+   fclose( ps_file_default );
+   if( chdir( ps_new_share_path->data ) ) {
+      DBG_ERR( "Unable to change to directory: %s", ps_new_share_path->data );
+      goto main_cleanup;
+   }
+   DBG_INFO( "Directory changed: %s", ps_new_share_path->data );
+   #endif /* USEMULTIMODS */
+
+   /* If the system file doesn't exist in this directory, we're hosed. */
+   if( !zm_file_exists( gps_system_path ) ) {
+      DBG_ERR( "Unable to find system file: %s", gps_system_path->data );
+      i_error_level = ERROR_LEVEL_NOSYS;
+      goto main_cleanup;
+   }
+
+   /* == End System Init == */
+
+   main_system_ok:
 
    // XXX
    /* MAIN_PARAMS* ps_params_server = calloc(
@@ -175,53 +215,8 @@ int main( int argc, char* argv[] ) {
       NULL
    );
 
-   /* == System Init == */
-   /* This is stuff that pokes and prods at the game data files to start the  *
-    * game.                                                                   */
-
-   /* Do an initial check for a system file. Note that there's an inverse of  *
-    * this test after the multimods init section. That's not in an else up    *
-    * so that we can give the multimods system a chance to check for a        *
-    * designated mod to load.                                                 */
-   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-   if( zm_file_exists( ps_system_path ) ) {
-      /* We sound a system file right here, so skip looking for one. */
-      goto main_system_ok;
-   }
-
-   #ifdef USEMULTIMODS
-   /* The first system check didn't work, so open the default.txt file and    *
-    * figure out the name of the game to load.                                */
-   ps_file_default = fopen( PATH_FILE_DEFAULT, "r" );
-   if( NULL == ps_file_default ) {
-      DBG_ERR( "Unable to open default system indicator file." );
-      goto main_cleanup;
-   }
-
-   /* Read the mod name and change into its directory. */
-   /* TODO: Use the current directory if no default.txt is present. */
-   ps_new_share_path = bformat( "./" );
-   breada( ps_new_share_path, (bNread)fread, ps_file_default );
-   btrimws( ps_new_share_path );
-   fclose( ps_file_default );
-   if( chdir( ps_new_share_path->data ) ) {
-      DBG_ERR( "Unable to change to directory: %s", ps_new_share_path->data );
-      goto main_cleanup;
-   }
-   DBG_INFO( "Directory changed: %s", ps_new_share_path->data );
-   #endif /* USEMULTIMODS */
-
-   /* If the system file doesn't exist in this directory, we're hosed. */
-   if( !zm_file_exists( ps_system_path ) ) {
-      DBG_ERR( "Unable to find system file: %s", ps_system_path->data );
-      i_error_level = ERROR_LEVEL_NOSYS;
-      goto main_cleanup;
-   }
-
-   /* == End System Init == */
-
-   main_system_ok:
-
+   #if 0
+   /* XXX: Make this coexist with the new networking code below. */
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
    /* Setup the Wii network debugging infrastructure. */
 	if( if_config( ac_ipaddr_text, ac_netmask_text, ac_gateway_text, TRUE ) ) {
@@ -238,6 +233,57 @@ int main( int argc, char* argv[] ) {
 
    //DEBUG_Init( 100, 5656 );
    #endif /* USEWII && USEDEBUG && USENET */
+   #endif /* 0 */
+
+
+
+main_cleanup:
+
+   //pthread_exit( NULL );
+
+   bdestroy( gps_system_path );
+
+   #ifndef USEWII
+   bdestroy( ps_new_share_path );
+   #endif /* USEWII */
+
+   #ifdef OUTTOFILE
+   fclose( gps_debug );
+   #endif /* OUTTOFILE */
+
+   return i_error_level;
+}
+
+#ifdef USEALLEGRO
+END_OF_MAIN();
+#endif // USEALLEGRO
+
+void* main_server( void* arg ) {
+   DBG_INFO( "Server thread started." );
+
+   /* while( 1 ) {
+   } */
+
+   // pthread_exit( NULL );
+}
+
+#ifndef USESERVER
+void* main_client( void* arg ) {
+   int i_last_return, /* Contains the last loop-returned value. */
+      /* TODO: Can we return this to the shell, or something? */
+      i_error_level = 0, /* The program error level returned to the shell. */
+      i; /* Loop counter. */
+   bstring ps_title;
+   /* TODO: Only the server should have a cache. */
+   CACHE_CACHE* ps_cache = NULL;
+   ezxml_t ps_xml_system;
+   const char* pc_title;
+   #ifdef USEDIRECTX
+   HWND s_window;
+   #endif /* USEDIRECTX */
+
+   /* Setup the loop timer. */
+   GFX_DRAW_LOOP_INIT
 
    /* Try to setup the screen and input systems. */
    #ifdef USESDL
@@ -294,7 +340,7 @@ int main( int argc, char* argv[] ) {
    #endif /* USESDL, USEDIRECTX, USEALLEGRO */
 
    /* Load the game title. */
-   ps_xml_system = ezxml_parse_file( (const char*)ps_system_path->data );
+   ps_xml_system = ezxml_parse_file( (const char*)gps_system_path->data );
    pc_title = ezxml_attr( ps_xml_system, "name" );
    ps_title = bformat( "%s", pc_title );
    DBG_INFO( "System selected: %s", pc_title );
@@ -313,7 +359,7 @@ int main( int argc, char* argv[] ) {
    if( !window_init() ) {
       DBG_ERR( "Unable to initialize window system." );
       i_error_level = ERROR_LEVEL_WINDOW;
-      goto main_cleanup;
+      goto main_client_cleanup;
    }
 
    /* The "cache" is an area in memory which holds all relevant data to the   *
@@ -322,7 +368,7 @@ int main( int argc, char* argv[] ) {
    if( NULL == ps_cache ) {
       DBG_ERR( "There was a problem allocating the system cache." );
       i_error_level = ERROR_LEVEL_MALLOC;
-      goto main_cleanup;
+      goto main_client_cleanup;
    }
 
    /* Start the loop that loads the other gameplay loops. */
@@ -354,26 +400,15 @@ int main( int argc, char* argv[] ) {
       }
    }
 
-main_cleanup:
+   main_client_cleanup:
 
    GFX_DRAW_LOOP_FREE
 
-   //pthread_exit( NULL );
-
    event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
 
-   window_cleanup();
-
-   bdestroy( ps_system_path );
    bdestroy( ps_title );
 
-   #ifndef USEWII
-   bdestroy( ps_new_share_path );
-   #endif /* USEWII */
-
-   #ifdef OUTTOFILE
-   fclose( gps_debug );
-   #endif /* OUTTOFILE */
+   window_cleanup();
 
    #ifdef USESDL
    SDL_JoystickClose( gps_joystick_current );
@@ -389,23 +424,5 @@ main_cleanup:
       gs_lpdi->Release();
    }
    #endif /* USEDIRECTX */
-
-   return i_error_level;
-}
-
-#ifdef USEALLEGRO
-END_OF_MAIN();
-#endif // USEALLEGRO
-
-void* main_server( void* arg ) {
-   DBG_INFO( "Server thread started." );
-
-   // pthread_exit( NULL );
-}
-
-#ifndef USESERVER
-void* main_client( void* arg ) {
-   /* Setup the loop timer. */
-   GFX_DRAW_LOOP_INIT
 }
 #endif /* !USESERVER */
