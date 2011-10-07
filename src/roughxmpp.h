@@ -27,4 +27,4 @@
 
 /* = Function Prototypes = */
 
-int roughxmpp_connect();
+int roughxmpp_parse_stanza( bstring );

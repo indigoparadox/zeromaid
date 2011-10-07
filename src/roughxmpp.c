@@ -18,7 +18,16 @@
 
 /* = Functions = */
 
+int roughxmpp_parse_stanza( bstring ps_stanza_in ) {
+   ezxml_t ps_xml_stanza;
 
-int roughxmpp_connect() {
+   ps_xml_stanza = ezxml_parse_str(
+      bdata( ps_stanza_in ),
+      blength( ps_stanza_in )
+   );
 
+   if( 0 == strncmp( "stream:stream", ezxml_name( ps_xml_stanza ), 13 ) ) {
+      /* We're super-forgiving, so we don't really care about all of those    *
+       * silly namespaces and what-not.                                       */
+   }
 }

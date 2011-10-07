@@ -30,6 +30,11 @@
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
 #include "defines.h"
+#include "roughxmpp.h"
+
+/* = Definitions = */
+
+#define SERVER_NET_BUFFER_SIZE 4096
 
 /* = Type and Struct Definitions = */
 
