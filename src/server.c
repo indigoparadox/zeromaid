@@ -64,11 +64,11 @@ void* server_main( void* arg ) {
       DBG_ERR( "Unable to listen on port: %d", NET_PORT_LISTEN );
       goto main_server_cleanup;
    }
+   listen( i_socket_listener, NET_MAX_BACKLOG );
    DBG_INFO( "Server listening on port: %d", NET_PORT_LISTEN );
 
    /* Listen for new connections and branch off when one happens. */
    while( 1 ) {
-      listen( i_socket_listener, NET_MAX_BACKLOG );
       i_socket_client = accept(
          i_socket_listener,
          (struct sockaddr*)&s_client_address,
@@ -89,8 +89,9 @@ void* server_main( void* arg ) {
       );
 
       DBG_INFO(
-         "Client connected: %s",
-         ps_parms->client_address->data
+         "Client connected: %s, %d",
+         ps_parms->client_address->data,
+         i_socket_client
       );
 
       i_thread_error = pthread_create(
@@ -116,13 +117,42 @@ main_server_cleanup:
 }
 
 void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
+   bstring ps_client_msg = bformat( "" );
+   char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
+   int i_client_msg_result = 0,
+      i_client_command = 0;
 
    DBG_INFO(
-      "Handling client connection: %s",
-      ps_parms_in->client_address->data
+      "Handling client connection: %d",
+      ps_parms_in->socket_client
    );
 
+   memset( &pc_client_msg_temp, '\0', SERVER_NET_BUFFER_SIZE );
+   //while( 0 != i_client_msg_result ) {
+   /* TODO: Die when there's nothing more to listen for. */
+   while( 1 ) {
+      i_client_msg_result = recv(
+         ps_parms_in->socket_client,
+         pc_client_msg_temp,
+         SERVER_NET_BUFFER_SIZE - 1,
+         0
+      );
+      bassigncstr(
+         ps_client_msg,
+         pc_client_msg_temp
+      );
 
+      i_client_command = roughxmpp_parse_stanza( ps_client_msg );
+
+      //bdestroy( ps_client_msg );
+      //break;
+   }
+
+   DBG_INFO( "%s", ps_client_msg->data );
+
+server_handle_cleanup:
+
+   close( ps_parms_in->socket_client );
    free( ps_parms_in );
 
    return NULL;
