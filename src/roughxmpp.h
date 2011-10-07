@@ -22,9 +22,21 @@
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
 #include "ezxml/ezxml.h"
+#include "defines.h"
 
-#endif /* !ROUGHXMPP_H */
+/* = Definitions = */
+
+#define ROUGHXMPP_COMMAND_STREAM_START 1
+
+/* = Type and Struct Definitions = */
+
+typedef struct {
+
+} ROUGHXMPP_PARSE_DATA;
 
 /* = Function Prototypes = */
 
-int roughxmpp_parse_stanza( bstring );
+int roughxmpp_parse_stanza( bstring, ROUGHXMPP_PARSE_DATA* );
+bstring roughxmpp_create_stanza_hello( void );
+
+#endif /* !ROUGHXMPP_H */

@@ -412,6 +412,7 @@
 					<Add option="-DUSEDEBUG" />
 					<Add option="-DUSEMUSIC" />
 					<Add option="-DUSEMULTIMODS" />
+					<Add option="-DNET_DEBUG_PROTOCOL_PRINT" />
 					<Add option="-DEZXML_NOMMAP" />
 					<Add directory="$(#pthreads)\include" />
 				</Compiler>

@@ -113,14 +113,16 @@ main_server_cleanup:
 
    close( i_socket_listener );
 
-   // pthread_exit( NULL );
+   return NULL;
 }
 
 void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
-   bstring ps_client_msg = bformat( "" );
+   bstring ps_client_msg = bformat( "" ),
+      ps_client_response;
    char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
    int i_client_msg_result = 0,
       i_client_command = 0;
+   ROUGHXMPP_PARSE_DATA s_parse_data;
 
    DBG_INFO(
       "Handling client connection: %d",
@@ -131,6 +133,13 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    //while( 0 != i_client_msg_result ) {
    /* TODO: Die when there's nothing more to listen for. */
    while( 1 ) {
+      /* Clear the parsing structures and read the next stanza. */
+      memset( &s_parse_data, '\0', sizeof( ROUGHXMPP_PARSE_DATA ) );
+      memset(
+         pc_client_msg_temp,
+         '\0',
+         SERVER_NET_BUFFER_SIZE * sizeof( char )
+      );
       i_client_msg_result = recv(
          ps_parms_in->socket_client,
          pc_client_msg_temp,
@@ -142,18 +151,56 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
          pc_client_msg_temp
       );
 
-      i_client_command = roughxmpp_parse_stanza( ps_client_msg );
+      /* If nothing was read then the client probably closed the connection.  */
+      if( 0 == i_client_msg_result ) {
+         break;
+      }
 
-      //bdestroy( ps_client_msg );
+      #ifdef NET_DEBUG_PROTOCOL_PRINT
+      DBG_INFO(
+         "Client %d response: %s",
+         ps_parms_in->socket_client,
+         bdata( ps_client_msg )
+      );
+      #endif /* NET_DEBUG_PROTOCOL_PRINT */
+
+      /* Determine the client command and act on it. */
+      i_client_command = roughxmpp_parse_stanza(
+         ps_client_msg,
+         &s_parse_data
+      );
+      switch( i_client_command ) {
+         case ROUGHXMPP_COMMAND_STREAM_START:
+            ps_client_response = roughxmpp_create_stanza_hello();
+            i_client_msg_result = send(
+               ps_parms_in->socket_client,
+               bdata( ps_client_response ),
+               blength( ps_client_response ),
+               0
+            );
+            if( blength( ps_client_response ) != i_client_msg_result ) {
+               DBG_ERR(
+                  "Unable to send entire stanza: %s",
+                  bdata( ps_client_response )
+               );
+            }
+            bdestroy( ps_client_response );
+            break;
+      }
+
       //break;
    }
 
-   DBG_INFO( "%s", ps_client_msg->data );
-
 server_handle_cleanup:
+
+   DBG_INFO(
+      "Done with client connection: %d",
+      ps_parms_in->socket_client
+   );
 
    close( ps_parms_in->socket_client );
    free( ps_parms_in );
+   bdestroy( ps_client_msg );
 
    return NULL;
 }
