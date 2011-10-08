@@ -20,6 +20,11 @@ DBG_ENABLE
 
 /* = Functions = */
 
+bstring roughxmpp_create_id( void ) {
+   /* XXX: Actually generate an ID. */
+   return bformat( "FFFFFF" );
+}
+
 int roughxmpp_parse_stanza(
    bstring ps_stanza_in,
    ROUGHXMPP_PARSE_DATA* ps_data_out
@@ -59,10 +64,79 @@ rxps_cleanup:
    return i_command_out;
 }
 
-bstring roughxmpp_create_stanza_hello( void ) {
-   return bfromcstr(
-      "<?xml version='1.0'?><stream:stream from='example.com' id='someid' " \
-      "xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' " \
-      "version='1.0'>"
+bstring roughxmpp_create_stanza_hello( int i_client_server_in ) {
+   ezxml_t ps_xml_stanza_out;
+   bstring ps_attr_temp,
+      ps_stanza_out;
+   char* pc_xml_temp = NULL;
+
+   /* Build the XML stanza to export. */
+   ps_xml_stanza_out = ezxml_new( "stream:stream" );
+   ezxml_set_attr( ps_xml_stanza_out, "xmlns", "jabber:client" );
+   ezxml_set_attr(
+      ps_xml_stanza_out, "xmlns:stream", "http://etherx.jabber.org/streams"
    );
+   if( ROUGHXMPP_SERVER == i_client_server_in ) {
+      ps_attr_temp = roughxmpp_create_id();
+      ezxml_set_attr(
+         ps_xml_stanza_out,
+         "id",
+         "FFFF"
+         //bdata( ps_attr_temp )
+      );
+      bdestroy( ps_attr_temp );
+      // TODO: Allow servers hosted on non-localhost.
+      ezxml_set_attr( ps_xml_stanza_out, "from", "localhost" );
+   } else if( ROUGHXMPP_CLIENT == i_client_server_in ) {
+      // TODO: Client "to" attribute.
+   }
+   ezxml_set_attr( ps_xml_stanza_out, "version", "1.0" );
+
+   /* Convert the stanza to a string. */
+   ps_stanza_out = bfromcstr( pc_xml_temp = ezxml_toxml( ps_xml_stanza_out ) );
+   free( pc_xml_temp );
+
+rxcs_hello_cleanup:
+
+   ezxml_free( ps_xml_stanza_out );
+
+   return ps_stanza_out;
+}
+
+bstring roughxmpp_create_stanza_authinform( void ) {
+   ezxml_t ps_xml_stanza_out,
+      ps_xml_stanza_mechanisms,
+      ps_xml_stanza_mech_plain;
+   bstring ps_attr_temp,
+      ps_stanza_out;
+   char* pc_xml_temp = NULL;
+
+   /* Build the XML stanza to export. */
+   ps_xml_stanza_out = ezxml_new( "stream:features" );
+   ps_xml_stanza_mechanisms = ezxml_add_child(
+      ps_xml_stanza_out,
+      "mechanisms",
+      0
+   );
+   ezxml_set_attr(
+      ps_xml_stanza_mechanisms,
+      "xmlns",
+      "urn:ietf:params:xml:ns:xmpp-sasl"
+   );
+   ps_xml_stanza_mech_plain = ezxml_add_child(
+      ps_xml_stanza_mechanisms,
+      "mechanism",
+      0
+   );
+   ezxml_set_txt( ps_xml_stanza_mech_plain, "PLAIN" );
+
+   /* Convert the stanza to a string. */
+   ps_stanza_out = bfromcstr( pc_xml_temp = ezxml_toxml( ps_xml_stanza_out ) );
+   free( pc_xml_temp );
+
+rxcs_hello_cleanup:
+
+   ezxml_free( ps_xml_stanza_out );
+
+   return ps_stanza_out;
 }
