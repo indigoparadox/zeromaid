@@ -47,5 +47,6 @@ typedef struct {
 
 void* server_main( void* );
 void* server_handle( SERVER_HANDLE_PARMS* );
+void server_send( int, bstring );
 
 #endif /* !SERVER_H */

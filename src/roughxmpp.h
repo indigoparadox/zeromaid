@@ -28,6 +28,9 @@
 
 #define ROUGHXMPP_COMMAND_STREAM_START 1
 
+#define ROUGHXMPP_SERVER 1
+#define ROUGHXMPP_CLIENT 2
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
@@ -36,7 +39,9 @@ typedef struct {
 
 /* = Function Prototypes = */
 
+bstring roughxmpp_create_id( void );
 int roughxmpp_parse_stanza( bstring, ROUGHXMPP_PARSE_DATA* );
-bstring roughxmpp_create_stanza_hello( void );
+bstring roughxmpp_create_stanza_hello( int );
+bstring roughxmpp_create_stanza_authinform( void );
 
 #endif /* !ROUGHXMPP_H */

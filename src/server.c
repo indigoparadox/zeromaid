@@ -171,19 +171,13 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
       );
       switch( i_client_command ) {
          case ROUGHXMPP_COMMAND_STREAM_START:
-            ps_client_response = roughxmpp_create_stanza_hello();
-            i_client_msg_result = send(
-               ps_parms_in->socket_client,
-               bdata( ps_client_response ),
-               blength( ps_client_response ),
-               0
+            ps_client_response = roughxmpp_create_stanza_hello(
+               ROUGHXMPP_SERVER
             );
-            if( blength( ps_client_response ) != i_client_msg_result ) {
-               DBG_ERR(
-                  "Unable to send entire stanza: %s",
-                  bdata( ps_client_response )
-               );
-            }
+            server_send( ps_parms_in->socket_client, ps_client_response );
+            bdestroy( ps_client_response );
+            ps_client_response = roughxmpp_create_stanza_authinform();
+            server_send( ps_parms_in->socket_client, ps_client_response );
             bdestroy( ps_client_response );
             break;
       }
@@ -203,4 +197,28 @@ server_handle_cleanup:
    bdestroy( ps_client_msg );
 
    return NULL;
+}
+
+void server_send( int i_client_in, bstring ps_send_in ) {
+   int i_client_msg_result;
+
+   #ifdef NET_DEBUG_PROTOCOL_PRINT
+   DBG_INFO(
+      "Server %d response: %s",
+      i_client_in,
+      bdata( ps_send_in )
+   );
+   #endif /* NET_DEBUG_PROTOCOL_PRINT */
+   i_client_msg_result = send(
+      i_client_in,
+      bdata( ps_send_in ),
+      blength( ps_send_in ),
+      0
+   );
+   if( blength( ps_send_in ) != i_client_msg_result ) {
+      DBG_ERR(
+         "Unable to send entire stanza: %s",
+         bdata( ps_send_in )
+      );
+   }
 }
