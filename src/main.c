@@ -21,7 +21,7 @@
 //#include <pthread.h>
 //#include <semaphore.h>
 
-#include "roughxmpp.h"
+#include "roughirc.h"
 #include "defines.h"
 #include "cache.h"
 #include "server.h"
