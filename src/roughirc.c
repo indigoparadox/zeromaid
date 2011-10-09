@@ -14,34 +14,15 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef ROUGHXMPP_H
-#define ROUGHXMPP_H
+#include "roughirc.h"
 
-/* = Includes = */
+int roughirc_server_parse(
+   bstring ps_client_string_in,
+   ROUGHIRC_PARSE_DATA* ps_connect_data_out
+) {
+   return ROUGHIRC_COMMAND_NICK;
+}
 
-#include "bstring/bstraux.h"
-#include "bstring/bstrlib.h"
-#include "ezxml/ezxml.h"
-#include "defines.h"
-
-/* = Definitions = */
-
-#define ROUGHXMPP_COMMAND_STREAM_START 1
-
-#define ROUGHXMPP_SERVER 1
-#define ROUGHXMPP_CLIENT 2
-
-/* = Type and Struct Definitions = */
-
-typedef struct {
-
-} ROUGHXMPP_PARSE_DATA;
-
-/* = Function Prototypes = */
-
-bstring roughxmpp_create_id( void );
-int roughxmpp_parse_stanza( bstring, ROUGHXMPP_PARSE_DATA* );
-bstring roughxmpp_create_stanza_hello( int );
-bstring roughxmpp_create_stanza_authinform( void );
-
-#endif /* !ROUGHXMPP_H */
+bstring roughirc_connect_respond( int i_server_client_select_in ) {
+   return bfromcstr( "Foo" );
+}

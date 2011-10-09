@@ -122,7 +122,7 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
    int i_client_msg_result = 0,
       i_client_command = 0;
-   ROUGHXMPP_PARSE_DATA s_parse_data;
+   ROUGHIRC_PARSE_DATA s_parse_data;
 
    DBG_INFO(
       "Handling client connection: %d",
@@ -134,7 +134,7 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    /* TODO: Die when there's nothing more to listen for. */
    while( 1 ) {
       /* Clear the parsing structures and read the next stanza. */
-      memset( &s_parse_data, '\0', sizeof( ROUGHXMPP_PARSE_DATA ) );
+      memset( &s_parse_data, '\0', sizeof( ROUGHIRC_PARSE_DATA ) );
       memset(
          pc_client_msg_temp,
          '\0',
@@ -165,18 +165,15 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
       #endif /* NET_DEBUG_PROTOCOL_PRINT */
 
       /* Determine the client command and act on it. */
-      i_client_command = roughxmpp_parse_stanza(
+      i_client_command = roughirc_server_parse(
          ps_client_msg,
          &s_parse_data
       );
       switch( i_client_command ) {
-         case ROUGHXMPP_COMMAND_STREAM_START:
-            ps_client_response = roughxmpp_create_stanza_hello(
+         case ROUGHIRC_COMMAND_NICK:
+            ps_client_response = roughirc_connect_respond(
                ROUGHXMPP_SERVER
             );
-            server_send( ps_parms_in->socket_client, ps_client_response );
-            bdestroy( ps_client_response );
-            ps_client_response = roughxmpp_create_stanza_authinform();
             server_send( ps_parms_in->socket_client, ps_client_response );
             bdestroy( ps_client_response );
             break;

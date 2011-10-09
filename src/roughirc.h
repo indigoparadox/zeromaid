@@ -14,41 +14,31 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef ROUGHIRC_H
+#define ROUGHIRC_H
 
 /* = Includes = */
 
-#ifdef WIN32
-#  include <winsock2.h>
-#  include <ws2tcpip.h>
-#else
-#  include <sys/socket.h>
-#  include <netdb.h>
-#  include <arpa/inet.h>
-#  include <sys/select.h>
-#endif /* WIN32 */
-
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
-#include "defines.h"
-#include "roughirc.h"
 
 /* = Definitions = */
 
-#define SERVER_NET_BUFFER_SIZE 4096
+#define ROUGHIRC_COMMAND_USER 1
+#define ROUGHIRC_COMMAND_NICK 2
+
+#define ROUGHXMPP_SERVER 1
+#define ROUGHXMPP_CLIENT 2
 
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int socket_client;
-   bstring client_address;
-} SERVER_HANDLE_PARMS;
+
+} ROUGHIRC_PARSE_DATA;
 
 /* = Function Prototypes = */
 
-void* server_main( void* );
-void* server_handle( SERVER_HANDLE_PARMS* );
-void server_send( int, bstring );
+int roughirc_server_parse( bstring, ROUGHIRC_PARSE_DATA* );
+bstring roughirc_server_connect_respond( int );
 
-#endif /* !SERVER_H */
+#endif /* !ROUGHIRC_H */
