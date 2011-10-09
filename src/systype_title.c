@@ -17,6 +17,7 @@
 #include "systype_title.h"
 
 DBG_ENABLE
+GFX_DRAW_LOOP_ENABLE
 TITLE_ERROR_ENABLE
 
 /* = Functions = */
@@ -42,23 +43,23 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
    /* Show the title screen until the user selects something. */
    DBG_INFO( "Running title screen loop..." );
    if( NULL != ps_title_iter ) {
-      //graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+      graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
       #ifdef USEALLEGRO
-      //graphics_do_update();
+      graphics_do_update();
       #endif /* USEALLEGRO */
-      /* graphics_draw_transition(
+      graphics_draw_transition(
          GFX_TRANS_FX_BLIP, ps_title_iter->i_trans, ps_color_fade
-      ); */
+      );
    }
    while( 1 ) {
-      //GFX_DRAW_LOOP_START
+      GFX_DRAW_LOOP_START
 
       /* Load the next title screen or reduce the delay on this one. */
       if( NULL != ps_title_iter && 1 == ps_title_iter->delay && NULL != ps_title_iter->next ) {
-         //graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->o_trans, ps_color_fade );
+         graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->o_trans, ps_color_fade );
          ps_title_iter = ps_title_iter->next;
-         //graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
-         //graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->i_trans, ps_color_fade );
+         graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+         graphics_draw_transition( GFX_TRANS_FX_FADE, ps_title_iter->i_trans, ps_color_fade );
 
          /* Every new title resets the menu regardless of anything. */
          i_menu_selected = 0;
@@ -67,7 +68,7 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
       }
 
       /* Listen for events. */
-      //event_do_poll( &s_event, FALSE );
+      event_do_poll( &s_event, FALSE );
       if( s_event.state[EVENT_ID_CANCEL] || s_event.state[EVENT_ID_QUIT] ) {
          DBG_INFO( "Quitting..." );
          goto slt_cleanup;
@@ -125,18 +126,18 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
 
       /* Loop through and draw all on-screen items. */
       if( NULL != ps_title_iter ) {
-         //graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
+         graphics_draw_blit_tile( ps_title_iter->bg_image, NULL, NULL );
 
          /* Draw the text items. */
          ps_text_iter = ps_title_iter->text_node;
          while( NULL != ps_text_iter ) {
-            /* graphics_draw_text(
+            graphics_draw_text(
                ps_text_iter->x,
                ps_text_iter->y,
                ps_text_iter->text,
                ps_text_iter->font,
                ps_text_iter->fg_color
-            ); */
+            );
 
             /* Go to the next one! */
             ps_text_iter = ps_text_iter->next;
@@ -145,21 +146,23 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
             systype_title_show_menu(
                i_menu_selected,
                as_menu_text,
-               ps_title_iter
+               ps_title_iter->menu_font,
+               ps_title_iter->fg_color,
+               ps_title_iter->fg_highlight
             );
          }
       }
 
-      //graphics_do_update();
+      graphics_do_update();
 
-      //GFX_DRAW_LOOP_END
+      GFX_DRAW_LOOP_END
    }
 
 slt_cleanup:
 
-   /* graphics_draw_transition(
+   graphics_draw_transition(
       GFX_TRANS_FX_BLIP, ps_title_iter->o_trans, ps_color_fade
-   ); */
+   );
 
    /* Clean up! */
    ps_title_iter = ps_title_screens;
@@ -168,7 +171,7 @@ slt_cleanup:
       ps_title_screens = ps_title_screens->next;
       systype_title_free_titlescreen( ps_title_iter );
    }
-   //GFX_DRAW_LOOP_FREE
+   GFX_DRAW_LOOP_FREE
    free( ps_color_fade );
    bdestroy( ps_font_name );
    for( i = 0 ; SYSTYPE_TITLE_MENU_LEN > i ; i++ ) {
@@ -195,7 +198,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    ps_xml_system = ezxml_parse_file( PATH_SHARE "/" PATH_FILE_SYSTEM );
    if( NULL == ps_xml_system ) {
       DBG_ERR(
-         "Unable to parse system configuration: "
+         "Unable to parse system configuration: %s",
          PATH_SHARE "/" PATH_FILE_SYSTEM
       );
       goto stlt_cleanup;
@@ -203,7 +206,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
    ps_xml_title = ezxml_child( ps_xml_system, "title" );
    if( NULL == ps_xml_title ) {
       DBG_ERR(
-         "Unable to parse title data in system configuration: "
+         "Unable to parse title data in system configuration: %s",
          PATH_SHARE "/" PATH_FILE_SYSTEM
       );
       goto stlt_cleanup;
@@ -238,15 +241,7 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          PATH_SHARE "%s." FILE_EXTENSION_IMAGE,
          ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
       );
-
-      #ifdef USECLIENT
       ps_titlescreen_iter->bg_image = graphics_create_image( ps_string_attrib );
-      #endif /* USECLIENT */
-      ps_titlescreen_iter->bg_image_filename = bformat(
-         "%s",
-         ezxml_attr( ps_xml_titlescreen_iter, "bgimage" )
-      );
-
       bdestroy( ps_string_attrib );
 
       /* ATTRIB: DELAY */
@@ -281,32 +276,30 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
             PATH_SHARE "%s." FILE_EXTENSION_FONT,
             ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
          );
-         #ifdef USECLIENT
          ps_titlescreen_iter->menu_font = graphics_create_font(
             // TODO: XML should control menu size.
             ps_font_path_iter, SYSTYPE_TITLE_MENU_SIZE_DEFAULT
          );
-         #endif /* USESERVER */
-         ps_titlescreen_iter->menu_font_filename = bformat(
-            "%s",
-            ezxml_attr( ps_xml_titlescreen_iter, "menufont" )
-         );
-
-         // XXX: FFFF
          bdestroy( ps_font_path_iter );
       }
 
       /* ATTRIB: FG COLOR */
-      ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_titlescreen_iter, "fgcolor" ) );
+      ps_string_attrib =
+         bformat( "%s", ezxml_attr( ps_xml_titlescreen_iter, "fgcolor" ) );
       if( NULL != ps_string_attrib ) {
-         ps_titlescreen_iter->fg_color = geometry_create_color_html( ps_string_attrib );
+         ps_titlescreen_iter->fg_color =
+            geometry_create_color_html( ps_string_attrib );
       }
       bdestroy( ps_string_attrib );
 
       /* ATTRIB: FG HIGHLIGHT COLOR */
-      ps_string_attrib = bformat( "%s", ezxml_attr( ps_xml_titlescreen_iter, "fghighlight" ) );
+      ps_string_attrib = bformat(
+         "%s",
+         ezxml_attr( ps_xml_titlescreen_iter, "fghighlight" )
+      );
       if( NULL != ps_string_attrib ) {
-         ps_titlescreen_iter->fg_highlight = geometry_create_color_html( ps_string_attrib );
+         ps_titlescreen_iter->fg_highlight =
+            geometry_create_color_html( ps_string_attrib );
       }
       bdestroy( ps_string_attrib );
 
@@ -316,7 +309,6 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
       );
 
       /* Verify title screen integrity against missing attributes. */
-      #if 0
       if( NULL == ps_titlescreen_iter->bg_image ) {
          /* TODO */
          /* If we delete the screen here, it's not very helpful. */
@@ -324,7 +316,6 @@ SYSTYPE_TITLE_TITLESCREEN* systype_title_load_titlescreens( void ) {
          ps_titlescreen_iter = ps_titlescreen_iter_prev;
          ps_titlescreen_iter->next = NULL; */
       }
-      #endif /* 0 */
 
       DBG_INFO( "Finished loading title screen." );
 
@@ -405,14 +396,8 @@ BOOL systype_title_load_titlescreen_text(
          PATH_SHARE "%s." FILE_EXTENSION_FONT,
          ezxml_attr( ps_xml_text_iter, "font" )
       );
-      #ifdef USECLIENT
       ps_text_iter->font =
          graphics_create_font( ps_font_path_iter, i_text_size_iter );
-      #endif /* USECLIENT */
-      ps_text_iter->font_filename = bformat(
-         "%s",
-         ezxml_attr( ps_xml_text_iter, "font" )
-      );
       bdestroy( ps_font_path_iter );
 
       /* ATTRIB: TEXT */
@@ -487,8 +472,7 @@ BOOL systype_title_load_team( CACHE_CACHE* ps_cache_in ) {
    ps_xml_team = ezxml_child( ps_xml_story, "team" );
    if( NULL == ps_xml_team ) {
       DBG_ERR(
-         "Invalid system data format: "
-         "Missing <team> element."
+         "Invalid system data format: Missing <team> element."
       );
       b_success = FALSE;
       goto stlt_cleanup;
@@ -564,8 +548,7 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
    if( NULL == ps_xml_smap ) {
       DBG_ERR(
-         "Invalid system data format: "
-         "Missing <startmap> element."
+         "Invalid system data format: Missing <startmap> element."
       );
       b_success = FALSE;
       goto stls_cleanup;
@@ -585,7 +568,9 @@ BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
    CACHE_MAP_NAME_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "name" ) );
 
    /* If everything checks out then copy the temp cache onto the given cache. */
-   // TODO: Validation per game type.
+   /* TODO: Validation per game type. */
+   /* XXX: ps_cache_in will always be NULL. Move the loading/validation of    *
+    *      the game data to the server core.                                  */
    memcpy( ps_cache_in, &s_cache_temp, sizeof( CACHE_CACHE ) );
 
 stls_cleanup:
@@ -601,7 +586,9 @@ stls_cleanup:
 void systype_title_show_menu(
    int i_index_in,
    bstring as_menu_list_in[],
-   SYSTYPE_TITLE_TITLESCREEN* ps_titlescreen_in
+   GFX_FONT* ps_font_in,
+   GEO_COLOR* ps_color_in,
+   GEO_COLOR* ps_highlight_in
 ) {
    static int i = 0,
       i_x = SYSTYPE_TITLE_MENU_X_START,
@@ -610,22 +597,22 @@ void systype_title_show_menu(
    for( i = 0 ; SYSTYPE_TITLE_MENU_LEN > i ; i++ ) {
       if( i == i_index_in ) {
          /* The item is selected. */
-         /* graphics_draw_text(
+         graphics_draw_text(
             i_x,
             i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
             ps_font_in,
             ps_highlight_in
-         ); */
+         );
       } else {
          /* The item is not selected. */
-         /* graphics_draw_text(
+         graphics_draw_text(
             i_x,
             i_y + (SYSTYPE_TITLE_MENU_Y_INC * i),
             as_menu_list_in[i],
             ps_font_in,
             ps_color_in
-         ); */
+         );
       }
    }
 }
@@ -634,6 +621,8 @@ void systype_title_show_menu(
 void systype_title_free_titlescreen(
    SYSTYPE_TITLE_TITLESCREEN* ps_tilescreen_in
 ) {
+   graphics_free_image(  ps_tilescreen_in->bg_image );
+   graphics_free_font( ps_tilescreen_in->menu_font );
    free( ps_tilescreen_in->bg_color );
    free( ps_tilescreen_in->fg_color );
    free( ps_tilescreen_in->fg_highlight );
