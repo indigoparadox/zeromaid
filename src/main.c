@@ -25,8 +25,11 @@
 #include "defines.h"
 #include "cache.h"
 #include "server.h"
+#include "systype_adventure.h"
+
 #ifdef USECLIENT
-# include "client.h"
+#include "systype_title.h"
+#include "window.h"
 #endif /* USECLIENT */
 
 #ifdef USEWII
@@ -48,6 +51,18 @@ bstring gps_title_error,
    gps_system_path;
 
 pthread_mutex_t gps_system_path_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+#ifdef USECLIENT
+extern bstring gps_system_path;
+
+#ifdef USEDIRECTX
+LPDIRECTINPUT gs_lpdi;
+LPDIRECTINPUTDEVICE gs_keyboard;
+unsigned char gac_keystate[256];
+#elif defined( USESDL )
+SDL_Joystick* gps_joystick_current;
+#endif /* USEDIRECTX, USESDL */
+#endif /* USECLIENT */
 
 /* = Type and Struct Definitions = */
 
@@ -76,6 +91,21 @@ int main( int argc, char* argv[] ) {
    #endif /* USEWII */
    pthread_t ps_thread_server,
       ps_thread_client;
+   ezxml_t ps_xml_system;
+   const char* pc_title;
+   bstring ps_title;
+
+   #ifdef USECLIENT
+   /* Client-specific definitions. */
+   int i_last_return, /* Contains the last loop-returned value. */
+      /* TODO: Can we return this to the shell, or something? */
+      i; /* Loop counter. */
+   /* TODO: Only the server should have a cache. */
+   CACHE_CACHE* ps_cache = NULL;
+   #ifdef USEDIRECTX
+   HWND s_window;
+   #endif /* USEDIRECTX */
+   #endif /* USECLIENT */
 
    /* == Pre-System Init == */
    /* This is stuff that should be taken care of before we start accessing    *
@@ -97,6 +127,65 @@ int main( int argc, char* argv[] ) {
    #ifdef OUTTOFILE
    gps_debug = fopen( DEBUG_OUT_PATH, "a" );
    #endif /* OUTTOFILE */
+
+   #ifdef USECLIENT
+   /* Try to setup the screen and input systems. */
+   #ifdef USESDL
+   SDL_Init( SDL_INIT_JOYSTICK );
+   /* TODO: Figure out the joystick number from a configuration file. */
+   for( i = 0 ; i < 10 ; i++ ) {
+      gps_joystick_current = SDL_JoystickOpen( i );
+      if( NULL != gps_joystick_current ) {
+         DBG_INFO( "Opened SDL joystick: %d", i );
+         break;
+      } else {
+         DBG_ERR( "Failed to open SDL joystick: %d", i );
+      }
+   }
+   TTF_Init();
+   SDL_EnableKeyRepeat( 0, 0 );
+   #elif defined USEDIRECTX
+   /* Initialize DirectX input stuff. */
+   s_window = GetActiveWindow();
+   if( FAILED( DirectInput8Create(
+      GetModuleHandle( NULL ),
+      DIRECTINPUT_VERSION,
+      IID_IDirectInput8,
+      (void**)&gs_lpdi,
+      NULL
+   ) ) ) {
+      // error code
+   }
+   if( FAILED( gs_lpdi->CreateDevice( GUID_SysKeyboard, &gs_keyboard, NULL ) ) ) {
+      /* error code */
+   }
+   if( FAILED( gs_keyboard->SetDataFormat( &c_dfDIKeyboard ) ) ) {
+      /* error code */
+   }
+   if( FAILED(
+      gs_keyboard->SetCooperativeLevel(
+         s_window,
+         DISCL_BACKGROUND | DISCL_NONEXCLUSIVE
+      )
+   ) ) {
+      /* error code */
+   }
+   if( FAILED( gs_keyboard->Acquire() ) ) {
+      /* error code */
+   }
+   #elif defined USEALLEGRO
+   if( allegro_init() != 0 ) {
+      DBG_ERR( "Unable to initialize Allegro." );
+      i_error_level = ERROR_LEVEL_INITFAIL;
+      goto main_cleanup;
+   }
+   install_keyboard();
+   set_keyboard_rate( 0, 0 );
+   #endif /* USESDL, USEDIRECTX, USEALLEGRO */
+
+   /* Setup the loop timer. */
+   GFX_DRAW_LOOP_INIT
+   #endif /* USECLIENT */
 
    /* == End Pre-System Init == */
 
@@ -143,51 +232,12 @@ int main( int argc, char* argv[] ) {
       goto main_cleanup;
    }
 
-   /* == End System Init == */
-
-   main_system_ok:
-
-   // XXX
-   /* MAIN_PARAMS* ps_params_server = calloc(
-      1, sizeof( MAIN_PARAMS )
-   );
-   ps_params_server->debug_file = gps_debug; */
-   i_thread_error = pthread_create(
-      &ps_thread_server,
-      NULL,
-      &server_main,
-      NULL
-   );
-   if( i_thread_error ) {
-      DBG_ERR(
-         "Unable to create server thread, error code: %d",
-         i_thread_error
-      );
-      goto main_cleanup;
-   }
-
-   #ifdef USECLIENT
-   // Create the client thread.
-   i_thread_error = pthread_create(
-      &ps_thread_client,
-      NULL,
-      &client_main,
-      NULL
-   );
-   if( i_thread_error ) {
-      DBG_ERR(
-         "Unable to create server thread, error code: %d",
-         i_thread_error
-      );
-      goto main_cleanup;
-   }
-   #endif /* USECLIENT */
-   // TODO: Change this to server once communication protocol is in place and
-   //       server controls the game flow.
-   pthread_join(
-      ps_thread_server,
-      NULL
-   );
+   /* Load the game title. */
+   ps_xml_system = ezxml_parse_file( (const char*)gps_system_path->data );
+   pc_title = ezxml_attr( ps_xml_system, "name" );
+   ps_title = bformat( "%s", pc_title );
+   DBG_INFO( "System selected: %s", pc_title );
+   ezxml_free( ps_xml_system );
 
    #if 0
    /* XXX: Make this coexist with the new networking code below. */
@@ -209,11 +259,116 @@ int main( int argc, char* argv[] ) {
    #endif /* USEWII && USEDEBUG && USENET */
    #endif /* 0 */
 
+   /* == End System Init == */
 
+main_system_ok:
+
+   #ifdef USECLIENT
+   /* Set up the display. */
+   DBG_INFO( "Setting up the screen..." );
+   graphics_create_screen(
+      GEO_SCREENWIDTH,
+      GEO_SCREENHEIGHT,
+      GFX_SCREENDEPTH,
+      ps_title
+   );
+
+   /* Load the subsystems which require initialization. */
+   if( !window_init() ) {
+      DBG_ERR( "Unable to initialize window system." );
+      i_error_level = ERROR_LEVEL_WINDOW;
+      goto main_cleanup;
+   }
+
+   /* Start the loop that loads the other gameplay loops. */
+   i_last_return = systype_title_loop( ps_cache );
+   while( RETURN_ACTION_QUIT != i_last_return ) {
+
+      switch( i_last_return ) {
+         case RETURN_ACTION_LOADCACHE:
+            /* Execute the next instruction based on the system cache. */
+            if(
+               NULL != ps_cache->game_type &&
+               0 == strcmp( SYSTEM_TYPE_ADVENTURE,
+                  (const char*)ps_cache->game_type->data )
+            ) {
+               i_last_return = systype_adventure_loop( ps_cache );
+            } else {
+               i_last_return = systype_title_loop( ps_cache );
+               TITLE_ERROR_SET( "Invalid game type specified" );
+               DBG_ERR(
+                  "Invalid game type specified: %s",
+                  bdata( ps_cache->game_type )
+               );
+            }
+            break;
+
+         default:
+            i_last_return = systype_title_loop( ps_cache );
+            break;
+      }
+   }
+   #endif /* USECLIENT */
+
+   /* TODO: Pass the server the name of the system to load. */
+   #if 0
+   MAIN_PARAMS* ps_params_server = calloc(
+      1, sizeof( MAIN_PARAMS )
+   );
+   ps_params_server->debug_file = gps_debug;
+   #endif /* 0 */
+   /* Always startup the server. The client can direct it to load systems or  *
+    * whatever.                                                               */
+   /* TODO: */
+   i_thread_error = pthread_create(
+      &ps_thread_server,
+      NULL,
+      &server_main,
+      NULL
+   );
+   if( i_thread_error ) {
+      DBG_ERR(
+         "Unable to create server thread, error code: %d",
+         i_thread_error
+      );
+      goto main_cleanup;
+   }
+
+   /* TODO: Change this to server once communication protocol is in place and *
+   /*       server controls the game flow.                                    */
+   #ifndef USECLIENT
+   pthread_join(
+      ps_thread_server,
+      NULL
+   );
+   #endif /* !USECLIENT */
 
 main_cleanup:
 
-   //pthread_exit( NULL );
+   #ifdef USECLIENT
+   GFX_DRAW_LOOP_FREE
+
+   event_get_assigned( EVENT_INPUT_TYPE_FREE, 0 );
+
+   bdestroy( ps_title );
+
+   window_cleanup();
+
+   #ifdef USESDL
+   SDL_JoystickClose( gps_joystick_current );
+   TTF_Quit();
+   #endif /* USESDL */
+
+   #ifdef USEDIRECTX
+   if( gs_keyboard ) {
+      gs_keyboard->Release();
+   }
+
+   if( gs_lpdi ) {
+      gs_lpdi->Release();
+   }
+   #endif /* USEDIRECTX */
+   #endif /* USECLIENT */
 
    bdestroy( gps_system_path );
 

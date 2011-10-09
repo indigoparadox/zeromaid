@@ -39,6 +39,6 @@ typedef struct {
 /* = Function Prototypes = */
 
 int roughirc_server_parse( bstring, ROUGHIRC_PARSE_DATA* );
-bstring roughirc_server_connect_respond( int );
+bstring roughirc_connect_respond( int );
 
 #endif /* !ROUGHIRC_H */
