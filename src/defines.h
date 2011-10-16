@@ -96,6 +96,8 @@ typedef int COND_SCOPE;
 #define RETURN_ACTION_TITLE 1 /* Display the title screen. */
 #define RETURN_ACTION_LOADCACHE 2 /* Load the next instruction/data from the  *
                                    * cache.                                   */
+#define RETURN_ACTION_CLIENT_LOCAL 3
+
 #define TEAM_MAX_SIZE 10
 
 #define ERROR_LEVEL_MALLOC 1 /* There was a problem allocating memory. */
@@ -162,6 +164,13 @@ typedef int COND_SCOPE;
    #define iffy_bdestroy( target ) bdestroy( target )
 #endif
 
+/* = Type and Struct Definitions = */
+
+typedef struct {
+   int load;
+   bstring system_name;
+} MAIN_PARAMS;
+
 /* = Macros = */
 
 /* The path separator can be a slash or a backslash, so deal with it. */
@@ -182,9 +191,17 @@ typedef int COND_SCOPE;
 
 #else
 
+#ifdef WIN32
+#define DBG_THREAD( __PT_TARGET__ ) \
+   fprintf( DEBUG_HANDLE_INFO, "THREAD %p:", pthread_self().p );
+#else
+#define DBG_THREAD( __PT_TARGET__ ) \
+   fprintf( DEBUG_HANDLE_INFO, "THREAD %u:", (unsigned int)pthread_self() );
+#endif /* WIN32 */
+
 #define DBG_INFO( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
-   fprintf( DEBUG_HANDLE_INFO, "THREAD %p:", pthread_self().p ); \
+   DBG_THREAD( DEBUG_HANDLE_INFO ); \
    fprintf( DEBUG_HANDLE_INFO, "%s: %d: ", FILE_SHORT, __LINE__ ); \
    fprintf( DEBUG_HANDLE_INFO, "INFO: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_INFO, "\n" ); \
@@ -193,7 +210,7 @@ typedef int COND_SCOPE;
 
 #define DBG_ERR( ... ) \
    pthread_mutex_lock( &gps_debug_mutex ); \
-   fprintf( DEBUG_HANDLE_ERR, "THREAD %p: ", pthread_self().p ); \
+   DBG_THREAD( DEBUG_HANDLE_ERR ); \
    fprintf( DEBUG_HANDLE_ERR, "%s: %d: ", FILE_SHORT, __LINE__ ); \
    fprintf( DEBUG_HANDLE_ERR, "ERROR: " __VA_ARGS__ ); \
    fprintf( DEBUG_HANDLE_ERR, "\n" ); \
