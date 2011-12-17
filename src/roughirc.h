@@ -24,8 +24,12 @@
 
 /* = Definitions = */
 
+#define ROUGHIRC_OPT_NICK_MAXLEN 20
+
+#define ROUGHIRC_COMMAND_UNKNOWN 0
 #define ROUGHIRC_COMMAND_USER 1
 #define ROUGHIRC_COMMAND_NICK 2
+#define ROUGHIRC_COMMAND_JOIN 3
 
 #define ROUGHXMPP_SERVER 1
 #define ROUGHXMPP_CLIENT 2
@@ -39,6 +43,6 @@ typedef struct {
 /* = Function Prototypes = */
 
 int roughirc_server_parse( bstring, ROUGHIRC_PARSE_DATA* );
-bstring roughirc_connect_respond( int );
+bstring roughirc_server_parse_nick( bstring );
 
 #endif /* !ROUGHIRC_H */

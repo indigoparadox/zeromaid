@@ -24,7 +24,7 @@ TITLE_ERROR_ENABLE
 
 /* Purpose: Title screen loop.                                                */
 /* Return: The code for the next action to take.                              */
-int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
+int systype_title_loop() {
    int i_menu_selected = 0, i = 0, i_act_return = RETURN_ACTION_QUIT;
    GEO_COLOR* ps_color_fade = geometry_create_color( 0, 0, 0 );
    SYSTYPE_TITLE_TITLESCREEN* ps_title_screens = systype_title_load_titlescreens();
@@ -97,6 +97,8 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
             /* Select a menu item. */
             if( SYSTYPE_TITLE_MENU_INDEX_SPSTART == i_menu_selected ) {
                /* Menu: SP Start */
+               #if 0
+               /* ZZZ */
                /* Set the cache to a new single-player game according to data *
                 * files and set the engine to load the new game.              */
                if( !systype_title_load_start( ps_cache_in ) ) {
@@ -112,6 +114,9 @@ int systype_title_loop( CACHE_CACHE* ps_cache_in ) {
                }
 
                i_act_return = RETURN_ACTION_LOADCACHE;
+               #endif /* 0 */
+
+               i_act_return = RETURN_ACTION_CLIENT_LOCAL;
                goto slt_cleanup;
 
             } else if( SYSTYPE_TITLE_MENU_INDEX_LOAD == i_menu_selected ) {
@@ -425,158 +430,6 @@ BOOL systype_title_load_titlescreen_text(
       /* Go to the next one! */
       ps_xml_text_iter = ps_xml_text_iter->next;
    }
-
-   return b_success;
-}
-
-/* Purpose: Verify that the system file is valid and load its XML tree.       */
-ezxml_t systype_title_load_system( void ) {
-   bstring ps_system_path;
-
-   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-
-   /* Verify the XML file exists and open or abort accordingly. */
-   if( !zm_file_exists( ps_system_path ) ) {
-      DBG_ERR( "Unable to find system file: %s", ps_system_path->data );
-      return NULL;
-   } else {
-      return ezxml_parse_file( (const char*)ps_system_path->data );
-   }
-}
-
-/* Purpose: Get the starting team and load it into the given cache object.    */
-/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
-BOOL systype_title_load_team( CACHE_CACHE* ps_cache_in ) {
-   BOOL b_success = TRUE;
-   bstring ps_mobile_src = NULL;
-   ezxml_t ps_xml_system = NULL,
-      ps_xml_team = NULL,
-      ps_xml_story = NULL,
-      ps_xml_member_iter = NULL;
-   MOBILE_MOBILE* ps_member_temp;
-
-   /* Load the system file. */
-   ps_xml_system = systype_title_load_system();
-   if( NULL == ps_xml_system ) {
-      b_success = FALSE;
-      goto stlt_cleanup;
-   }
-
-   /* Load the team XML node. */
-   ps_xml_story = ezxml_child( ps_xml_system, "story" );
-   if( NULL == ps_xml_story ) {
-      DBG_ERR( "Invalid system data format: Missing <story> element." );
-      b_success = FALSE;
-      goto stlt_cleanup;
-   }
-   ps_xml_team = ezxml_child( ps_xml_story, "team" );
-   if( NULL == ps_xml_team ) {
-      DBG_ERR(
-         "Invalid system data format: Missing <team> element."
-      );
-      b_success = FALSE;
-      goto stlt_cleanup;
-   }
-
-   /* Cycle through team member nodes and create their structures. */
-   DBG_INFO( "Loading team members..." );
-   ps_xml_member_iter = ezxml_child( ps_xml_team, "member" );
-   while( NULL != ps_xml_member_iter ) {
-      /* Create a new mobile. */
-      ps_mobile_src = bformat( "%s", ezxml_attr( ps_xml_member_iter, "src" ) );
-      ps_member_temp = mobile_load_mobile( ps_mobile_src );
-      if( NULL != ps_member_temp ) {
-         /* Set the special properties making this a player mobile. */
-         ps_member_temp->serial =
-            atoi( ezxml_attr( ps_xml_member_iter, "serial" ) );
-         ps_member_temp->pixel_x =
-            ps_member_temp->pixel_size *
-            atoi( ezxml_attr( ps_xml_team, "startx" ) );
-         ps_member_temp->pixel_y =
-            ps_member_temp->pixel_size *
-            atoi( ezxml_attr( ps_xml_team, "starty" ) );
-
-         /* Move this mobile to the team list. */
-         UTIL_ARRAY_ADD(
-            MOBILE_MOBILE, ps_cache_in->player_team,
-            ps_cache_in->player_team_count, stlt_cleanup, ps_member_temp
-         );
-         ps_member_temp = NULL;
-      } else {
-      }
-
-      /* Go to the next one! */
-      ps_xml_member_iter = ezxml_next( ps_xml_member_iter );
-   }
-
-stlt_cleanup:
-
-   ezxml_free( ps_xml_system );
-
-   /* TODO: Write this function. */
-   return b_success;
-}
-
-/* Purpose: Get the starting game and load it into the given cache object.    */
-/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
-BOOL systype_title_load_start( CACHE_CACHE* ps_cache_in ) {
-   BOOL b_success = TRUE;
-   ezxml_t ps_xml_system = NULL,
-      ps_xml_story = NULL,
-      ps_xml_smap = NULL;
-   bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
-   CACHE_CACHE s_cache_temp;
-
-   /* Reminder to my future self: If the cache remained a global variable,    *
-    * might never have found this. Stupid. ~_~                                */
-   memset( &s_cache_temp, 0, sizeof( CACHE_CACHE ) );
-
-   /* Verify the XML file exists and open or abort accordingly. */
-   ps_xml_system = systype_title_load_system();
-   if( NULL == ps_xml_system ) {
-      b_success = FALSE;
-      goto stls_cleanup;
-   }
-
-   /* Load the single-player story data. */
-   ps_xml_story = ezxml_child( ps_xml_system, "story" );
-   if( NULL == ps_xml_story ) {
-      DBG_ERR( "Invalid system data format: Missing <story> element." );
-      b_success = FALSE;
-      goto stls_cleanup;
-   }
-   ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
-   if( NULL == ps_xml_smap ) {
-      DBG_ERR(
-         "Invalid system data format: Missing <startmap> element."
-      );
-      b_success = FALSE;
-      goto stls_cleanup;
-   }
-
-   /* Load the starting map. */
-   if( NULL != ezxml_attr( ps_xml_smap, "type" ) ) {
-      CACHE_SYSTEM_TYPE_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "type" ) );
-      DBG_INFO( "Game type selected: %s", ezxml_attr( ps_xml_smap, "type" ) );
-   } else {
-      DBG_ERR( "No game type specefied." );
-      b_success = FALSE;
-      goto stls_cleanup;
-   }
-
-   /* Load the starting field name. */
-   CACHE_MAP_NAME_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "name" ) );
-
-   /* If everything checks out then copy the temp cache onto the given cache. */
-   /* TODO: Validation per game type. */
-   /* XXX: ps_cache_in will always be NULL. Move the loading/validation of    *
-    *      the game data to the server core.                                  */
-   memcpy( ps_cache_in, &s_cache_temp, sizeof( CACHE_CACHE ) );
-
-stls_cleanup:
-
-   bdestroy( ps_system_path );
-   ezxml_free( ps_xml_system );
 
    return b_success;
 }

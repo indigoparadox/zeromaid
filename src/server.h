@@ -33,16 +33,21 @@
 #include "bstring/bstrlib.h"
 #include "defines.h"
 #include "roughirc.h"
+#include "cache.h"
 
 /* = Definitions = */
 
 #define SERVER_NET_BUFFER_SIZE 4096
 
+#define SERVER_LOAD_NEW 1 /* Start a new game. */
+#define SERVER_LOAD_SPECIFIED 2 /* Load a data file. */
+
 /* = Type and Struct Definitions = */
 
 typedef struct {
    int socket_client;
-   bstring client_address;
+   bstring client_address,
+      client_nick;
 } SERVER_HANDLE_PARMS;
 
 /* = Function Prototypes = */
@@ -50,5 +55,8 @@ typedef struct {
 void* server_main( void* );
 void* server_handle( SERVER_HANDLE_PARMS* );
 void server_send( int, bstring );
+ezxml_t server_load_system( void );
+BOOL server_load_team( CACHE_CACHE* );
+BOOL server_load_start( CACHE_CACHE* );
 
 #endif /* !SERVER_H */

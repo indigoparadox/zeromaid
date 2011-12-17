@@ -28,6 +28,7 @@
 #include "systype_adventure.h"
 
 #ifdef USECLIENT
+#include "client.h"
 #include "systype_title.h"
 #include "window.h"
 #endif /* USECLIENT */
@@ -44,6 +45,13 @@ DBG_MAIN
 #ifdef USECLIENT
 GFX_DRAW_LOOP_DECLARE
 #endif /* USECLIENT */
+
+/* = Definitions = */
+
+#define MAIN_TITLE_LOOP( __MSG_ERR_IN__ ) \
+   TITLE_ERROR_SET( __MSG_ERR_IN__ ); \
+   DBG_ERR( __MSG_ERR_IN__ ); \
+   goto main_title_loop;
 
 /* = Global Variables = */
 
@@ -64,18 +72,6 @@ SDL_Joystick* gps_joystick_current;
 #endif /* USEDIRECTX, USESDL */
 #endif /* USECLIENT */
 
-/* = Type and Struct Definitions = */
-
-/* typedef struct {
-   bstring system_path;
-} MAIN_PARAMS; */
-
-/* = Function Prototypes = */
-
-#ifdef USECLIENT
-void* main_client( void* );
-#endif /* USESERVER */
-
 /* = Functions = */
 
 int main( int argc, char* argv[] ) {
@@ -94,14 +90,15 @@ int main( int argc, char* argv[] ) {
    ezxml_t ps_xml_system;
    const char* pc_title;
    bstring ps_title;
+   MAIN_PARAMS* ps_params_server = NULL;
 
    #ifdef USECLIENT
    /* Client-specific definitions. */
    int i_last_return, /* Contains the last loop-returned value. */
       /* TODO: Can we return this to the shell, or something? */
       i; /* Loop counter. */
+   MAIN_PARAMS* ps_params_client = NULL;
    /* TODO: Only the server should have a cache. */
-   CACHE_CACHE* ps_cache = NULL;
    #ifdef USEDIRECTX
    HWND s_window;
    #endif /* USEDIRECTX */
@@ -240,6 +237,7 @@ int main( int argc, char* argv[] ) {
    ezxml_free( ps_xml_system );
 
    #if 0
+   /* ZZZ */
    /* XXX: Make this coexist with the new networking code below. */
    #if defined( USEWII ) && defined( USEDEBUG ) && defined( USENET )
    /* Setup the Wii network debugging infrastructure. */
@@ -263,6 +261,22 @@ int main( int argc, char* argv[] ) {
 
 main_system_ok:
 
+   /* Always startup the server. The client can direct it to load systems or  *
+    * whatever.                                                               */
+   i_thread_error = pthread_create(
+      &ps_thread_server,
+      NULL,
+      &server_main,
+      NULL
+   );
+   if( i_thread_error ) {
+      DBG_ERR(
+         "Unable to create server thread, error code: %d",
+         i_thread_error
+      );
+      goto main_cleanup;
+   }
+
    #ifdef USECLIENT
    /* Set up the display. */
    DBG_INFO( "Setting up the screen..." );
@@ -281,11 +295,14 @@ main_system_ok:
    }
 
    /* Start the loop that loads the other gameplay loops. */
-   i_last_return = systype_title_loop( ps_cache );
+main_title_loop:
+   i_last_return = systype_title_loop();
    while( RETURN_ACTION_QUIT != i_last_return ) {
 
       switch( i_last_return ) {
          case RETURN_ACTION_LOADCACHE:
+            /* TODO: Start a server thread with a loaded memory image. */
+            #if 0
             /* Execute the next instruction based on the system cache. */
             if(
                NULL != ps_cache->game_type &&
@@ -301,41 +318,51 @@ main_system_ok:
                   bdata( ps_cache->game_type )
                );
             }
+            #endif /* 0 */
+            break;
+
+         case RETURN_ACTION_CLIENT_LOCAL:
+            /* Direct the local server to start a new game. */
+            ps_params_client = calloc(
+               1, sizeof( MAIN_PARAMS )
+            );
+            ps_params_client->load = SERVER_LOAD_NEW;
+
+            /* TODO: Signal the server to start a new story game, then create *
+             *       a new client thread to listen for the type of client to  *
+             *       create. Then create the client and reconnect.            */
+
+            #if 0
+            /* Connect the client to the local server. */
+            i_thread_error = pthread_create(
+               &ps_thread_client,
+               NULL,
+               &ps_params_client,
+               NULL
+            );
+            if( i_thread_error ) {
+               MAIN_TITLE_LOOP( "Unable to create local client." );
+               goto main_title_loop;
+            }
+
+            /* Defer to the new client for now. */
+            pthread_join(
+               ps_thread_client,
+               NULL
+            );
+            #endif
+
             break;
 
          default:
-            i_last_return = systype_title_loop( ps_cache );
+            i_last_return = systype_title_loop();
             break;
       }
    }
    #endif /* USECLIENT */
 
-   /* TODO: Pass the server the name of the system to load. */
-   #if 0
-   MAIN_PARAMS* ps_params_server = calloc(
-      1, sizeof( MAIN_PARAMS )
-   );
-   ps_params_server->debug_file = gps_debug;
-   #endif /* 0 */
-   /* Always startup the server. The client can direct it to load systems or  *
-    * whatever.                                                               */
-   /* TODO: */
-   i_thread_error = pthread_create(
-      &ps_thread_server,
-      NULL,
-      &server_main,
-      NULL
-   );
-   if( i_thread_error ) {
-      DBG_ERR(
-         "Unable to create server thread, error code: %d",
-         i_thread_error
-      );
-      goto main_cleanup;
-   }
-
    /* TODO: Change this to server once communication protocol is in place and *
-   /*       server controls the game flow.                                    */
+    *       server controls the game flow.                                    */
    #ifndef USECLIENT
    pthread_join(
       ps_thread_server,

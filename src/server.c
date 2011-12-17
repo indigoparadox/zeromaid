@@ -116,12 +116,15 @@ main_server_cleanup:
    return NULL;
 }
 
+/* Purpose: Handle an incoming client connection indefinitely after it has    *
+ *          been established in server_main().                                */
 void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    bstring ps_client_msg = bformat( "" ),
-      ps_client_response;
+      ps_client_msg_iter = bformat( "" );
    char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
    int i_client_msg_result = 0,
-      i_client_command = 0;
+      i_client_command = 0,
+      i_next_newline = 0;
    ROUGHIRC_PARSE_DATA s_parse_data;
 
    DBG_INFO(
@@ -156,27 +159,40 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
          break;
       }
 
-      #ifdef NET_DEBUG_PROTOCOL_PRINT
-      DBG_INFO(
-         "Client %d response: %s",
-         ps_parms_in->socket_client,
-         bdata( ps_client_msg )
-      );
-      #endif /* NET_DEBUG_PROTOCOL_PRINT */
+      /* Break the response into lines and process it line-by-line. */
+      while( 0 != blength( ps_client_msg ) ) {
+         /* Pull off the first line and process it. */
+         i_next_newline = bstrchr( ps_client_msg, '\n' );
+         bassignmidstr( ps_client_msg_iter, ps_client_msg, 0, i_next_newline + 1 );
+         bdelete( ps_client_msg, 0, i_next_newline + 1 );
 
-      /* Determine the client command and act on it. */
-      i_client_command = roughirc_server_parse(
-         ps_client_msg,
-         &s_parse_data
-      );
-      switch( i_client_command ) {
-         case ROUGHIRC_COMMAND_NICK:
-            ps_client_response = roughirc_connect_respond(
-               ROUGHXMPP_SERVER
-            );
-            server_send( ps_parms_in->socket_client, ps_client_response );
-            bdestroy( ps_client_response );
-            break;
+         #ifdef NET_DEBUG_PROTOCOL_PRINT
+         DBG_INFO(
+            "Client %d response: %s",
+            ps_parms_in->socket_client,
+            bdata( ps_client_msg_iter )
+         );
+         #endif /* NET_DEBUG_PROTOCOL_PRINT */
+
+         /* Determine the client command and act on it. */
+         i_client_command = roughirc_server_parse(
+            ps_client_msg_iter,
+            &s_parse_data
+         );
+         switch( i_client_command ) {
+            case ROUGHIRC_COMMAND_NICK:
+               ps_parms_in->client_nick =
+                  roughirc_server_parse_nick( ps_client_msg_iter );
+
+               #ifdef NET_DEBUG_PROTOCOL_PRINT
+               DBG_INFO(
+                  "Client %d NICK set: %s",
+                  ps_parms_in->socket_client,
+                  bdata( ps_parms_in->client_nick )
+               );
+               #endif /* NET_DEBUG_PROTOCOL_PRINT */
+               break;
+         }
       }
 
       //break;
@@ -218,4 +234,155 @@ void server_send( int i_client_in, bstring ps_send_in ) {
          bdata( ps_send_in )
       );
    }
+}
+
+/* Purpose: Verify that the system file is valid and load its XML tree.       */
+ezxml_t server_load_system( void ) {
+   bstring ps_system_path;
+
+   ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   if( !zm_file_exists( ps_system_path ) ) {
+      DBG_ERR( "Unable to find system file: %s", ps_system_path->data );
+      return NULL;
+   } else {
+      return ezxml_parse_file( (const char*)ps_system_path->data );
+   }
+}
+
+/* Purpose: Get the starting team and load it into the given cache object.    */
+/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
+BOOL server_load_team( CACHE_CACHE* ps_cache_in ) {
+   BOOL b_success = TRUE;
+   bstring ps_mobile_src = NULL;
+   ezxml_t ps_xml_system = NULL,
+      ps_xml_team = NULL,
+      ps_xml_story = NULL,
+      ps_xml_member_iter = NULL;
+   MOBILE_MOBILE* ps_member_temp;
+
+   /* Load the system file. */
+   ps_xml_system = server_load_system();
+   if( NULL == ps_xml_system ) {
+      b_success = FALSE;
+      goto stlt_cleanup;
+   }
+
+   /* Load the team XML node. */
+   ps_xml_story = ezxml_child( ps_xml_system, "story" );
+   if( NULL == ps_xml_story ) {
+      DBG_ERR( "Invalid system data format: Missing <story> element." );
+      b_success = FALSE;
+      goto stlt_cleanup;
+   }
+   ps_xml_team = ezxml_child( ps_xml_story, "team" );
+   if( NULL == ps_xml_team ) {
+      DBG_ERR(
+         "Invalid system data format: Missing <team> element."
+      );
+      b_success = FALSE;
+      goto stlt_cleanup;
+   }
+
+   /* Cycle through team member nodes and create their structures. */
+   DBG_INFO( "Loading team members..." );
+   ps_xml_member_iter = ezxml_child( ps_xml_team, "member" );
+   while( NULL != ps_xml_member_iter ) {
+      /* Create a new mobile. */
+      ps_mobile_src = bformat( "%s", ezxml_attr( ps_xml_member_iter, "src" ) );
+      ps_member_temp = mobile_load_mobile( ps_mobile_src );
+      if( NULL != ps_member_temp ) {
+         /* Set the special properties making this a player mobile. */
+         ps_member_temp->serial =
+            atoi( ezxml_attr( ps_xml_member_iter, "serial" ) );
+         ps_member_temp->pixel_x =
+            ps_member_temp->pixel_size *
+            atoi( ezxml_attr( ps_xml_team, "startx" ) );
+         ps_member_temp->pixel_y =
+            ps_member_temp->pixel_size *
+            atoi( ezxml_attr( ps_xml_team, "starty" ) );
+
+         /* Move this mobile to the team list. */
+         UTIL_ARRAY_ADD(
+            MOBILE_MOBILE, ps_cache_in->player_team,
+            ps_cache_in->player_team_count, stlt_cleanup, ps_member_temp
+         );
+         ps_member_temp = NULL;
+      } else {
+      }
+
+      /* Go to the next one! */
+      ps_xml_member_iter = ezxml_next( ps_xml_member_iter );
+   }
+
+stlt_cleanup:
+
+   ezxml_free( ps_xml_system );
+
+   /* TODO: Write this function. */
+   return b_success;
+}
+
+/* Purpose: Get the starting game and load it into the given cache object.    */
+/* Parameters: A cache object to fill with the starting game data.            */
+/* Return: A boolean indicating success (TRUE) or failure (FALSE).            */
+BOOL server_load_start( CACHE_CACHE* ps_cache_out ) {
+   BOOL b_success = TRUE;
+   ezxml_t ps_xml_system = NULL,
+      ps_xml_story = NULL,
+      ps_xml_smap = NULL;
+   bstring ps_system_path = bformat( "%s%s", PATH_SHARE, PATH_FILE_SYSTEM );
+   CACHE_CACHE s_cache_temp;
+
+   /* Reminder to my future self: If the cache remained a global variable,    *
+    * might never have found this. Stupid. ~_~                                */
+   memset( &s_cache_temp, 0, sizeof( CACHE_CACHE ) );
+
+   /* Verify the XML file exists and open or abort accordingly. */
+   ps_xml_system = server_load_system();
+   if( NULL == ps_xml_system ) {
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the single-player story data. */
+   ps_xml_story = ezxml_child( ps_xml_system, "story" );
+   if( NULL == ps_xml_story ) {
+      DBG_ERR( "Invalid system data format: Missing <story> element." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+   ps_xml_smap = ezxml_child( ps_xml_story, "startmap" );
+   if( NULL == ps_xml_smap ) {
+      DBG_ERR(
+         "Invalid system data format: Missing <startmap> element."
+      );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting map. */
+   if( NULL != ezxml_attr( ps_xml_smap, "type" ) ) {
+      CACHE_SYSTEM_TYPE_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "type" ) );
+      DBG_INFO( "Game type selected: %s", ezxml_attr( ps_xml_smap, "type" ) );
+   } else {
+      DBG_ERR( "No game type specefied." );
+      b_success = FALSE;
+      goto stls_cleanup;
+   }
+
+   /* Load the starting field name. */
+   CACHE_MAP_NAME_SET( &s_cache_temp, ezxml_attr( ps_xml_smap, "name" ) );
+
+   /* If everything checks out then copy the temp cache onto the given cache. */
+   /* TODO: Validation per game type. */
+   memcpy( ps_cache_out, &s_cache_temp, sizeof( CACHE_CACHE ) );
+
+stls_cleanup:
+
+   bdestroy( ps_system_path );
+   ezxml_free( ps_xml_system );
+
+   return b_success;
 }

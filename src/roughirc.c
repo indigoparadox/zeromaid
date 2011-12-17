@@ -20,9 +20,23 @@ int roughirc_server_parse(
    bstring ps_client_string_in,
    ROUGHIRC_PARSE_DATA* ps_connect_data_out
 ) {
-   return ROUGHIRC_COMMAND_NICK;
+   int foo = binstrcaseless( ps_client_string_in, 0, bfromcstr( "NICK" ) );
+   if( 0 == foo ) {
+      return ROUGHIRC_COMMAND_NICK;
+   } else {
+      return ROUGHIRC_COMMAND_UNKNOWN;
+   }
 }
 
-bstring roughirc_connect_respond( int i_server_client_select_in ) {
-   return bfromcstr( "Foo" );
+/* Purpose: Extract and return the nickname from the given NICK stanza.       */
+bstring roughirc_server_parse_nick( bstring ps_client_string_in ) {
+   bstring ps_nick_out;
+
+   /* TODO: Some error-checking, maybe. */
+
+   /* Trim off the "NICK" command and any whitespace. */
+   ps_nick_out = bmidstr( ps_client_string_in, 5, ROUGHIRC_OPT_NICK_MAXLEN );
+   btrimws( ps_nick_out );
+
+   return ps_nick_out;
 }
