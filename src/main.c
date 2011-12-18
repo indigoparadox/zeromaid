@@ -332,13 +332,12 @@ main_title_loop:
              *       a new client thread to listen for the type of client to  *
              *       create. Then create the client and reconnect.            */
 
-            #if 0
             /* Connect the client to the local server. */
             i_thread_error = pthread_create(
                &ps_thread_client,
                NULL,
-               &ps_params_client,
-               NULL
+               &client_main,
+               &ps_params_client
             );
             if( i_thread_error ) {
                MAIN_TITLE_LOOP( "Unable to create local client." );
@@ -350,9 +349,9 @@ main_title_loop:
                ps_thread_client,
                NULL
             );
-            #endif
 
-            break;
+            /* When the client is done, return to the menu. */
+            goto main_title_loop;
 
          default:
             i_last_return = systype_title_loop();

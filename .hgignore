@@ -17,3 +17,5 @@ glob:src/ZeroMaid.ncb
 relre:^bin.*
 glob:src/ZeroMaid.layout.cbTemp
 glob:src/gmon.out
+syntax: glob
+debug.local

@@ -92,6 +92,47 @@
       memcpy( &stack_ptr[0], item_addr, sizeof( type ) ); \
    }
 
+#define UTIL_LLIST_ADD( list_ptr, list_iter, cleanup, item_addr ) \
+   if( NULL == list_ptr ) { \
+      list_ptr = item_addr; \
+   } else { \
+      list_iter = list_ptr; \
+      while( NULL != list_iter->next ) { \
+         list_iter = list_iter->next; \
+      } \
+      list_iter->next = item_addr; \
+   }
+
+/* XXX: Does this pointer-comparison work? */
+#define UTIL_LLIST_REMOVE( list_ptr, list_iter, item_addr ) \
+   list_iter = list_ptr; \
+   while( NULL != list_iter ) { \
+      if( item_addr == list_iter->next ) { \
+         list_iter->next = item_addr->next; \
+         item_addr->next = NULL; \
+         break; \
+      } \
+      list_iter = list_iter->next; \
+   }
+
+#define UTIL_LLIST_FSTR( list_ptr, list_iter, find_key, find_val ) \
+   list_iter = list_ptr; \
+   while( NULL != list_iter ) { \
+      if( 0 == bstrcmp( find_val, list_iter->find_key ) ) { \
+         break; \
+      } \
+      list_iter = list_iter->next; \
+   }
+
+#define UTIL_LLIST_FINT( list_ptr, list_iter, find_key, find_val ) \
+   list_iter = list_ptr; \
+   while( NULL != list_iter ) { \
+      if( find_val == list_iter->find_key ) { \
+         break; \
+      } \
+      list_iter = list_iter->next; \
+   }
+
 /* = Function Prototypes = */
 
 int zm_file_exists( bstring );
