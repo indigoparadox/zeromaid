@@ -85,12 +85,10 @@ int main( int argc, char* argv[] ) {
    bstring ps_new_share_path; /* The directory containing shared files. */
    FILE* ps_file_default;
    #endif /* USEWII */
-   pthread_t ps_thread_server,
-      ps_thread_client;
+   pthread_t ps_thread_server;
    ezxml_t ps_xml_system;
    const char* pc_title;
    bstring ps_title;
-   MAIN_PARAMS* ps_params_server = NULL;
 
    #ifdef USECLIENT
    /* Client-specific definitions. */

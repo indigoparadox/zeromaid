@@ -14,44 +14,36 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef ROUGHIRC_H
-#define ROUGHIRC_H
+#ifndef NETWORK_H
+#define NETWORK_H
 
 /* = Includes = */
 
-#include "bstring/bstraux.h"
-#include "bstring/bstrlib.h"
+#ifdef WIN32
+#  include <winsock2.h>
+#  include <ws2tcpip.h>
+#else
+#  include <sys/socket.h>
+#  include <netdb.h>
+#  include <arpa/inet.h>
+#  include <sys/select.h>
+#endif /* WIN32 */
+
+#include "defines.h"
 
 /* = Definitions = */
 
-/* XXX: Make this dynamic. */
-#define ROUGHIRC_SERVER_NAME "localhost"
-
-#define ROUGHIRC_OPT_NICK_MAXLEN 20
-#define ROUGHIRC_OPT_ROOM_MAXLEN 40
-
-#define ROUGHIRC_COMMAND_UNKNOWN 0
-#define ROUGHIRC_COMMAND_USER 1
-#define ROUGHIRC_COMMAND_NICK 2
-#define ROUGHIRC_COMMAND_JOIN 3
-#define ROUGHIRC_COMMAND_PART 4
-
-#define ROUGHXMPP_SERVER 1
-#define ROUGHXMPP_CLIENT 2
-
-/* = Type and Struct Definitions = */
-
-typedef struct {
-
-} ROUGHIRC_PARSE_DATA;
+typedef int NETWORK_SOCKET;
+typedef struct sockaddr NETWORK_ADDRESS;
+typedef struct sockaddr_in NETWORK_ADDRESS_IN;
+typedef socklen_t NETWORK_SOCKLEN;
 
 /* = Function Prototypes = */
 
-int roughirc_server_parse( bstring, ROUGHIRC_PARSE_DATA* );
-bstring roughirc_server_parse_nick( bstring );
-bstring roughirc_server_parse_user( bstring );
-bstring roughirc_server_parse_join( bstring );
-bstring roughirc_server_parse_part( bstring );
+NETWORK_SOCKET network_listen( void );
+NETWORK_SOCKET network_accept(
+   NETWORK_SOCKET, NETWORK_ADDRESS*, NETWORK_SOCKLEN*
+);
+void network_send( NETWORK_SOCKET, bstring );
 
-
-#endif /* !ROUGHIRC_H */
+#endif /* !CLIENT_H */

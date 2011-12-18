@@ -21,59 +21,23 @@ DBG_ENABLE
 SERVER_ROOM* gps_server_rooms;
 
 void* server_main( void* arg ) {
-   int i_socket_listener, /* Listener socket handle. */
-      i_socket_client, /* A new client connection. */
-      i_thread_error,
-      i_bind_result; /* Error code for listening bind. */
-   struct sockaddr_in s_server_address,
-      s_client_address;
-   socklen_t i_client_address_len;
+   int i_thread_error;
+   NETWORK_SOCKET i_socket_client,
+      i_socket_listener;
+   NETWORK_ADDRESS_IN s_client_address;
+   NETWORK_SOCKLEN i_client_address_len;
    SERVER_HANDLE_PARMS* ps_parms;
    pthread_t ps_client_handler;
-   #ifdef WIN32
-   WORD i_ws_version_requested;
-   WSADATA s_wsa_data;
-   int i_ws_result;
-   #endif /* WIN32 */
 
    DBG_INFO( "Server thread started." );
 
-   #ifdef WIN32
-   i_ws_version_requested = MAKEWORD(2, 2);
-   i_ws_result = WSAStartup( i_ws_version_requested, &s_wsa_data );
-   if ( i_ws_result ) {
-      DBG_ERR( "WSAStartup failed with error: %d", i_ws_result );
-      goto main_server_cleanup;
-   }
-   #endif /* WIN32 */
-
-   /* Start the socket listener and start listening on the server port. */
-   i_socket_listener = socket( AF_INET, SOCK_STREAM, 0 );
-   if( 0 > i_socket_listener ) {
-      DBG_ERR( "Unable to open server listener socket: %d", i_socket_listener );
-      goto main_server_cleanup;
-   }
-   memset( &s_server_address, '\0', sizeof( struct sockaddr_in ) );
-   s_server_address.sin_family = AF_INET;
-   s_server_address.sin_addr.s_addr = INADDR_ANY;
-   s_server_address.sin_port = htons( NET_PORT_LISTEN );
-   i_bind_result = bind(
-      i_socket_listener,
-      (struct sockaddr*)&s_server_address,
-      sizeof( s_server_address )
-   );
-   if( 0 > i_bind_result ) {
-      DBG_ERR( "Unable to listen on port: %d", NET_PORT_LISTEN );
-      goto main_server_cleanup;
-   }
-   listen( i_socket_listener, NET_MAX_BACKLOG );
-   DBG_INFO( "Server listening on port: %d", NET_PORT_LISTEN );
+   i_socket_listener = network_listen();
 
    /* Listen for new connections and branch off when one happens. */
    while( 1 ) {
-      i_socket_client = accept(
+      i_socket_client = network_accept(
          i_socket_listener,
-         (struct sockaddr*)&s_client_address,
+         (NETWORK_ADDRESS_IN*)&s_client_address,
          &i_client_address_len
       );
 
@@ -123,7 +87,8 @@ main_server_cleanup:
 void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    bstring ps_client_msg = bformat( "" ),
       ps_client_msg_iter = bformat( "" ),
-      ps_client_msg_data = bformat( "" );
+      ps_client_msg_data = bformat( "" ),
+      ps_server_response = bformat( "" );
    char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
    int i_client_msg_result = 0,
       i_client_command = 0,
@@ -200,6 +165,22 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
                #endif /* NET_DEBUG_PROTOCOL_PRINT */
                break;
 
+            case ROUGHIRC_COMMAND_USER:
+               ps_parms_in->client_uname =
+                  roughirc_server_parse_user( ps_client_msg_iter );
+
+               /* TODO: Figure out the remote hostname properly. */
+
+               #ifdef NET_DEBUG_PROTOCOL_PRINT
+               DBG_INFO(
+                  "Client %d USER set: %s@%s",
+                  ps_parms_in->socket_client,
+                  bdata( ps_parms_in->client_uname ),
+                  bdata( ps_parms_in->client_address )
+               );
+               #endif /* NET_DEBUG_PROTOCOL_PRINT */
+               break;
+
             case ROUGHIRC_COMMAND_JOIN:
                ps_client_msg_data =
                   roughirc_server_parse_join( ps_client_msg_iter );
@@ -243,16 +224,62 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
                );
                #endif /* NET_DEBUG_PROTOCOL_PRINT */
 
-               /* TODO: Add the client to the requested room. */
+               /* Add the client to the requested room. */
                ps_clihan_new = calloc( 1, sizeof( SERVER_CLIENT_HANDLE ) );
                ps_clihan_new->client_id = ps_parms_in->socket_client;
-
                UTIL_LLIST_ADD(
                   ps_room_op->clients_present,
                   ps_clihan_iter,
                   server_handle_cleanup,
                   ps_clihan_new
                );
+
+               /* TODO: What if the USER or NICK is NULL? */
+
+               /* XXX: Pidgin still doesn't open a channel window. */
+
+               /* Send the client the room's occupancy list. */
+               bassignformat(
+                  ps_server_response,
+                  ":%s@%s JOIN :#%s",
+                  bdata( ps_parms_in->client_uname ),
+                  bdata( ps_parms_in->client_address ),
+                  bdata( ps_room_op->map_name )
+               );
+               network_send( ps_parms_in->socket_client, ps_server_response );
+               /* bassignformat(
+                  ps_server_response,
+                  ":%s 332 %s #%s Evaluate!",
+                  ROUGHIRC_SERVER_NAME,
+                  bdata( ps_parms_in->client_nick ),
+                  bdata( ps_room_op->map_name )
+               );
+               network_send( ps_parms_in->socket_client, ps_server_response ); */
+               bassignformat(
+                  ps_server_response,
+                  ":%s MODE #%s +nt",
+                  ROUGHIRC_SERVER_NAME,
+                  bdata( ps_room_op->map_name )
+               );
+               network_send( ps_parms_in->socket_client, ps_server_response );
+               /* XXX: Use meaningful data. */
+               bassignformat(
+                  ps_server_response,
+                  ":%s 353 %s = #%s :@%s",
+                  ROUGHIRC_SERVER_NAME,
+                  bdata( ps_parms_in->client_nick ),
+                  bdata( ps_room_op->map_name ),
+                  bdata( ps_parms_in->client_nick )
+               );
+               network_send( ps_parms_in->socket_client, ps_server_response );
+               bassignformat(
+                  ps_server_response,
+                  ":%s 366 %s #%s :End of /NAMES list.",
+                  ROUGHIRC_SERVER_NAME,
+                  bdata( ps_parms_in->client_nick ),
+                  bdata( ps_room_op->map_name )
+               );
+               network_send( ps_parms_in->socket_client, ps_server_response );
 
                break;
 
@@ -302,34 +329,12 @@ server_handle_cleanup:
    );
 
    close( ps_parms_in->socket_client );
+   bdestroy( ps_parms_in->client_nick );
+   bdestroy( ps_parms_in->client_uname );
    free( ps_parms_in );
    bdestroy( ps_client_msg );
 
    return NULL;
-}
-
-void server_send( int i_client_in, bstring ps_send_in ) {
-   int i_client_msg_result;
-
-   #ifdef NET_DEBUG_PROTOCOL_PRINT
-   DBG_INFO(
-      "Server %d response: %s",
-      i_client_in,
-      bdata( ps_send_in )
-   );
-   #endif /* NET_DEBUG_PROTOCOL_PRINT */
-   i_client_msg_result = send(
-      i_client_in,
-      bdata( ps_send_in ),
-      blength( ps_send_in ),
-      0
-   );
-   if( blength( ps_send_in ) != i_client_msg_result ) {
-      DBG_ERR(
-         "Unable to send entire stanza: %s",
-         bdata( ps_send_in )
-      );
-   }
 }
 
 /* Purpose: Verify that the system file is valid and load its XML tree.       */

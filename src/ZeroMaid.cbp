@@ -600,6 +600,10 @@
 			<Option target="Debug-Wii-PPC-DKPWin" />
 			<Option target="Release-Wii-PPC-DKPWin" />
 		</Unit>
+		<Unit filename="network.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Debug-Windows-i686-SDL" />

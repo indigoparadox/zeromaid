@@ -19,21 +19,12 @@
 
 /* = Includes = */
 
-#ifdef WIN32
-#  include <winsock2.h>
-#  include <ws2tcpip.h>
-#else
-#  include <sys/socket.h>
-#  include <netdb.h>
-#  include <arpa/inet.h>
-#  include <sys/select.h>
-#endif /* WIN32 */
-
 #include "bstring/bstraux.h"
 #include "bstring/bstrlib.h"
 #include "defines.h"
 #include "roughirc.h"
 #include "cache.h"
+#include "network.h"
 
 /* = Definitions = */
 
@@ -45,9 +36,10 @@
 /* = Type and Struct Definitions = */
 
 typedef struct {
-   int socket_client;
+   NETWORK_SOCKET socket_client;
    bstring client_address,
-      client_nick;
+      client_nick,
+      client_uname;
 } SERVER_HANDLE_PARMS;
 
 typedef struct _SERVER_CLIENT_HANDLE {
@@ -65,7 +57,6 @@ typedef struct _SERVER_ROOM {
 
 void* server_main( void* );
 void* server_handle( SERVER_HANDLE_PARMS* );
-void server_send( int, bstring );
 ezxml_t server_load_system( void );
 BOOL server_load_team( CACHE_CACHE* );
 BOOL server_load_start( CACHE_CACHE* );

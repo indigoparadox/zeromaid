@@ -24,6 +24,11 @@ int roughirc_server_parse(
       return ROUGHIRC_COMMAND_NICK;
 
    } else if(
+      0 == binstrcaseless( ps_client_string_in, 0, bfromcstr( "USER" ) )
+   ) {
+      return ROUGHIRC_COMMAND_USER;
+
+   } else if(
       0 == binstrcaseless( ps_client_string_in, 0, bfromcstr( "JOIN" ) )
    ) {
       return ROUGHIRC_COMMAND_JOIN;
@@ -51,6 +56,23 @@ bstring roughirc_server_parse_nick( bstring ps_client_string_in ) {
    return ps_nick_out;
 }
 
+/* Purpose: Extract and return the username from the given USER stanza.       */
+bstring roughirc_server_parse_user( bstring ps_client_string_in ) {
+   bstring ps_user_out;
+   struct bstrList* ps_parm_list;
+
+   /* TODO: Some error-checking, maybe. */
+
+   ps_parm_list = bsplit( ps_client_string_in, ' ' );
+   ps_user_out = bstrcpy( ps_parm_list->entry[1] );
+
+rirc_parse_user:
+
+   bstrListDestroy( ps_parm_list );
+
+   return ps_user_out;
+}
+
 /* Purpose: Extract and return the channel from the given JOIN stanza.        */
 bstring roughirc_server_parse_join( bstring ps_client_string_in ) {
    bstring ps_room_out;
@@ -58,7 +80,7 @@ bstring roughirc_server_parse_join( bstring ps_client_string_in ) {
    /* TODO: Some error-checking, maybe. */
 
    /* Trim off the "JOIN" command and any whitespace. */
-   ps_room_out = bmidstr( ps_client_string_in, 5, ROUGHIRC_OPT_ROOM_MAXLEN );
+   ps_room_out = bmidstr( ps_client_string_in, 6, ROUGHIRC_OPT_ROOM_MAXLEN );
    btrimws( ps_room_out );
 
    return ps_room_out;
