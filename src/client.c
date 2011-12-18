@@ -22,31 +22,14 @@ DBG_ENABLE
 
 int client_main( MAIN_PARAMS* ps_params_in ) {
    CACHE_CACHE* ps_cache = NULL;
+   struct sockaddr_in s_server_address;
+   unsigned short  i_server_port;
 
    DBG_INFO( "Client thread started." );
 
-}
+   /* TODO: Open server connection. */
 
-void client_send( int i_client_in, bstring ps_send_in ) {
-   int i_server_msg_result;
+   /* TODO: Try to connect to default room; that can redirect to system-load  *
+    *       room, maybe?                                                      */
 
-   #ifdef NET_DEBUG_PROTOCOL_PRINT
-   DBG_INFO(
-      "Server %d response: %s",
-      i_client_in,
-      bdata( ps_send_in )
-   );
-   #endif /* NET_DEBUG_PROTOCOL_PRINT */
-   i_server_msg_result = send(
-      i_client_in,
-      bdata( ps_send_in ),
-      blength( ps_send_in ),
-      0
-   );
-   if( blength( ps_send_in ) != i_server_msg_result ) {
-      DBG_ERR(
-         "Unable to send entire stanza: %s",
-         bdata( ps_send_in )
-      );
-   }
 }

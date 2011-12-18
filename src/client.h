@@ -24,6 +24,5 @@
 /* = Function Prototypes = */
 
 int client_main( MAIN_PARAMS* );
-void client_send( int, bstring );
 
 #endif /* !CLIENT_H */
