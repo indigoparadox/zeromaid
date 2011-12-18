@@ -14,40 +14,39 @@
  * with ZeroMaid; if not, write to the Free Software Foundation, Inc.,        *
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA                     */
 
-#ifndef ROUGHIRC_H
-#define ROUGHIRC_H
+#include "client.h"
 
-/* = Includes = */
+DBG_ENABLE
 
-#include "bstring/bstraux.h"
-#include "bstring/bstrlib.h"
+/* = Functions = */
 
-/* = Definitions = */
+int client_main( MAIN_PARAMS* ps_params_in ) {
+   CACHE_CACHE* ps_cache = NULL;
 
-#define ROUGHIRC_OPT_NICK_MAXLEN 20
-#define ROUGHIRC_OPT_ROOM_MAXLEN 40
+   DBG_INFO( "Client thread started." );
 
-#define ROUGHIRC_COMMAND_UNKNOWN 0
-#define ROUGHIRC_COMMAND_USER 1
-#define ROUGHIRC_COMMAND_NICK 2
-#define ROUGHIRC_COMMAND_JOIN 3
-#define ROUGHIRC_COMMAND_PART 4
+}
 
-#define ROUGHXMPP_SERVER 1
-#define ROUGHXMPP_CLIENT 2
+void client_send( int i_client_in, bstring ps_send_in ) {
+   int i_server_msg_result;
 
-/* = Type and Struct Definitions = */
-
-typedef struct {
-
-} ROUGHIRC_PARSE_DATA;
-
-/* = Function Prototypes = */
-
-int roughirc_server_parse( bstring, ROUGHIRC_PARSE_DATA* );
-bstring roughirc_server_parse_nick( bstring );
-bstring roughirc_server_parse_join( bstring );
-bstring roughirc_server_parse_part( bstring );
-
-
-#endif /* !ROUGHIRC_H */
+   #ifdef NET_DEBUG_PROTOCOL_PRINT
+   DBG_INFO(
+      "Server %d response: %s",
+      i_client_in,
+      bdata( ps_send_in )
+   );
+   #endif /* NET_DEBUG_PROTOCOL_PRINT */
+   i_server_msg_result = send(
+      i_client_in,
+      bdata( ps_send_in ),
+      blength( ps_send_in ),
+      0
+   );
+   if( blength( ps_send_in ) != i_server_msg_result ) {
+      DBG_ERR(
+         "Unable to send entire stanza: %s",
+         bdata( ps_send_in )
+      );
+   }
+}

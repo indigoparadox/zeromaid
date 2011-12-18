@@ -18,6 +18,8 @@
 
 DBG_ENABLE
 
+SERVER_ROOM* gps_server_rooms;
+
 void* server_main( void* arg ) {
    int i_socket_listener, /* Listener socket handle. */
       i_socket_client, /* A new client connection. */
@@ -120,12 +122,17 @@ main_server_cleanup:
  *          been established in server_main().                                */
 void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
    bstring ps_client_msg = bformat( "" ),
-      ps_client_msg_iter = bformat( "" );
+      ps_client_msg_iter = bformat( "" ),
+      ps_client_msg_data = bformat( "" );
    char pc_client_msg_temp[SERVER_NET_BUFFER_SIZE];
    int i_client_msg_result = 0,
       i_client_command = 0,
       i_next_newline = 0;
    ROUGHIRC_PARSE_DATA s_parse_data;
+   SERVER_ROOM* ps_room_op,
+      * ps_room_iter;
+   SERVER_CLIENT_HANDLE* ps_clihan_iter,
+      * ps_clihan_new;
 
    DBG_INFO(
       "Handling client connection: %d",
@@ -192,6 +199,95 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
                );
                #endif /* NET_DEBUG_PROTOCOL_PRINT */
                break;
+
+            case ROUGHIRC_COMMAND_JOIN:
+               ps_client_msg_data =
+                  roughirc_server_parse_join( ps_client_msg_iter );
+
+               /* TODO: JOIN 0 should leave all channels. */
+
+               /* Try to find the specified channel and join it. */
+               UTIL_LLIST_FSTR(
+                  gps_server_rooms, ps_room_op, map_name, ps_client_msg_data
+               );
+               if( NULL == ps_room_op ) {
+                  /* Create the requested room if it does not exist. */
+
+                  #ifdef NET_DEBUG_PROTOCOL_PRINT
+                  DBG_INFO(
+                     "Client %d tried to enter non-existant room \"%s\"; "
+                        "creating...",
+                     ps_parms_in->socket_client,
+                     bdata( ps_client_msg_data )
+                  );
+                  #endif /* NET_DEBUG_PROTOCOL_PRINT */
+
+                  ps_room_op = calloc( 1, sizeof( SERVER_ROOM ) );
+                  ps_room_op->map_name = ps_client_msg_data;
+
+                  /* TODO: Create a map for the room. */
+
+                  UTIL_LLIST_ADD(
+                     gps_server_rooms,
+                     ps_room_iter,
+                     server_handle_cleanup,
+                     ps_room_op
+                  );
+               }
+
+               #ifdef NET_DEBUG_PROTOCOL_PRINT
+               DBG_INFO(
+                  "Client %d entering room \"%s\"...",
+                  ps_parms_in->socket_client,
+                  bdata( ps_client_msg_data )
+               );
+               #endif /* NET_DEBUG_PROTOCOL_PRINT */
+
+               /* TODO: Add the client to the requested room. */
+               ps_clihan_new = calloc( 1, sizeof( SERVER_CLIENT_HANDLE ) );
+               ps_clihan_new->client_id = ps_parms_in->socket_client;
+
+               UTIL_LLIST_ADD(
+                  ps_room_op->clients_present,
+                  ps_clihan_iter,
+                  server_handle_cleanup,
+                  ps_clihan_new
+               );
+
+               break;
+
+            case ROUGHIRC_COMMAND_PART:
+               ps_client_msg_data =
+                  roughirc_server_parse_part( ps_client_msg_iter );
+
+               /* TODO: Accept multiple comma-separated channels. */
+
+               UTIL_LLIST_FSTR(
+                  gps_server_rooms, ps_room_op, map_name, ps_client_msg_data
+               );
+               if( NULL != ps_room_op ) {
+                  UTIL_LLIST_FINT(
+                     ps_room_op->clients_present,
+                     ps_clihan_new,
+                     client_id,
+                     ps_parms_in->socket_client
+                  );
+                  UTIL_LLIST_REMOVE(
+                     ps_room_op->clients_present,
+                     ps_clihan_iter,
+                     ps_clihan_new
+                  );
+               }
+               break;
+
+            default:
+               #ifdef NET_DEBUG_PROTOCOL_PRINT
+               DBG_INFO(
+                  "Client %d unknown command: \"%s\"",
+                  ps_parms_in->socket_client,
+                  bdata( ps_client_msg_iter )
+               );
+               #endif /* NET_DEBUG_PROTOCOL_PRINT */
          }
       }
 
