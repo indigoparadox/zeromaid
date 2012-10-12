@@ -20,6 +20,7 @@
 /* = Includes = */
 
 #include "cache.h"
+#include "network.h"
 
 /* = Function Prototypes = */
 

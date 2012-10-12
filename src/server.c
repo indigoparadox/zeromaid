@@ -37,7 +37,11 @@ void* server_main( void* arg ) {
    while( 1 ) {
       i_socket_client = network_accept(
          i_socket_listener,
+         #ifdef WIN32
          (NETWORK_ADDRESS_IN*)&s_client_address,
+         #else
+         (NETWORK_ADDRESS*)&s_client_address,
+         #endif /* WIN32 */
          &i_client_address_len
       );
 
@@ -63,7 +67,7 @@ void* server_main( void* arg ) {
       i_thread_error = pthread_create(
          &ps_client_handler,
          NULL,
-         &server_handle,
+         (void*)&server_handle,
          (void*)ps_parms
       );
       if( i_thread_error ) {
@@ -307,14 +311,14 @@ void* server_handle( SERVER_HANDLE_PARMS* ps_parms_in ) {
                }
                break;
 
+            #ifdef NET_DEBUG_PROTOCOL_PRINT
             default:
-               #ifdef NET_DEBUG_PROTOCOL_PRINT
                DBG_INFO(
                   "Client %d unknown command: \"%s\"",
                   ps_parms_in->socket_client,
                   bdata( ps_client_msg_iter )
                );
-               #endif /* NET_DEBUG_PROTOCOL_PRINT */
+            #endif /* NET_DEBUG_PROTOCOL_PRINT */
          }
       }
 
