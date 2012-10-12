@@ -213,7 +213,7 @@ int main( int argc, char* argv[] ) {
    breada( ps_new_share_path, (bNread)fread, ps_file_default );
    btrimws( ps_new_share_path );
    fclose( ps_file_default );
-   if( chdir( ps_new_share_path->data ) ) {
+   if( chdir( bdata( ps_new_share_path ) ) ) {
       DBG_ERR( "Unable to change to directory: %s", ps_new_share_path->data );
       goto main_cleanup;
    }
@@ -334,7 +334,7 @@ main_title_loop:
             i_thread_error = pthread_create(
                &ps_thread_client,
                NULL,
-               &client_main,
+               (void*)&client_main,
                &ps_params_client
             );
             if( i_thread_error ) {
