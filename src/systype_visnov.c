@@ -289,7 +289,7 @@ BOOL systype_visnov_load_commands(
        * data item for that command, although that much should be evident from   *
        * the list below. At any rate, be aware of the header and be sure to      *
        * update it accordingly when adding new items.                            */
-      if( 0 == strcmp( ps_command_action->data, "background" ) ) {
+      if( 0 == strcmp( bdata( ps_command_action ), "background" ) ) {
          /* COMMAND: BACKGROUND */
          /* TODO: Standardize the loading of an image command into a macro. */
          STVN_PARSE_CMD_ALLOC(
@@ -301,19 +301,19 @@ BOOL systype_visnov_load_commands(
          s_command_tmp.data[0].bg = graphics_create_image( ps_command_attr );
          bdestroy( ps_command_attr );
 
-      } else if( 0 == strcmp( ps_command_action->data, "pause" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "pause" ) ) {
          /* COMMAND: PAUSE */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_PAUSE, SYSTYPE_VISNOV_CMD_PAUSE_DC );
          STVN_PARSE_CMD_DAT_INT( delay, 0 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "label" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "label" ) ) {
          /* COMMAND: LABEL */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_LABEL, SYSTYPE_VISNOV_CMD_LABEL_DC );
          STVN_PARSE_CMD_DAT_STR( name, 0 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "cond" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "cond" ) ) {
          /* COMMAND: COND */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_COND, SYSTYPE_VISNOV_CMD_COND_DC );
@@ -322,7 +322,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR( key, 2 );
          STVN_PARSE_CMD_DAT_STR( equals, 3 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "talk" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "talk" ) ) {
          /* COMMAND: TALK */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TALK, SYSTYPE_VISNOV_CMD_TALK_DC );
@@ -330,13 +330,13 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_STR_BODY( talktext, 1 );
          STVN_PARSE_CMD_DAT_INT( speed, 2 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "goto" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "goto" ) ) {
          /* COMMAND: GOTO */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_GOTO, SYSTYPE_VISNOV_CMD_GOTO_DC );
          STVN_PARSE_CMD_DAT_STR( target, 0 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "portrait" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "portrait" ) ) {
          /* COMMAND: PORTRAIT */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_PORTRAIT, SYSTYPE_VISNOV_CMD_PORTRAIT_DC );
@@ -346,7 +346,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_INT( x, 3 );
          STVN_PARSE_CMD_DAT_INT( y, 4 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "teleport" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "teleport" ) ) {
          /* COMMAND: TELEPORT */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_TELEPORT, SYSTYPE_VISNOV_CMD_TELEPORT_DC );
@@ -355,7 +355,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_INT( desty, 2 );
          STVN_PARSE_CMD_DAT_STR( type, 3 ); /* TODO: Parse the type. */
 
-      } else if( 0 == strcmp( ps_command_action->data, "menu" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "menu" ) ) {
          /* COMMAND: MENU */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_MENU, SYSTYPE_VISNOV_CMD_MENU_DC );
@@ -366,7 +366,7 @@ BOOL systype_visnov_load_commands(
          STVN_PARSE_CMD_DAT_COL( color_sfg, 4 );
          STVN_PARSE_CMD_DAT_COL( color_sbg, 5 );
 
-      } else if( 0 == strcmp( ps_command_action->data, "set" ) ) {
+      } else if( 0 == strcmp( bdata( ps_command_action ), "set" ) ) {
          /* COMMAND: SET */
          STVN_PARSE_CMD_ALLOC(
             SYSTYPE_VISNOV_CMD_SET, SYSTYPE_VISNOV_CMD_SET_DC );

@@ -140,7 +140,7 @@ int main( int argc, char* argv[] ) {
    breada( ps_new_share_path, (bNread)fread, ps_file_default );
    btrimws( ps_new_share_path );
    fclose( ps_file_default );
-   if( chdir( ps_new_share_path->data ) ) {
+   if( chdir( (const char*)ps_new_share_path->data ) ) {
       DBG_ERR_STR( "Unable to change to directory", ps_new_share_path->data );
       goto main_cleanup;
    }
