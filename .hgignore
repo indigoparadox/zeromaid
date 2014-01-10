@@ -1,6 +1,5 @@
 regexp:.*\.dll
 regexp:.*\.pcx
-regexp:.*\.pdb
 regexp:.*\.ttf
 glob:src/ZeroMaid.layout
 glob:src/ZeroMaid.depend
